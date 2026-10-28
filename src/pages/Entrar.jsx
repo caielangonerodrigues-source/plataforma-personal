@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 
 const MENSAGENS = {
@@ -61,6 +62,10 @@ export default function Entrar() {
             {modo !== 'esqueci' && <button type="button" className="link" onClick={() => setModo('esqueci')}>Esqueci a senha</button>}
           </div>
         </form>
+        <Link to="/spinning" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
+          <span><strong>Aula de spinning</strong><br /><span className="meta">Reserve sua bike, sem precisar de conta</span></span>
+          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Reservar ›</span>
+        </Link>
       </div>
     </div>
   )

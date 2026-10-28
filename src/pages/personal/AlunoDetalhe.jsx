@@ -9,15 +9,16 @@ import Avaliacoes from './Avaliacoes.jsx'
 import Progressao from '../../components/Progressao.jsx'
 import Anamnese, { temAlertaParq } from '../../components/Anamnese.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
+import Consultoria from '../../components/Consultoria.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
-const ABAS = [['treinos', 'Treinos'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
+const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
 
 export default function AlunoDetalhe() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const aba = ABAS.some(([k]) => k === params.get('aba')) ? params.get('aba') : 'treinos'
+  const abaPedida = ABAS.some(([k]) => k === params.get('aba')) ? params.get('aba') : 'treinos'
   const [aluno, setAluno] = useState(null)
   const [diasTreinados, setDiasTreinados] = useState(0)
   const [registros, setRegistros] = useState([])
@@ -52,6 +53,8 @@ export default function AlunoDetalhe() {
 
   if (erro && !aluno) return <><Link to="/alunos">← Alunos</Link><p className="erro">{erro}</p></>
   if (!aluno) return <p className="carregando">Carregando…</p>
+  const abas = ABAS.filter(([k]) => k !== 'consultoria' || aluno.modalidade === 'online')
+  const aba = abas.some(([k]) => k === abaPedida) ? abaPedida : 'treinos'
 
   return (
     <>
@@ -60,7 +63,7 @@ export default function AlunoDetalhe() {
         <div>
           <h1>{aluno.nome}</h1>
           <p className="sub" style={{ margin: 0 }}>
-            {[aluno.idade && `${aluno.idade} anos`, aluno.sexo === 'M' ? 'Masculino' : 'Feminino', aluno.objetivo, aluno.plano, aluno.inicio && `desde ${fmtData(aluno.inicio)}`].filter(Boolean).join(' · ')}
+            {[aluno.modalidade === 'online' && 'Consultoria online', aluno.idade && `${aluno.idade} anos`, aluno.sexo === 'M' ? 'Masculino' : 'Feminino', aluno.objetivo, aluno.plano, aluno.inicio && `desde ${fmtData(aluno.inicio)}`].filter(Boolean).join(' · ')}
           </p>
         </div>
         <div className="row"><Status status={aluno.status} /><button className="small" onClick={() => setEditando(true)}>Editar dados</button></div>
@@ -74,9 +77,10 @@ export default function AlunoDetalhe() {
       {alertaParq && <p className="erro" style={{ marginTop: 6 }}>PAR-Q com resposta "sim": veja a anamnese antes de aumentar a intensidade.</p>}
 
       <div className="tabs" role="tablist">
-        {ABAS.map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setParams(k === 'treinos' ? {} : { aba: k })}>{l}</button>)}
+        {abas.map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setParams(k === 'treinos' ? {} : { aba: k })}>{l}</button>)}
       </div>
       {aba === 'treinos' && <Treinos aluno={aluno} recarregar={carregar} />}
+      {aba === 'consultoria' && <Consultoria aluno={aluno} personal onAvaliacao={carregar} />}
       {aba === 'avaliacoes' && <Avaliacoes aluno={aluno} recarregar={carregar} />}
       {aba === 'progressao' && <div className="panel"><Progressao treinos={aluno.treinos} registros={registros} /></div>}
       {aba === 'anamnese' && <Anamnese alunoId={aluno.id} onSalva={carregar} intro={<p className="meta" style={{ margin: 0 }}>O aluno também pode preencher pela área dele.</p>} />}
