@@ -12,7 +12,15 @@ Site para o personal gerenciar alunos, fichas de treino e avaliações físicas,
 
 **Área do aluno**
 - Treino do dia, com os exercícios marcados como feitos (o personal vê quantos dias o aluno treinou).
+- Check-in com foto e comentário, sequência de dias seguidos e treinos no mês.
+- Comunidade: feed com os check-ins da turma, curtidas e ranking do mês (dias com check-in).
 - Última avaliação e gráfico de evolução.
+
+**Comunidade**
+- Só alunos do mesmo personal se veem, e só mostram nome e check-ins (nunca e-mail, telefone ou avaliações).
+- No cadastro do aluno dá para desmarcar "Participa da comunidade": ele continua fazendo check-in, mas some do feed e do ranking dos colegas.
+- O personal vê tudo em **Comunidade**, pode curtir e apagar posts.
+- As fotos ficam no Supabase Storage (bucket privado `checkins`, criado pelo `schema.sql`) e são reduzidas antes do envio. O plano gratuito tem 1 GB, o que dá para milhares de fotos.
 
 Aluno pausado não consegue ver treinos. Cada personal só vê os próprios alunos, e cada aluno só vê os próprios dados. Isso é garantido pelo banco (Row Level Security), não só pela tela.
 
