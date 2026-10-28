@@ -1,0 +1,80 @@
+import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { configurado, supabase } from './supabase.js'
+import Entrar from './pages/Entrar.jsx'
+import NovaSenha from './pages/NovaSenha.jsx'
+import SemAcesso from './pages/SemAcesso.jsx'
+import LayoutPersonal from './pages/personal/LayoutPersonal.jsx'
+import Painel from './pages/personal/Painel.jsx'
+import Alunos from './pages/personal/Alunos.jsx'
+import AlunoDetalhe from './pages/personal/AlunoDetalhe.jsx'
+import AreaAluno from './pages/aluno/AreaAluno.jsx'
+
+export default function App() {
+  const navigate = useNavigate()
+  const [sessao, setSessao] = useState(undefined) // undefined = ainda carregando
+  const [perfil, setPerfil] = useState(null)
+
+  useEffect(() => {
+    if (!configurado) return
+    supabase.auth.getSession().then(({ data }) => setSessao(data.session))
+    const { data } = supabase.auth.onAuthStateChange((evento, s) => {
+      setSessao(s)
+      if (evento === 'PASSWORD_RECOVERY') navigate('/nova-senha')
+    })
+    return () => data.subscription.unsubscribe()
+  }, [navigate])
+
+  const uid = sessao?.user?.id
+  useEffect(() => {
+    if (!uid) { setPerfil(null); return }
+    let ativo = true
+    ;(async () => {
+      const { data: p } = await supabase.from('personais').select('user_id, nome').eq('user_id', uid).maybeSingle()
+      if (p) { if (ativo) setPerfil({ tipo: 'personal', nome: p.nome }); return }
+      const { data: a } = await supabase.from('alunos').select('*').eq('user_id', uid).maybeSingle()
+      if (ativo) setPerfil(a ? { tipo: 'aluno', aluno: a } : { tipo: 'nenhum' })
+    })()
+    return () => { ativo = false }
+  }, [uid])
+
+  if (!configurado) {
+    return (
+      <div className="centro"><div className="panel" style={{ maxWidth: 520 }}>
+        <h2>Falta configurar o Supabase</h2>
+        <p>Cadastre as variáveis <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code> (veja o README).</p>
+      </div></div>
+    )
+  }
+  if (sessao === undefined || (sessao && !perfil)) return <div className="centro carregando">Carregando…</div>
+
+  if (!sessao) {
+    return (
+      <Routes>
+        <Route path="/nova-senha" element={<NovaSenha />} />
+        <Route path="*" element={<Entrar />} />
+      </Routes>
+    )
+  }
+
+  if (perfil.tipo === 'personal') {
+    return (
+      <Routes>
+        <Route path="/nova-senha" element={<NovaSenha />} />
+        <Route element={<LayoutPersonal nome={perfil.nome} />}>
+          <Route path="/painel" element={<Painel />} />
+          <Route path="/alunos" element={<Alunos />} />
+          <Route path="/alunos/:id" element={<AlunoDetalhe />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/painel" replace />} />
+      </Routes>
+    )
+  }
+
+  return (
+    <Routes>
+      <Route path="/nova-senha" element={<NovaSenha />} />
+      <Route path="*" element={perfil.tipo === 'aluno' ? <AreaAluno aluno={perfil.aluno} /> : <SemAcesso email={sessao.user.email} />} />
+    </Routes>
+  )
+}
