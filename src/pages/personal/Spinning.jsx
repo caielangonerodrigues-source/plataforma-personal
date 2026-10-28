@@ -205,7 +205,7 @@ function BikeLivre({ bike, aula, onAcao }) {
 }
 
 function NovaAula({ onFechar, onSalva }) {
-  const [f, setF] = useState({ titulo: 'Spinning', instrutor: '', data: hojeISO(), hora: '07:00', duracao_min: '45', valor: '30', vagas: '14', semanas: '0' })
+  const [f, setF] = useState({ titulo: 'Spinning', instrutor: '', data: hojeISO(), hora: '07:00', duracao_min: '45', valor: '25', vagas: '14', semanas: '0' })
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const muda = (k) => (e) => setF({ ...f, [k]: e.target.value })
