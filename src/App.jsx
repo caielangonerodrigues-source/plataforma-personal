@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { configurado, supabase } from './supabase.js'
 import Entrar from './pages/Entrar.jsx'
 import NovaSenha from './pages/NovaSenha.jsx'
@@ -12,9 +12,14 @@ import ComunidadePersonal from './pages/personal/ComunidadePersonal.jsx'
 import Financeiro from './pages/personal/Financeiro.jsx'
 import Configuracoes from './pages/personal/Configuracoes.jsx'
 import AreaAluno from './pages/aluno/AreaAluno.jsx'
+import Spinning from './pages/personal/Spinning.jsx'
+import AulasSpinning from './pages/spinning/AulasSpinning.jsx'
+import AulaSpinning from './pages/spinning/AulaSpinning.jsx'
+import ReservaSpinning from './pages/spinning/ReservaSpinning.jsx'
 
 export default function App() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [sessao, setSessao] = useState(undefined) // undefined = ainda carregando
   const [perfil, setPerfil] = useState(null)
 
@@ -49,6 +54,16 @@ export default function App() {
       </div></div>
     )
   }
+  // Reserva de spinning é pública: abre com ou sem login.
+  if (pathname.startsWith('/spinning')) {
+    return (
+      <Routes>
+        <Route path="/spinning" element={<AulasSpinning />} />
+        <Route path="/spinning/reserva/:id" element={<ReservaSpinning />} />
+        <Route path="/spinning/:aulaId" element={<AulaSpinning />} />
+      </Routes>
+    )
+  }
   if (sessao === undefined || (sessao && !perfil)) return <div className="centro carregando">Carregando…</div>
 
   if (!sessao) {
@@ -69,6 +84,7 @@ export default function App() {
           <Route path="/alunos" element={<Alunos />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
+          <Route path="/aulas" element={<Spinning />} />
           <Route path="/financeiro" element={<Financeiro />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
