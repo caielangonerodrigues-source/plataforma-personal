@@ -1,0 +1,19 @@
+import { NavLink, Outlet } from 'react-router-dom'
+import { supabase } from '../../supabase.js'
+import { primeiroNome } from '../../lib/formato.js'
+
+export default function LayoutPersonal({ nome }) {
+  const cls = ({ isActive }) => `navbtn${isActive ? ' active' : ''}`
+  return (
+    <div className="app">
+      <nav className="side" aria-label="Seções">
+        <div className="brand">Personal<small>{nome ? `Olá, ${primeiroNome(nome)}` : 'Área do treinador'}</small></div>
+        <NavLink to="/painel" className={cls}>Painel</NavLink>
+        <NavLink to="/alunos" className={cls}>Alunos</NavLink>
+        <div className="spacer" />
+        <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
+      </nav>
+      <main><Outlet /></main>
+    </div>
+  )
+}
