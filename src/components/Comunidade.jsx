@@ -1,11 +1,12 @@
 import { iniciais, nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
+import Desafios from './Desafios.jsx'
 
 const nomeDoMes = () => new Date().toLocaleDateString('pt-BR', { month: 'long' })
 
 // Feed de check-ins + ranking do mês. `meuAlunoId` destaca o aluno logado; `podeApagarTudo` é o personal.
-export default function Comunidade({ comunidade, meuAlunoId, podeApagarTudo }) {
-  const { dados, erro, curtir, apagar } = comunidade
+export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeApagarTudo }) {
+  const { dados, erro, curtir, apagar, carregar } = comunidade
   if (erro) return <p className="erro">{erro}</p>
   if (!dados) return <p className="carregando">Carregando…</p>
 
@@ -47,7 +48,9 @@ export default function Comunidade({ comunidade, meuAlunoId, podeApagarTudo }) {
         {!feed.length && <div className="panel empty">Nenhum check-in ainda. O primeiro a treinar abre o feed!</div>}
       </div>
 
-      <aside className="panel">
+      <aside className="stack">
+      <Desafios desafios={dados.desafios} checkins={dados.periodo} membros={dados.membros} minhasDatas={minhasDatas} podeGerenciar={podeApagarTudo} recarregar={carregar} />
+      <div className="panel">
         <h2>Ranking de {nomeDoMes()}</h2>
         <p className="meta" style={{ margin: '2px 0 8px' }}>Dias com check-in neste mês</p>
         <div>
@@ -61,6 +64,7 @@ export default function Comunidade({ comunidade, meuAlunoId, podeApagarTudo }) {
           ))}
           {!tabela.length && <p className="empty">Ninguém na turma ainda.</p>}
         </div>
+      </div>
       </aside>
     </div>
   )

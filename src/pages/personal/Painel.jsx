@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
-import { diasDesde, f1, fmtData, hojeISO, porData } from '../../lib/formato.js'
+import { diasDesde, f1, fmtData, hojeISO, porData, primeiroNome } from '../../lib/formato.js'
+import { linkWhatsApp } from '../../lib/whatsapp.js'
 
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
@@ -9,7 +10,7 @@ export default function Painel() {
   const [erro, setErro] = useState('')
 
   useEffect(() => {
-    supabase.from('alunos').select('id, nome, objetivo, status, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
+    supabase.from('alunos').select('id, nome, telefone, objetivo, status, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data)))
     Promise.all([
       supabase.from('registros').select('aluno_id').eq('data', hojeISO()),
@@ -46,11 +47,17 @@ export default function Painel() {
         <div className="panel">
           <div className="row between"><h2>Reavaliação</h2><span className="meta">mais de 60 dias</span></div>
           <div className="list">
-            {reavaliar.length ? reavaliar.map((a) => { const u = ultima(a); return (
-              <Link className="item" key={a.id} to={`/alunos/${a.id}?aba=avaliacoes`}>
-                <div><div className="name">{a.nome}</div><div className="meta">{u ? `Última em ${fmtData(u.data)} · há ${diasDesde(u.data)} dias` : 'Nunca avaliado'}</div></div>
-                <span className="pill pendente">Agendar</span>
-              </Link>) }) : <p className="empty">Todos em dia.</p>}
+            {reavaliar.length ? reavaliar.map((a) => {
+              const u = ultima(a)
+              const zap = linkWhatsApp(a.telefone, `Oi, ${primeiroNome(a.nome)}! Já ${u ? `faz ${diasDesde(u.data)} dias da sua última avaliação` : 'está na hora da sua primeira avaliação'}. Vamos marcar a reavaliação? Qual dia fica bom pra você?`)
+              return (
+                <div className="item" key={a.id} style={{ cursor: 'default' }}>
+                  <Link to={`/alunos/${a.id}?aba=avaliacoes`} style={{ color: 'inherit', textDecoration: 'none', minWidth: 0 }}>
+                    <div className="name">{a.nome}</div><div className="meta">{u ? `Última em ${fmtData(u.data)} · há ${diasDesde(u.data)} dias` : 'Nunca avaliado'}</div>
+                  </Link>
+                  {zap ? <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer">Chamar no WhatsApp</a> : <span className="pill pendente">Agendar</span>}
+                </div>
+              ) }) : <p className="empty">Todos em dia.</p>}
           </div>
         </div>
         <div className="panel">

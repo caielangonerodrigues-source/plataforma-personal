@@ -9,13 +9,17 @@ export function useComunidade() {
   const [erro, setErro] = useState('')
 
   const carregar = useCallback(async () => {
-    const [sessao, membros, feed, mes] = await Promise.all([
+    const hoje = hojeISO()
+    const [sessao, membros, feed, desafios] = await Promise.all([
       supabase.auth.getSession(),
       supabase.rpc('comunidade_membros'),
       supabase.from('checkins').select('id, aluno_id, data, titulo, comentario, foto, created_at').order('created_at', { ascending: false }).limit(30),
-      supabase.from('checkins').select('aluno_id, data').gte('data', inicioDoMes(hojeISO())),
+      supabase.from('desafios').select('*').order('fim'),
     ])
-    const falha = membros.error || feed.error || mes.error
+    // Check-ins desde o começo do mês ou do desafio ativo mais antigo (para ranking e desafios).
+    const desde = [inicioDoMes(hoje), ...(desafios.data || []).filter((d) => d.fim >= hoje).map((d) => d.inicio)].sort()[0]
+    const periodo = await supabase.from('checkins').select('aluno_id, data').gte('data', desde)
+    const falha = membros.error || feed.error || periodo.error || desafios.error
     if (falha) return setErro(`Não foi possível carregar a comunidade: ${falha.message}`)
     const ids = feed.data.map((c) => c.id)
     const caminhos = feed.data.map((c) => c.foto).filter(Boolean)
@@ -28,7 +32,9 @@ export function useComunidade() {
       eu: sessao.data.session?.user.id,
       membros: membros.data,
       feed: feed.data,
-      mes: mes.data,
+      mes: periodo.data.filter((c) => c.data >= inicioDoMes(hoje)),
+      periodo: periodo.data,
+      desafios: desafios.data,
       curtidas: curtidas.data || [],
       fotos: Object.fromEntries((fotos.data || []).filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])),
     })

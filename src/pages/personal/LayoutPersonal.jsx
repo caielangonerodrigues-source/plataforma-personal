@@ -11,6 +11,8 @@ export default function LayoutPersonal({ nome }) {
         <NavLink to="/painel" className={cls}>Painel</NavLink>
         <NavLink to="/alunos" className={cls}>Alunos</NavLink>
         <NavLink to="/comunidade" className={cls}>Comunidade</NavLink>
+        <NavLink to="/financeiro" className={cls}>Financeiro</NavLink>
+        <NavLink to="/configuracoes" className={cls}>Configurações</NavLink>
         <div className="spacer" />
         <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
       </nav>

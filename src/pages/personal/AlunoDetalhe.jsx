@@ -2,18 +2,26 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Status from '../../components/Status.jsx'
-import { fmtData, hojeISO, porData, porOrdem } from '../../lib/formato.js'
+import { fmtData, hojeISO, porData, porOrdem, primeiroNome } from '../../lib/formato.js'
 import FormAluno from './FormAluno.jsx'
 import Treinos from './Treinos.jsx'
 import Avaliacoes from './Avaliacoes.jsx'
+import Progressao from '../../components/Progressao.jsx'
+import Anamnese, { temAlertaParq } from '../../components/Anamnese.jsx'
+import FotosEvolucao from '../../components/FotosEvolucao.jsx'
+import { linkWhatsApp } from '../../lib/whatsapp.js'
+
+const ABAS = [['treinos', 'Treinos'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
 
 export default function AlunoDetalhe() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const aba = params.get('aba') === 'avaliacoes' ? 'avaliacoes' : 'treinos'
+  const aba = ABAS.some(([k]) => k === params.get('aba')) ? params.get('aba') : 'treinos'
   const [aluno, setAluno] = useState(null)
   const [diasTreinados, setDiasTreinados] = useState(0)
+  const [registros, setRegistros] = useState([])
+  const [alertaParq, setAlertaParq] = useState(false)
   const [editando, setEditando] = useState(false)
   const [confirmarExclusao, setConfirmarExclusao] = useState(false)
   const [erro, setErro] = useState('')
@@ -25,8 +33,13 @@ export default function AlunoDetalhe() {
     data.avaliacoes.sort(porData)
     setAluno(data)
     const desde = new Date(Date.now() - 30 * 864e5).toLocaleDateString('sv-SE')
-    const { data: regs } = await supabase.from('registros').select('data').eq('aluno_id', id).gte('data', desde).lte('data', hojeISO())
-    setDiasTreinados(new Set((regs || []).map((r) => r.data)).size)
+    const [{ data: regs }, { data: an }] = await Promise.all([
+      supabase.from('registros').select('exercicio_id, data, series').eq('aluno_id', id).lte('data', hojeISO()),
+      supabase.from('anamneses').select('parq').eq('aluno_id', id).maybeSingle(),
+    ])
+    setRegistros(regs || [])
+    setDiasTreinados(new Set((regs || []).filter((r) => r.data >= desde).map((r) => r.data)).size)
+    setAlertaParq(temAlertaParq(an))
   }, [id])
 
   useEffect(() => { carregar() }, [carregar])
@@ -53,17 +66,21 @@ export default function AlunoDetalhe() {
         <div className="row"><Status status={aluno.status} /><button className="small" onClick={() => setEditando(true)}>Editar dados</button></div>
       </div>
       <p className="meta" style={{ marginTop: 8 }}>
-        {aluno.telefone && <>WhatsApp <span style={{ userSelect: 'all' }}>{aluno.telefone}</span> · </>}
+        {aluno.telefone && <>WhatsApp <a href={linkWhatsApp(aluno.telefone, `Oi, ${primeiroNome(aluno.nome)}! Tudo bem?`)} target="_blank" rel="noreferrer">{aluno.telefone}</a> · </>}
         {aluno.email ? <>{aluno.email} · {aluno.user_id ? 'acesso ativo' : 'ainda não criou a senha'}</> : 'sem e-mail de acesso'}
         {' · '}treinou em {diasTreinados} dia(s) nos últimos 30
       </p>
       {erro && <p className="erro">{erro}</p>}
+      {alertaParq && <p className="erro" style={{ marginTop: 6 }}>PAR-Q com resposta "sim": veja a anamnese antes de aumentar a intensidade.</p>}
 
       <div className="tabs" role="tablist">
-        <button className="tab" role="tab" aria-selected={aba === 'treinos'} onClick={() => setParams({})}>Treinos</button>
-        <button className="tab" role="tab" aria-selected={aba === 'avaliacoes'} onClick={() => setParams({ aba: 'avaliacoes' })}>Avaliações físicas</button>
+        {ABAS.map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setParams(k === 'treinos' ? {} : { aba: k })}>{l}</button>)}
       </div>
-      {aba === 'treinos' ? <Treinos aluno={aluno} recarregar={carregar} /> : <Avaliacoes aluno={aluno} recarregar={carregar} />}
+      {aba === 'treinos' && <Treinos aluno={aluno} recarregar={carregar} />}
+      {aba === 'avaliacoes' && <Avaliacoes aluno={aluno} recarregar={carregar} />}
+      {aba === 'progressao' && <div className="panel"><Progressao treinos={aluno.treinos} registros={registros} /></div>}
+      {aba === 'anamnese' && <Anamnese alunoId={aluno.id} onSalva={carregar} intro={<p className="meta" style={{ margin: 0 }}>O aluno também pode preencher pela área dele.</p>} />}
+      {aba === 'fotos' && <FotosEvolucao alunoId={aluno.id} podeApagar />}
 
       <div className="row" style={{ marginTop: 40 }}>
         {confirmarExclusao ? (

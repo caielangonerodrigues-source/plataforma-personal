@@ -8,7 +8,7 @@ const SUGESTOES = ['Supino reto', 'Supino inclinado', 'Agachamento livre', 'Leg 
   'Mesa flexora', 'Stiff', 'Afundo', 'Elevação pélvica', 'Panturrilha em pé', 'Prancha', 'Abdominal supra']
 
 export default function Treinos({ aluno, recarregar }) {
-  const [modal, setModal] = useState(null) // { tipo: 'ficha' } | { tipo: 'exercicio', treino }
+  const [modal, setModal] = useState(null) // { tipo: 'ficha' } | { tipo: 'exercicio', treino, exercicio? }
   const [confirmar, setConfirmar] = useState(null)
   const [erro, setErro] = useState('')
 
@@ -43,9 +43,12 @@ export default function Treinos({ aluno, recarregar }) {
                 <tbody>
                   {t.exercicios.map((e) => (
                     <tr key={e.id}>
-                      <td>{e.nome}{e.obs && <div className="meta">{e.obs}</div>}</td>
+                      <td>
+                        {e.nome}{e.obs && <div className="meta">{e.obs}</div>}
+                        {e.video_url && <div><a className="meta" href={e.video_url} target="_blank" rel="noreferrer">Ver vídeo</a></div>}
+                      </td>
                       <td className="num">{e.series}</td><td className="num">{e.reps}</td><td className="num">{e.carga}</td><td className="num">{e.descanso}</td>
-                      <td><button className="ghost small" aria-label={`Remover ${e.nome}`} onClick={() => rodar(supabase.from('exercicios').delete().eq('id', e.id))}>✕</button></td>
+                      <td style={{ whiteSpace: 'nowrap' }}><button className="ghost small" onClick={() => setModal({ tipo: 'exercicio', treino: t, exercicio: e })}>Editar</button><button className="ghost small" aria-label={`Remover ${e.nome}`} onClick={() => rodar(supabase.from('exercicios').delete().eq('id', e.id))}>✕</button></td>
                     </tr>
                   ))}
                   {!t.exercicios.length && <tr><td colSpan="6" className="empty">Nenhum exercício ainda.</td></tr>}
@@ -58,7 +61,7 @@ export default function Treinos({ aluno, recarregar }) {
       </div>
 
       {modal?.tipo === 'ficha' && <FormFicha aluno={aluno} onFechar={() => setModal(null)} rodar={rodar} />}
-      {modal?.tipo === 'exercicio' && <FormExercicio treino={modal.treino} onFechar={() => setModal(null)} rodar={rodar} />}
+      {modal?.tipo === 'exercicio' && <FormExercicio treino={modal.treino} exercicio={modal.exercicio} onFechar={() => setModal(null)} rodar={rodar} />}
     </>
   )
 }
@@ -80,20 +83,25 @@ function FormFicha({ aluno, onFechar, rodar }) {
   )
 }
 
-function FormExercicio({ treino, onFechar, rodar }) {
-  const [d, setD] = useState({ nome: '', series: '3', reps: '12', carga: '', descanso: '60s', obs: '' })
+function FormExercicio({ treino, exercicio: ex, onFechar, rodar }) {
+  const [d, setD] = useState(() => (ex
+    ? { nome: ex.nome, series: String(ex.series ?? ''), reps: ex.reps ?? '', carga: ex.carga === '—' ? '' : ex.carga ?? '', descanso: ex.descanso ?? '', obs: ex.obs ?? '', video: ex.video_url ?? '' }
+    : { nome: '', series: '3', reps: '12', carga: '', descanso: '60s', obs: '', video: '' }))
   const [erro, setErro] = useState('')
   const campo = (k) => ({ id: `ex-${k}`, value: d[k], onChange: (e) => setD({ ...d, [k]: e.target.value }) })
   async function salvar() {
     if (!d.nome.trim()) return setErro('Informe o nome do exercício.')
+    const video = d.video.trim()
+    if (video && !/^https:\/\//.test(video)) return setErro('O link do vídeo precisa começar com https://')
+    const dados = { nome: d.nome.trim(), series: num(d.series) || 1, reps: d.reps, carga: d.carga || '—', descanso: d.descanso, obs: d.obs || null, video_url: video || null }
     const ordem = treino.exercicios.reduce((m, e) => Math.max(m, e.ordem + 1), 0)
-    const ok = await rodar(supabase.from('exercicios').insert({
-      treino_id: treino.id, nome: d.nome.trim(), series: num(d.series) || 1, reps: d.reps, carga: d.carga || '—', descanso: d.descanso, obs: d.obs || null, ordem,
-    }))
+    const ok = await rodar(ex
+      ? supabase.from('exercicios').update(dados).eq('id', ex.id)
+      : supabase.from('exercicios').insert({ ...dados, treino_id: treino.id, ordem }))
     if (ok) onFechar()
   }
   return (
-    <Modal titulo={`Exercício na ficha ${treino.nome}`} botao="Adicionar" onFechar={onFechar} onSalvar={salvar} erro={erro}>
+    <Modal titulo={`${ex ? 'Editar exercício' : 'Exercício'} na ficha ${treino.nome}`} botao={ex ? 'Salvar' : 'Adicionar'} onFechar={onFechar} onSalvar={salvar} erro={erro}>
       <label className="full">Exercício<input list="sugestoes" required {...campo('nome')} /></label>
       <datalist id="sugestoes">{SUGESTOES.map((s) => <option key={s} value={s} />)}</datalist>
       <label>Séries<input type="number" min="1" {...campo('series')} /></label>
@@ -101,6 +109,7 @@ function FormExercicio({ treino, onFechar, rodar }) {
       <label>Carga<input placeholder="Ex.: 20 kg" {...campo('carga')} /></label>
       <label>Descanso<input {...campo('descanso')} /></label>
       <label className="full">Observação<input placeholder="Opcional, ex.: cadência 3-1-1" {...campo('obs')} /></label>
+      <label className="full">Vídeo de execução<input type="url" placeholder="Opcional, link do YouTube ou Instagram" {...campo('video')} /></label>
     </Modal>
   )
 }
