@@ -22,6 +22,20 @@ Site para o personal gerenciar alunos, fichas de treino e avaliações físicas,
 - O personal vê tudo em **Comunidade**, pode curtir e apagar posts.
 - As fotos ficam no Supabase Storage (bucket privado `checkins`, criado pelo `schema.sql`) e são reduzidas antes do envio. O plano gratuito tem 1 GB, o que dá para milhares de fotos.
 
+**Treino e evolução**
+- Carga e repetições de cada série, já preenchidas com o último treino; o personal vê a progressão de cada exercício (aba **Cargas** do aluno).
+- Link de vídeo de execução em cada exercício (YouTube, Instagram etc.).
+- Desafios com prazo criados pelo personal (ex.: "20 treinos em novembro") e medalhas automáticas (10, 50 e 100 treinos; 7 e 30 dias seguidos).
+- Anamnese e PAR-Q: o aluno preenche na área dele (aba **Conta**) ou o personal preenche. Resposta "sim" no PAR-Q gera um alerta.
+- Fotos de evolução (frente, lado, costas) com comparação antes e depois. São privadas: só o aluno e o personal veem.
+
+**App no celular**
+- O site pode ser instalado na tela inicial (Android: botão "Instalar"; iPhone: Safari > Compartilhar > Adicionar à Tela de Início) e abre como app.
+
+**WhatsApp e mensalidades**
+- Botões que abrem o WhatsApp do aluno com a mensagem pronta (reavaliação e cobrança).
+- Mensalidade por Pix sem taxa: em **Configurações** você cadastra a chave Pix; no cadastro do aluno, o valor e o dia do vencimento. O aluno vê o QR Code e o copia e cola na aba **Conta**, e você marca quem pagou em **Financeiro**. Antes de divulgar, use o código de teste de R$ 1,00 de Configurações no app do seu banco para conferir se aparece o seu nome.
+
 Aluno pausado não consegue ver treinos. Cada personal só vê os próprios alunos, e cada aluno só vê os próprios dados. Isso é garantido pelo banco (Row Level Security), não só pela tela.
 
 ## Como colocar no ar (gratuito)

@@ -19,3 +19,6 @@ export const porData = (a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0
 export const porOrdem = (a, b) => a.ordem - b.ordem || (a.created_at < b.created_at ? -1 : 1)
 
 export const primeiroNome = (nome) => (nome || '').trim().split(/\s+/)[0]
+
+export const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
+export const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })

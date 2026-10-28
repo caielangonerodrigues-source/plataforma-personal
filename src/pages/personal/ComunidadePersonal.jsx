@@ -6,7 +6,7 @@ export default function ComunidadePersonal() {
   return (
     <>
       <h1>Comunidade</h1>
-      <p className="sub">Check-ins dos seus alunos e o ranking do mês. Você pode curtir e apagar posts.</p>
+      <p className="sub">Check-ins dos seus alunos, desafios e o ranking do mês. Você pode criar desafios, curtir e apagar posts.</p>
       <Comunidade comunidade={comunidade} podeApagarTudo />
     </>
   )
