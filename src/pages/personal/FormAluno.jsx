@@ -5,8 +5,8 @@ import { hojeISO, num } from '../../lib/formato.js'
 
 const VAZIO = { nome: '', email: '', telefone: '', sexo: 'F', idade: '', objetivo: '', plano: '', inicio: hojeISO(), status: 'ativo', modalidade: 'presencial', comunidade: true, valor_mensal: '', dia_vencimento: '' }
 
-export default function FormAluno({ aluno, onFechar, onSalvo }) {
-  const [d, setD] = useState(() => (aluno ? { ...VAZIO, ...aluno, idade: aluno.idade ?? '', email: aluno.email ?? '', valor_mensal: aluno.valor_mensal ?? '', dia_vencimento: aluno.dia_vencimento ?? '' } : VAZIO))
+export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
+  const [d, setD] = useState(() => (aluno ? { ...VAZIO, ...aluno, idade: aluno.idade ?? '', email: aluno.email ?? '', valor_mensal: aluno.valor_mensal ?? '', dia_vencimento: aluno.dia_vencimento ?? '' } : { ...VAZIO, ...inicial }))
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const campo = (k) => ({ id: `aluno-${k}`, value: d[k] ?? '', onChange: (e) => setD({ ...d, [k]: e.target.value }) })

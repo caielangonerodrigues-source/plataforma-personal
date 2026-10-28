@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
-import QRCode from 'qrcode'
 import { supabase } from '../../supabase.js'
-import { pixCopiaECola } from '../../lib/pix.js'
+import PixPagamento from '../../components/PixPagamento.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 import { brl, primeiroNome } from '../../lib/formato.js'
 import { ROTULO_RESERVA, minutosParaPagar, quandoAula } from '../../lib/spinning.js'
@@ -14,8 +13,6 @@ export default function ReservaSpinning() {
   const [params] = useSearchParams()
   const codigo = params.get('c') || ''
   const [r, setR] = useState(undefined)
-  const [qr, setQr] = useState('')
-  const [copiado, setCopiado] = useState(false)
   const [, setTique] = useState(0)
 
   const carregar = useCallback(async () => {
@@ -29,19 +26,10 @@ export default function ReservaSpinning() {
     return () => clearInterval(t)
   }, [carregar])
 
-  const pix = r && r.status === 'pendente' && r.pix_chave && Number(r.valor) > 0
-    ? pixCopiaECola({ chave: r.pix_chave, nome: r.pix_nome || r.personal_nome || 'Personal', cidade: r.pix_cidade || 'Brasil', valor: r.valor, txid: r.codigo, descricao: `Spinning bike ${r.bike}` })
-    : null
-
-  useEffect(() => { if (pix) QRCode.toDataURL(pix, { margin: 1, width: 360 }).then(setQr) }, [pix])
-
   async function cancelar() {
     if (!confirm('Cancelar esta reserva? A bike volta a ficar livre.')) return
     await supabase.rpc('cancelar_minha_reserva', { p_id: id, p_codigo: codigo })
     carregar()
-  }
-  async function copiar() {
-    try { await navigator.clipboard.writeText(pix); setCopiado(true) } catch { setCopiado(false) }
   }
 
   if (r === undefined) return <div className="solo"><TopoSpinning /><p className="carregando">Carregando…</p></div>
@@ -71,6 +59,9 @@ export default function ReservaSpinning() {
           </div>
 
           {r.status === 'pago' && <p className="ok">Tudo certo, {primeiroNome(r.nome)}! Sua bike está garantida. Chegue uns 10 minutos antes para regular o banco.</p>}
+          {r.status === 'pago' && r.com_pacote && new Date(r.aula_inicio) - Date.now() > 2 * 3600e3 && (
+            <button className="link" style={{ color: 'var(--muted)', alignSelf: 'flex-start' }} onClick={cancelar}>Não vou poder ir: cancelar e devolver a aula ao pacote</button>
+          )}
           {r.status === 'cancelada' && (
             <>
               <p className="meta" style={{ margin: 0 }}>Esta reserva foi cancelada{Number(r.valor) > 0 ? ' (o Pix não foi feito a tempo ou ela foi cancelada)' : ''}.</p>
@@ -80,13 +71,8 @@ export default function ReservaSpinning() {
           {r.status === 'pendente' && (
             <>
               <p style={{ margin: 0 }}>Pague {brl(r.valor)} por Pix em até <strong>{resta} {resta === 1 ? 'minuto' : 'minutos'}</strong>. Depois disso a bike volta a ficar livre.</p>
-              {!pix ? <p className="meta" style={{ margin: 0 }}>O Pix ainda não foi cadastrado. Combine o pagamento pelo WhatsApp.</p> : (
-                <>
-                  {qr && <img src={qr} alt="QR Code Pix da reserva" style={{ width: 200, height: 200, alignSelf: 'center', background: '#fff', borderRadius: 8, padding: 6 }} />}
-                  <label>Pix copia e cola<textarea id="pix-codigo" readOnly rows={3} value={pix} onFocus={(e) => e.target.select()} style={{ fontFamily: 'var(--mono)', fontSize: 12 }} /></label>
-                  <button className="primary" onClick={copiar}>{copiado ? 'Código copiado' : 'Copiar código Pix'}</button>
-                </>
-              )}
+              <PixPagamento alt="QR Code Pix da reserva" cobranca={{ tipo: 'reserva', id: r.id, codigo: r.codigo }}
+                estatico={r.pix_chave && { chave: r.pix_chave, nome: r.pix_nome || r.personal_nome || 'Personal', cidade: r.pix_cidade || 'Brasil', valor: r.valor, txid: r.codigo, descricao: `Spinning bike ${r.bike}` }} />
               <div className="row between">
                 {zap && <a href={zap} target="_blank" rel="noreferrer">Avisar no WhatsApp que paguei</a>}
                 <button className="link" style={{ color: 'var(--muted)' }} onClick={cancelar}>Cancelar reserva</button>

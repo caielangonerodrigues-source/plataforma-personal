@@ -46,6 +46,16 @@ Site para o personal gerenciar alunos, fichas de treino e avaliações físicas,
 - No cadastro do aluno, escolha a modalidade **Consultoria online**. Ele ganha a aba **Consultoria**, onde envia peso, % de gordura da balança (opcional), 11 medidas (pescoço, ombros, peitoral, cintura, abdômen, quadril, braços, coxas e panturrilha), fotos de frente, lado e costas, notas de sono, energia e dieta e um comentário.
 - Você vê os envios no Painel e na aba **Consultoria** do aluno, com a variação de cada medida desde o envio anterior e as fotos de antes e agora lado a lado. Escreve a resposta (o aluno vê na área dele) e, com um clique, registra o envio como avaliação física.
 
+**Treinos modelo**
+- Em **Modelos** ficam fichas prontas (vem com 3: iniciante, hipertrofia ABC e emagrecimento). No aluno, **Aplicar modelo** cria as fichas com um clique; **Salvar como modelo** guarda as fichas de um aluno para reaproveitar.
+
+**Spinning: lista de espera e pacotes**
+- Aula lotada mostra **Entrar na lista de espera**. Na aula, em **Spinning**, você vê a fila em ordem e o botão **Avisar no WhatsApp** já manda o link da aula para o próximo.
+- Na aba **Pacotes** você cria pacotes (ex.: 10 aulas por R$ 250, válido por 90 dias). A pessoa compra em `/spinning/pacotes`, paga o Pix e recebe um código; ao reservar, toca em **Usar meu pacote** e a bike já fica confirmada. Cancelando até 2 horas antes, a aula volta ao saldo. Dá para registrar venda feita no balcão.
+
+**Página de vendas da consultoria online**
+- Em **Vendas > Página e planos** você escreve o texto, cadastra os planos e coloca a página no ar em `/consultoria` (para a bio do Instagram). Quem preenche o formulário aparece em **Vendas > Interessados** e no Painel, com botão de WhatsApp e **Cadastrar como aluno** (já como consultoria online).
+
 Aluno pausado não consegue ver treinos. Cada personal só vê os próprios alunos, e cada aluno só vê os próprios dados. Isso é garantido pelo banco (Row Level Security), não só pela tela.
 
 ## Como colocar no ar (gratuito)
@@ -70,7 +80,7 @@ No Supabase, abra **Authentication > URL Configuration**:
 - **Site URL**: o endereço da Vercel, por exemplo `https://plataforma-personal.vercel.app`
 - **Redirect URLs**: adicione `https://plataforma-personal.vercel.app/**`
 
-O link de reservas para divulgar (Instagram, WhatsApp) é `https://plataforma-personal.vercel.app/spinning`.
+Links para divulgar (Instagram, WhatsApp): reservas de spinning em `https://plataforma-personal.vercel.app/spinning`, pacotes em `/spinning/pacotes` e a página da consultoria em `/consultoria`.
 
 Isso faz os links de confirmação de e-mail e de "esqueci a senha" voltarem para o seu site.
 
@@ -89,6 +99,17 @@ Isso faz os links de confirmação de e-mail e de "esqueci a senha" voltarem par
 3. A conta dele é ligada ao cadastro automaticamente. Na lista de alunos aparece "acesso ativo".
 
 > O Supabase gratuito envia poucos e-mails por hora. Se muitos alunos forem criar conta no mesmo dia, configure um SMTP próprio em **Authentication > Emails** ou desative a confirmação de e-mail em **Authentication > Sign In / Providers > Email**.
+
+### 6. Pix automático pelo Mercado Pago (opcional)
+Sem isso, o site usa o Pix da sua chave (sem taxa) e você confirma os pagamentos à mão. Com isso, reservas, pacotes e mensalidades se confirmam sozinhos quando o Pix cai. O Mercado Pago cobra uma taxa por Pix recebido (confira o valor no app deles).
+1. Em [mercadopago.com.br/developers/panel/app](https://www.mercadopago.com.br/developers/panel/app), clique em **Criar aplicação** (tipo "Pagamentos online", sem loja). Abra **Credenciais de produção** e copie o **Access Token** (começa com `APP_USR-`). Não mostre esse token para ninguém.
+2. No Supabase, abra **Edge Functions > Secrets** e adicione `MP_ACCESS_TOKEN` com o token.
+3. Ainda em **Edge Functions**, clique em **Deploy a new function > Via Editor**, dê o nome `pix-mercadopago`, apague o código de exemplo, cole o conteúdo de [`supabase/functions/pix-mercadopago/index.ts`](supabase/functions/pix-mercadopago/index.ts) e clique em **Deploy**.
+4. Repita com o nome `mp-webhook` e o arquivo [`supabase/functions/mp-webhook/index.ts`](supabase/functions/mp-webhook/index.ts). Depois, nos detalhes da função `mp-webhook`, desligue **Enforce JWT verification** (o Mercado Pago não manda login). A função confere cada aviso direto no Mercado Pago, então um aviso falso não confirma nada.
+5. Na Vercel, em **Settings > Environment Variables**, adicione `VITE_PIX_AUTOMATICO` = `1` e faça **Redeploy**.
+6. Teste: crie uma aula de spinning de R$ 1,00, reserve e pague. Em até um minuto a reserva muda para "Confirmada".
+
+Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 
 ## Desenvolvimento
 

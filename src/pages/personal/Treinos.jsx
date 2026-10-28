@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { supabase } from '../../supabase.js'
 import Modal from '../../components/Modal.jsx'
 import { num } from '../../lib/formato.js'
+import { fichasDoAluno } from '../../lib/modelos.js'
+import { AplicarModelo, FormModelo } from './Modelos.jsx'
 
 const SUGESTOES = ['Supino reto', 'Supino inclinado', 'Agachamento livre', 'Leg press 45°', 'Puxada frontal', 'Remada baixa', 'Remada curvada',
   'Desenvolvimento', 'Elevação lateral', 'Rosca direta', 'Rosca martelo', 'Tríceps corda', 'Tríceps testa', 'Cadeira extensora',
@@ -22,7 +24,11 @@ export default function Treinos({ aluno, recarregar }) {
     <>
       <div className="row between" style={{ marginBottom: 12 }}>
         <span className="meta">Fichas que o aluno vê quando entra</span>
-        <button className="primary small" onClick={() => setModal({ tipo: 'ficha' })}>Nova ficha</button>
+        <div className="row" style={{ gap: 6 }}>
+          {aluno.treinos.length > 0 && <button className="small" onClick={() => setModal({ tipo: 'salvarModelo' })}>Salvar como modelo</button>}
+          <button className="small" onClick={() => setModal({ tipo: 'aplicarModelo' })}>Aplicar modelo</button>
+          <button className="primary small" onClick={() => setModal({ tipo: 'ficha' })}>Nova ficha</button>
+        </div>
       </div>
       {erro && <p className="erro">{erro}</p>}
       <div className="stack">
@@ -57,9 +63,11 @@ export default function Treinos({ aluno, recarregar }) {
             </div>
           </div>
         ))}
-        {!aluno.treinos.length && <div className="panel empty">Este aluno ainda não tem ficha. Clique em "Nova ficha" para montar o treino A.</div>}
+        {!aluno.treinos.length && <div className="panel empty">Este aluno ainda não tem ficha. Clique em "Aplicar modelo" para usar uma ficha pronta ou em "Nova ficha" para montar o treino A.</div>}
       </div>
 
+      {modal?.tipo === 'aplicarModelo' && <AplicarModelo aluno={aluno} onFechar={() => setModal(null)} onAplicado={() => { setModal(null); recarregar() }} />}
+      {modal?.tipo === 'salvarModelo' && <FormModelo fichas={fichasDoAluno(aluno.treinos)} onFechar={() => setModal(null)} onSalvo={() => setModal(null)} />}
       {modal?.tipo === 'ficha' && <FormFicha aluno={aluno} onFechar={() => setModal(null)} rodar={rodar} />}
       {modal?.tipo === 'exercicio' && <FormExercicio treino={modal.treino} exercicio={modal.exercicio} onFechar={() => setModal(null)} rodar={rodar} />}
     </>

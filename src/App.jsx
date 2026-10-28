@@ -16,6 +16,11 @@ import Spinning from './pages/personal/Spinning.jsx'
 import AulasSpinning from './pages/spinning/AulasSpinning.jsx'
 import AulaSpinning from './pages/spinning/AulaSpinning.jsx'
 import ReservaSpinning from './pages/spinning/ReservaSpinning.jsx'
+import PacotesSpinning from './pages/spinning/PacotesSpinning.jsx'
+import PacoteSpinning from './pages/spinning/PacoteSpinning.jsx'
+import PaginaVendas from './pages/PaginaVendas.jsx'
+import Modelos from './pages/personal/Modelos.jsx'
+import Vendas from './pages/personal/Vendas.jsx'
 
 export default function App() {
   const navigate = useNavigate()
@@ -54,12 +59,15 @@ export default function App() {
       </div></div>
     )
   }
-  // Reserva de spinning é pública: abre com ou sem login.
+  // Reserva de spinning e página de vendas são públicas: abrem com ou sem login.
+  if (pathname === '/consultoria') return <PaginaVendas />
   if (pathname.startsWith('/spinning')) {
     return (
       <Routes>
         <Route path="/spinning" element={<AulasSpinning />} />
         <Route path="/spinning/reserva/:id" element={<ReservaSpinning />} />
+        <Route path="/spinning/pacotes" element={<PacotesSpinning />} />
+        <Route path="/spinning/pacote/:codigo" element={<PacoteSpinning />} />
         <Route path="/spinning/:aulaId" element={<AulaSpinning />} />
       </Routes>
     )
@@ -84,7 +92,9 @@ export default function App() {
           <Route path="/alunos" element={<Alunos />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
+          <Route path="/modelos" element={<Modelos />} />
           <Route path="/aulas" element={<Spinning />} />
+          <Route path="/vendas" element={<Vendas />} />
           <Route path="/financeiro" element={<Financeiro />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
