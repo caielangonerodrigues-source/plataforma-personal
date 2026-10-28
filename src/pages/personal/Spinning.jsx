@@ -5,8 +5,22 @@ import MapaBikes from '../../components/MapaBikes.jsx'
 import { ROTULO_RESERVA, inicioISO, quandoAula, repetirSemanal } from '../../lib/spinning.js'
 import { brl, hojeISO, num, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
+import PacotesPersonal from './PacotesPersonal.jsx'
 
 export default function Spinning() {
+  const [aba, setAba] = useState('aulas')
+  return (
+    <>
+      <h1>Spinning</h1>
+      <div className="tabs" role="tablist" style={{ marginTop: 8 }}>
+        {[['aulas', 'Aulas'], ['pacotes', 'Pacotes']].map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>{l}</button>)}
+      </div>
+      {aba === 'aulas' ? <Aulas /> : <PacotesPersonal />}
+    </>
+  )
+}
+
+function Aulas() {
   const [aulas, setAulas] = useState(null)
   const [aulaId, setAulaId] = useState(null)
   const [reservas, setReservas] = useState([])
@@ -17,7 +31,7 @@ export default function Spinning() {
 
   const carregar = useCallback(async () => {
     const desde = new Date(Date.now() - 864e5).toISOString()
-    const { data, error } = await supabase.from('aulas_spinning').select('*, reservas_spinning(id, aula_id, bike, nome, telefone, status, codigo, created_at, aluno_id)')
+    const { data, error } = await supabase.from('aulas_spinning').select('*, reservas_spinning(id, aula_id, bike, nome, telefone, status, codigo, created_at, aluno_id, credito_id), espera_spinning(id, nome, telefone, avisado_em, created_at)')
       .gte('inicio', desde).order('inicio').limit(60)
     if (error) return setErro(error.message)
     // Pendentes com mais de 30 min já não seguram a bike (o banco libera ao consultar).
@@ -50,7 +64,7 @@ export default function Spinning() {
   return (
     <>
       <div className="row between">
-        <div><h1>Spinning</h1><p className="sub">Aulas com {aula?.vagas || 14} bikes. Qualquer pessoa reserva pelo link público, sem login.</p></div>
+        <div><p className="sub">Aulas com {aula?.vagas || 14} bikes. Qualquer pessoa reserva pelo link público, sem login.</p></div>
         <div className="row">
           <button onClick={copiarLink}>{copiado ? 'Link copiado' : 'Copiar link de reservas'}</button>
           <button className="primary" onClick={() => setNova(true)}>Nova aula</button>
@@ -112,6 +126,7 @@ export default function Spinning() {
                 </div>
               )}
             </div>
+            {aula.espera_spinning.length > 0 && <ListaEspera aula={aula} livres={aula.vagas - aula.bloqueadas.length - reservas.length} onAcao={acao} />}
             {!aula.cancelada && new Date(aula.inicio) > new Date() && (
               <button className="ghost" style={{ alignSelf: 'flex-start' }} onClick={() => confirm('Cancelar esta aula? Ela some da página de reservas. Avise quem reservou pelo WhatsApp.') && acao(supabase.from('aulas_spinning').update({ cancelada: true }).eq('id', aula.id))}>Cancelar aula</button>
             )}
@@ -124,6 +139,33 @@ export default function Spinning() {
   )
 }
 
+function ListaEspera({ aula, livres, onAcao }) {
+  const { dia, hora } = quandoAula(aula.inicio)
+  const fila = [...aula.espera_spinning].sort((a, b) => (a.created_at < b.created_at ? -1 : 1))
+  const link = `${window.location.origin}/spinning/${aula.id}`
+  return (
+    <div className="panel">
+      <div className="row between"><h2>Lista de espera ({fila.length})</h2>{livres > 0 && <span className="pill ativo">{livres} {livres === 1 ? 'bike livre' : 'bikes livres'}</span>}</div>
+      <p className="meta" style={{ margin: '4px 0 8px' }}>{livres > 0 ? 'Liberou bike: avise o próximo da fila.' : 'Quando alguém cancelar ou não pagar, avise o próximo da fila.'}</p>
+      <div className="list">
+        {fila.map((e, i) => {
+          const zap = linkWhatsApp(e.telefone, `Oi, ${primeiroNome(e.nome)}! Liberou uma bike no ${aula.titulo} de ${dia} às ${hora}. Reserve rápido pelo link: ${link}`)
+          return (
+            <div key={e.id} className="item" style={{ cursor: 'default' }}>
+              <span><span className="mono" style={{ marginRight: 10 }}>{i + 1}º</span><span className="name">{e.nome}</span>{e.avisado_em && <span className="meta"> · avisado</span>}</span>
+              <span className="row" style={{ gap: 6 }}>
+                {zap && <a className={`pill ${e.avisado_em ? 'pausado' : 'pendente'}`} style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer"
+                  onClick={() => !e.avisado_em && onAcao(supabase.from('espera_spinning').update({ avisado_em: new Date().toISOString() }).eq('id', e.id))}>Avisar no WhatsApp</a>}
+                <button className="ghost small" aria-label={`Tirar ${e.nome} da fila`} onClick={() => onAcao(supabase.from('espera_spinning').delete().eq('id', e.id))}>✕</button>
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function BikeReservada({ r, aula, onAcao }) {
   const { dia, hora } = quandoAula(aula.inicio)
   const zap = linkWhatsApp(r.telefone, r.status === 'pago'
@@ -132,7 +174,7 @@ function BikeReservada({ r, aula, onAcao }) {
   return (
     <>
       <div><strong>{r.nome}</strong> <span className="meta mono">#{r.codigo}</span></div>
-      <div className="meta">{r.telefone} · {ROTULO_RESERVA[r.status]}</div>
+      <div className="meta">{r.telefone} · {ROTULO_RESERVA[r.status]}{r.credito_id ? ' · pago com pacote' : ''}</div>
       <div className="row">
         {r.status === 'pendente' && <button className="primary small" onClick={() => onAcao(supabase.from('reservas_spinning').update({ status: 'pago' }).eq('id', r.id))}>Confirmar pagamento</button>}
         {r.status === 'pago' && <button className="small" onClick={() => onAcao(supabase.from('reservas_spinning').update({ status: 'pendente', created_at: new Date().toISOString() }).eq('id', r.id))}>Desfazer pagamento</button>}

@@ -19,3 +19,12 @@ export default function TopoSpinning({ voltar }) {
     </div>
   )
 }
+
+// Código do pacote comprado neste aparelho, para reservar com o saldo sem digitar.
+const CHAVE_PACOTE = 'spinning-pacote'
+export function meuCodigoPacote() {
+  try { return localStorage.getItem(CHAVE_PACOTE) || '' } catch { return '' }
+}
+export function guardarCodigoPacote(codigo) {
+  try { localStorage.setItem(CHAVE_PACOTE, codigo) } catch { /* modo privado */ }
+}

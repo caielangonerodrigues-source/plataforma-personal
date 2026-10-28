@@ -8,6 +8,7 @@ export default function Painel() {
   const [alunos, setAlunos] = useState(null)
   const [treinaramHoje, setTreinaramHoje] = useState(0)
   const [envios, setEnvios] = useState([])
+  const [novos, setNovos] = useState(0)
   const [erro, setErro] = useState('')
 
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function Painel() {
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data)))
     supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
       .then(({ data }) => setEnvios(data || []))
+    supabase.from('interessados').select('id').eq('status', 'novo').then(({ data }) => setNovos(data?.length || 0))
     Promise.all([
       supabase.from('registros').select('aluno_id').eq('data', hojeISO()),
       supabase.from('checkins').select('aluno_id').eq('data', hojeISO()),
@@ -45,6 +47,12 @@ export default function Painel() {
           <h2>Comece cadastrando um aluno</h2>
           <p>Vá em <Link to="/alunos">Alunos</Link> e clique em "Novo aluno". Coloque o e-mail dele para ele conseguir entrar e ver o treino.</p>
         </div>
+      )}
+      {novos > 0 && (
+        <Link to="/vendas" className="panel row between" style={{ marginBottom: 16, borderColor: 'var(--accent)', textDecoration: 'none', color: 'inherit' }}>
+          <span><strong>{novos === 1 ? '1 pessoa quer' : `${novos} pessoas querem`} fazer a consultoria online</strong><br /><span className="meta">Pediram contato pela sua página de vendas</span></span>
+          <span className="pill pendente">Chamar no WhatsApp</span>
+        </Link>
       )}
       {envios.length > 0 && (
         <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>

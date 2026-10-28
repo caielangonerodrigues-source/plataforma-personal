@@ -184,6 +184,19 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .par img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; background: var(--line); display: block }
 .par .sem-foto { aspect-ratio: 3 / 4; border: 1.5px dashed var(--line); border-radius: 8px; display: grid; place-items: center; text-align: center; padding: 6px }
 
+/* Página de vendas */
+.vendas { padding-bottom: 64px }
+.vendas-hero { background: var(--accent); color: var(--accent-ink); margin-bottom: 32px }
+.vendas-hero h1 { color: inherit }
+.vendas-texto { font-size: 18px; max-width: 620px; white-space: pre-wrap; margin: 8px 0 0 }
+.botao-claro { background: var(--accent-ink); color: var(--accent); font-weight: 700; padding: 12px 20px; border-radius: 10px; text-decoration: none }
+.passos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px }
+.planos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; align-items: start }
+.plano { display: flex; flex-direction: column; gap: 10px }
+.plano.destaque { border: 2px solid var(--accent) }
+.plano ul { margin: 0; padding-left: 18px }
+.preco { font-family: var(--display); font-size: 36px; font-weight: 700 }
+
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none } }
 @media (max-width: 760px) {
   .app { grid-template-columns: 1fr }

@@ -14,6 +14,12 @@ create table public.personais (
   pix_chave text,
   pix_nome text,   -- nome do recebedor, como aparece no banco
   pix_cidade text,
+  -- Página de vendas da consultoria online (/consultoria)
+  venda_ativa boolean not null default false,
+  venda_titulo text check (char_length(venda_titulo) <= 80),
+  venda_texto text check (char_length(venda_texto) <= 3000),
+  instagram text check (char_length(instagram) <= 40),
+  cref text check (char_length(cref) <= 30),
   created_at timestamptz not null default now()
 );
 
@@ -518,14 +524,15 @@ $$;
 create function public.minha_reserva(p_id uuid, p_codigo text)
 returns table (id uuid, codigo text, bike int, nome text, status text, criada timestamptz, aula_id uuid,
                aula_titulo text, aula_inicio timestamptz, aula_duracao int, instrutor text, valor numeric,
-               pix_chave text, pix_nome text, pix_cidade text, personal_nome text, personal_telefone text)
+               pix_chave text, pix_nome text, pix_cidade text, personal_nome text, personal_telefone text,
+               com_pacote boolean) -- paga com pacote: dá para cancelar até 2 horas antes e a aula volta ao saldo
 language plpgsql security definer set search_path = public as $$
 begin
   perform liberar_reservas_vencidas((select r.aula_id from reservas_spinning r where r.id = p_id));
   return query
     select r.id, r.codigo, r.bike, r.nome, r.status, r.created_at, a.id,
            a.titulo, a.inicio, a.duracao_min, a.instrutor, a.valor,
-           p.pix_chave, p.pix_nome, p.pix_cidade, p.nome, p.telefone
+           p.pix_chave, p.pix_nome, p.pix_cidade, p.nome, p.telefone, r.credito_id is not null
       from reservas_spinning r
       join aulas_spinning a on a.id = r.aula_id
       join personais p on p.user_id = a.personal_id
@@ -577,3 +584,259 @@ create policy "aluno envia" on public.envios_consultoria
   for insert with check (public.eh_o_aluno(aluno_id) and resposta is null and respondido_em is null and avaliacao_id is null);
 create policy "aluno apaga envio sem resposta" on public.envios_consultoria
   for delete using (public.eh_o_aluno(aluno_id) and resposta is null);
+
+-- ---------------------------------------------------------------------------
+-- Treinos modelo: fichas prontas para aplicar em qualquer aluno.
+-- fichas = [{"nome": "A", "foco": "...", "exercicios": [{"nome", "series", "reps", "carga", "descanso", "obs", "video_url"}]}]
+-- ---------------------------------------------------------------------------
+
+create table public.modelos_treino (
+  id uuid primary key default gen_random_uuid(),
+  personal_id uuid not null default auth.uid() references public.personais (user_id) on delete cascade,
+  nome text not null check (char_length(nome) between 1 and 80),
+  descricao text check (char_length(descricao) <= 300),
+  fichas jsonb not null default '[]' check (jsonb_typeof(fichas) = 'array'),
+  created_at timestamptz not null default now()
+);
+alter table public.modelos_treino enable row level security;
+create policy "personal gerencia seus modelos" on public.modelos_treino
+  for all using (personal_id = auth.uid()) with check (personal_id = auth.uid() and public.eh_personal());
+
+-- ---------------------------------------------------------------------------
+-- Spinning: lista de espera e pacotes de aulas
+-- ---------------------------------------------------------------------------
+
+create table public.espera_spinning (
+  id uuid primary key default gen_random_uuid(),
+  aula_id uuid not null references public.aulas_spinning (id) on delete cascade,
+  nome text not null check (char_length(nome) between 2 and 80),
+  telefone text not null check (char_length(telefone) between 8 and 20),
+  avisado_em timestamptz,
+  created_at timestamptz not null default now()
+);
+create unique index espera_unica on public.espera_spinning (aula_id, (regexp_replace(telefone, '\D', '', 'g')));
+alter table public.espera_spinning enable row level security;
+create policy "personal gerencia lista de espera" on public.espera_spinning
+  for all to authenticated
+  using (exists (select 1 from aulas_spinning a where a.id = aula_id and a.personal_id = auth.uid()))
+  with check (exists (select 1 from aulas_spinning a where a.id = aula_id and a.personal_id = auth.uid()));
+
+-- Entra na fila de uma aula lotada. Devolve a posição.
+create function public.entrar_na_espera(p_aula uuid, p_nome text, p_telefone text) returns int
+language plpgsql security definer set search_path = public as $$
+declare
+  aula aulas_spinning;
+  tel text := regexp_replace(coalesce(p_telefone, ''), '\D', '', 'g');
+begin
+  select * into aula from aulas_spinning where id = p_aula;
+  if aula.id is null or aula.cancelada then raise exception 'Aula não encontrada ou cancelada.'; end if;
+  if aula.inicio < now() then raise exception 'Esta aula já começou.'; end if;
+  if char_length(trim(coalesce(p_nome, ''))) < 2 then raise exception 'Informe seu nome.'; end if;
+  if char_length(tel) < 10 then raise exception 'Informe um WhatsApp com DDD.'; end if;
+  insert into espera_spinning (aula_id, nome, telefone) values (p_aula, trim(p_nome), trim(p_telefone))
+    on conflict do nothing;
+  return (select count(*) from espera_spinning e where e.aula_id = p_aula
+           and e.created_at <= (select created_at from espera_spinning x where x.aula_id = p_aula and regexp_replace(x.telefone, '\D', '', 'g') = tel));
+end;
+$$;
+
+create function public.tamanho_espera(a uuid) returns int
+language sql stable security definer set search_path = public as $$
+  select count(*)::int from espera_spinning where aula_id = a and avisado_em is null
+$$;
+
+-- Pacotes que o personal vende (ex.: 10 aulas por R$ 250, válido por 90 dias).
+create table public.pacotes_spinning (
+  id uuid primary key default gen_random_uuid(),
+  personal_id uuid not null default auth.uid() references public.personais (user_id) on delete cascade,
+  nome text not null check (char_length(nome) between 1 and 60),
+  aulas int not null check (aulas between 1 and 100),
+  valor numeric(8, 2) not null check (valor > 0),
+  validade_dias int not null default 90 check (validade_dias between 1 and 730),
+  ativo boolean not null default true,
+  created_at timestamptz not null default now()
+);
+alter table public.pacotes_spinning enable row level security;
+create policy "todos veem pacotes" on public.pacotes_spinning for select to anon, authenticated using (true);
+create policy "personal gerencia pacotes" on public.pacotes_spinning
+  for all to authenticated using (personal_id = auth.uid()) with check (personal_id = auth.uid() and public.eh_personal());
+
+-- Cada compra de pacote. O código (vai no Pix) é o que a pessoa usa para reservar com o saldo.
+create table public.creditos_spinning (
+  id uuid primary key default gen_random_uuid(),
+  pacote_id uuid references public.pacotes_spinning (id) on delete set null,
+  personal_id uuid not null references public.personais (user_id) on delete cascade,
+  nome text not null check (char_length(nome) between 2 and 80),
+  telefone text not null check (char_length(telefone) between 8 and 20),
+  aulas int not null check (aulas between 1 and 100),
+  valor numeric(8, 2) not null,
+  status text not null default 'pendente' check (status in ('pendente', 'pago', 'cancelada')),
+  validade date,
+  codigo text not null unique default upper(substr(md5(gen_random_uuid()::text), 1, 8)),
+  mp_pagamento text, -- id do pagamento no Mercado Pago, quando o Pix automático está ligado
+  created_at timestamptz not null default now()
+);
+alter table public.creditos_spinning enable row level security;
+create policy "personal gerencia créditos" on public.creditos_spinning
+  for all to authenticated using (personal_id = auth.uid()) with check (personal_id = auth.uid() and public.eh_personal());
+
+alter table public.reservas_spinning add column credito_id uuid references public.creditos_spinning (id) on delete set null;
+alter table public.reservas_spinning add column mp_pagamento text;
+
+-- A validade conta a partir da confirmação do pagamento.
+create function public.validade_do_credito() returns trigger
+language plpgsql set search_path = public as $$
+begin
+  if new.status = 'pago' and (tg_op = 'INSERT' or old.status <> 'pago') and new.validade is null then
+    new.validade := current_date + coalesce((select validade_dias from pacotes_spinning where id = new.pacote_id), 90);
+  end if;
+  return new;
+end;
+$$;
+create trigger credito_validade before insert or update on public.creditos_spinning
+  for each row execute function public.validade_do_credito();
+
+create function public.comprar_pacote(p_pacote uuid, p_nome text, p_telefone text)
+returns table (id uuid, codigo text)
+language plpgsql security definer set search_path = public as $$
+declare
+  pac pacotes_spinning;
+  tel text := regexp_replace(coalesce(p_telefone, ''), '\D', '', 'g');
+begin
+  select * into pac from pacotes_spinning where pacotes_spinning.id = p_pacote and ativo;
+  if pac.id is null then raise exception 'Pacote não encontrado.'; end if;
+  if char_length(trim(coalesce(p_nome, ''))) < 2 then raise exception 'Informe seu nome.'; end if;
+  if char_length(tel) < 10 then raise exception 'Informe um WhatsApp com DDD.'; end if;
+  if (select count(*) from creditos_spinning c where regexp_replace(c.telefone, '\D', '', 'g') = tel
+        and c.status = 'pendente' and c.created_at > now() - interval '1 day') >= 3 then
+    raise exception 'Você já tem compras aguardando Pix. Pague ou fale com o personal.';
+  end if;
+  return query insert into creditos_spinning as c (pacote_id, personal_id, nome, telefone, aulas, valor)
+    values (pac.id, pac.personal_id, trim(p_nome), trim(p_telefone), pac.aulas, pac.valor)
+    returning c.id, c.codigo;
+end;
+$$;
+
+-- Aulas que ainda restam num crédito pago e dentro da validade.
+create function public.saldo_do_credito(c creditos_spinning) returns int
+language sql stable security definer set search_path = public as $$
+  select case when c.status = 'pago' and (c.validade is null or c.validade >= current_date)
+    then c.aulas - (select count(*)::int from reservas_spinning r where r.credito_id = c.id and r.status <> 'cancelada')
+    else 0 end
+$$;
+
+create function public.meu_pacote(p_codigo text)
+returns table (id uuid, codigo text, nome text, status text, aulas int, saldo int, validade date, valor numeric, criada timestamptz,
+               pacote_nome text, pix_chave text, pix_nome text, pix_cidade text, personal_nome text, personal_telefone text)
+language sql stable security definer set search_path = public as $$
+  select c.id, c.codigo, c.nome, c.status, c.aulas, public.saldo_do_credito(c), c.validade, c.valor, c.created_at,
+         p.nome, pe.pix_chave, pe.pix_nome, pe.pix_cidade, pe.nome, pe.telefone
+    from creditos_spinning c
+    left join pacotes_spinning p on p.id = c.pacote_id
+    join personais pe on pe.user_id = c.personal_id
+   where c.codigo = upper(trim(p_codigo))
+$$;
+
+-- Reserva usando uma aula do pacote: já entra como paga.
+create function public.reservar_com_pacote(p_aula uuid, p_bike int, p_codigo text)
+returns table (id uuid, codigo text)
+language plpgsql security definer set search_path = public as $$
+declare
+  cred creditos_spinning;
+  aula aulas_spinning;
+  nova record;
+begin
+  select * into cred from creditos_spinning where creditos_spinning.codigo = upper(trim(coalesce(p_codigo, ''))) for update;
+  if cred.id is null then raise exception 'Código do pacote não encontrado.'; end if;
+  select * into aula from aulas_spinning where aulas_spinning.id = p_aula;
+  if aula.personal_id is distinct from cred.personal_id then raise exception 'Este pacote não vale para esta aula.'; end if;
+  if aula.valor = 0 then raise exception 'Esta aula é gratuita: reserve sem usar o pacote.'; end if;
+  if public.saldo_do_credito(cred) < 1 then raise exception 'Seu pacote não tem aulas disponíveis (sem saldo, vencido ou aguardando Pix).'; end if;
+  select * into nova from public.reservar_bike(p_aula, p_bike, cred.nome, cred.telefone);
+  update reservas_spinning set status = 'pago', credito_id = cred.id where reservas_spinning.id = nova.id;
+  return query select nova.id, nova.codigo;
+end;
+$$;
+
+-- Quem cancela uma reserva paga com pacote recupera a aula (o saldo é calculado).
+create or replace function public.cancelar_minha_reserva(p_id uuid, p_codigo text) returns void
+language sql security definer set search_path = public as $$
+  update reservas_spinning r set status = 'cancelada'
+   where r.id = p_id and r.codigo = upper(p_codigo)
+     and (r.status = 'pendente' or (r.credito_id is not null and
+          (select a.inicio from aulas_spinning a where a.id = r.aula_id) > now() + interval '2 hours'))
+$$;
+
+grant execute on function public.entrar_na_espera(uuid, text, text), public.tamanho_espera(uuid),
+  public.comprar_pacote(uuid, text, text), public.meu_pacote(text), public.reservar_com_pacote(uuid, int, text)
+  to anon, authenticated;
+revoke execute on function public.saldo_do_credito(creditos_spinning) from anon, authenticated, public;
+
+-- ---------------------------------------------------------------------------
+-- Página de vendas da consultoria online: planos e interessados
+-- ---------------------------------------------------------------------------
+
+create table public.planos_consultoria (
+  id uuid primary key default gen_random_uuid(),
+  personal_id uuid not null default auth.uid() references public.personais (user_id) on delete cascade,
+  nome text not null check (char_length(nome) between 1 and 60),
+  preco numeric(8, 2) not null check (preco >= 0),
+  periodo text not null default 'mês' check (char_length(periodo) <= 20),
+  itens text check (char_length(itens) <= 1000), -- um benefício por linha
+  destaque boolean not null default false,
+  ordem int not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.planos_consultoria enable row level security;
+create policy "todos veem planos" on public.planos_consultoria for select to anon, authenticated using (true);
+create policy "personal gerencia planos" on public.planos_consultoria
+  for all to authenticated using (personal_id = auth.uid()) with check (personal_id = auth.uid() and public.eh_personal());
+
+create table public.interessados (
+  id uuid primary key default gen_random_uuid(),
+  personal_id uuid not null references public.personais (user_id) on delete cascade,
+  plano_id uuid references public.planos_consultoria (id) on delete set null,
+  nome text not null check (char_length(nome) between 2 and 80),
+  telefone text not null check (char_length(telefone) between 8 and 20),
+  email text check (char_length(email) <= 120),
+  objetivo text check (char_length(objetivo) <= 120),
+  mensagem text check (char_length(mensagem) <= 1000),
+  status text not null default 'novo' check (status in ('novo', 'conversando', 'fechou', 'nao_fechou')),
+  created_at timestamptz not null default now()
+);
+alter table public.interessados enable row level security;
+create policy "personal gerencia interessados" on public.interessados
+  for all to authenticated using (personal_id = auth.uid()) with check (personal_id = auth.uid());
+
+-- Dados públicos da página (só de quem ativou a página).
+create function public.pagina_vendas()
+returns table (personal_id uuid, nome text, titulo text, texto text, instagram text, cref text, telefone text)
+language sql stable security definer set search_path = public as $$
+  select user_id, nome, venda_titulo, venda_texto, instagram, cref, telefone
+    from personais where venda_ativa order by created_at limit 1
+$$;
+
+create function public.quero_contratar(p_personal uuid, p_plano uuid, p_nome text, p_telefone text, p_email text, p_objetivo text, p_mensagem text)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  tel text := regexp_replace(coalesce(p_telefone, ''), '\D', '', 'g');
+begin
+  if not exists (select 1 from personais where user_id = p_personal and venda_ativa) then raise exception 'Página indisponível.'; end if;
+  if char_length(trim(coalesce(p_nome, ''))) < 2 then raise exception 'Informe seu nome.'; end if;
+  if char_length(tel) < 10 then raise exception 'Informe um WhatsApp com DDD.'; end if;
+  if (select count(*) from interessados where personal_id = p_personal
+        and regexp_replace(telefone, '\D', '', 'g') = tel and created_at > now() - interval '1 day') >= 2 then
+    raise exception 'Recebemos seu contato. Logo o personal fala com você no WhatsApp.';
+  end if;
+  insert into interessados (personal_id, plano_id, nome, telefone, email, objetivo, mensagem)
+  values (p_personal, (select id from planos_consultoria where id = p_plano and personal_id = p_personal),
+          trim(p_nome), trim(p_telefone), nullif(trim(p_email), ''), nullif(trim(p_objetivo), ''), nullif(trim(p_mensagem), ''));
+end;
+$$;
+
+grant execute on function public.pagina_vendas(), public.quero_contratar(uuid, uuid, text, text, text, text, text) to anon, authenticated;
+
+-- Mensalidade paga pelo Pix automático (Mercado Pago) fica registrada aqui também.
+alter table public.pagamentos add column mp_pagamento text;
+

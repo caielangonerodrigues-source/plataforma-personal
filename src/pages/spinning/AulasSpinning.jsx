@@ -34,7 +34,7 @@ export default function AulasSpinning() {
     <div className="solo">
       <TopoSpinning />
       <h1>Próximas aulas</h1>
-      <p className="sub">Escolha o horário, depois a sua bike no mapa da sala. O pagamento é por Pix.</p>
+      <p className="sub">Escolha o horário, depois a sua bike no mapa da sala. O pagamento é por Pix ou com um <Link to="/spinning/pacotes">pacote de aulas</Link>.</p>
       {guardadas.length > 0 && (
         <div className="panel row between" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
           <span>Você tem {guardadas.length === 1 ? 'uma reserva' : `${guardadas.length} reservas`} neste aparelho.</span>

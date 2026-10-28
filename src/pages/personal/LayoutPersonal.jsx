@@ -10,8 +10,10 @@ export default function LayoutPersonal({ nome }) {
         <div className="brand">Personal<small>{nome ? `Olá, ${primeiroNome(nome)}` : 'Área do treinador'}</small></div>
         <NavLink to="/painel" className={cls}>Painel</NavLink>
         <NavLink to="/alunos" className={cls}>Alunos</NavLink>
+        <NavLink to="/modelos" className={cls}>Modelos</NavLink>
         <NavLink to="/comunidade" className={cls}>Comunidade</NavLink>
         <NavLink to="/aulas" className={cls}>Spinning</NavLink>
+        <NavLink to="/vendas" className={cls}>Vendas</NavLink>
         <NavLink to="/financeiro" className={cls}>Financeiro</NavLink>
         <NavLink to="/configuracoes" className={cls}>Configurações</NavLink>
         <div className="spacer" />
