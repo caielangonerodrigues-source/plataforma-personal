@@ -8,6 +8,7 @@ import LayoutPersonal from './pages/personal/LayoutPersonal.jsx'
 import Painel from './pages/personal/Painel.jsx'
 import Alunos from './pages/personal/Alunos.jsx'
 import AlunoDetalhe from './pages/personal/AlunoDetalhe.jsx'
+import ComunidadePersonal from './pages/personal/ComunidadePersonal.jsx'
 import AreaAluno from './pages/aluno/AreaAluno.jsx'
 
 export default function App() {
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/painel" element={<Painel />} />
           <Route path="/alunos" element={<Alunos />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
+          <Route path="/comunidade" element={<ComunidadePersonal />} />
         </Route>
         <Route path="*" element={<Navigate to="/painel" replace />} />
       </Routes>

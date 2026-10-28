@@ -31,18 +31,18 @@ export default function Grafico({ avaliacoes }) {
           )
         })}
         <path d={linha('peso', pmn, pmx)} fill="none" stroke="var(--accent)" strokeWidth="2.5" />
-        {comGordura && <path d={linha('gordura', gmn, gmx)} fill="none" stroke="var(--warn)" strokeWidth="2.5" strokeDasharray="6 4" />}
+        {comGordura && <path d={linha('gordura', gmn, gmx)} fill="none" stroke="var(--chart2)" strokeWidth="2.5" strokeDasharray="6 4" />}
         {av.map((v, i) => (
           <g key={v.id}>
             <circle cx={xs[i]} cy={y(Number(v.peso), pmn, pmx)} r={i === ultimo ? 5 : 3.5} fill="var(--accent)" />
-            {comGordura && <circle cx={xs[i]} cy={y(Number(v.gordura), gmn, gmx)} r={i === ultimo ? 5 : 3.5} fill="var(--warn)" />}
+            {comGordura && <circle cx={xs[i]} cy={y(Number(v.gordura), gmn, gmx)} r={i === ultimo ? 5 : 3.5} fill="var(--chart2)" />}
             <text x={xs[i]} y={H - 8} textAnchor="middle" fontSize="11" fill="var(--muted)" fontFamily="var(--mono)">{fmtData(v.data).slice(0, 5)}</text>
           </g>
         ))}
       </svg>
       <div className="legend">
         <span><i className="sw" style={{ background: 'var(--accent)' }} />Peso (kg, eixo esquerdo)</span>
-        {comGordura && <span><i className="sw" style={{ background: 'var(--warn)' }} />Gordura (%, eixo direito)</span>}
+        {comGordura && <span><i className="sw" style={{ background: 'var(--chart2)' }} />Gordura (%, eixo direito)</span>}
       </div>
     </div>
   )

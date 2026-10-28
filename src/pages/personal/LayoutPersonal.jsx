@@ -10,6 +10,7 @@ export default function LayoutPersonal({ nome }) {
         <div className="brand">Personal<small>{nome ? `Olá, ${primeiroNome(nome)}` : 'Área do treinador'}</small></div>
         <NavLink to="/painel" className={cls}>Painel</NavLink>
         <NavLink to="/alunos" className={cls}>Alunos</NavLink>
+        <NavLink to="/comunidade" className={cls}>Comunidade</NavLink>
         <div className="spacer" />
         <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
       </nav>

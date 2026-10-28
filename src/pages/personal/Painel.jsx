@@ -11,8 +11,10 @@ export default function Painel() {
   useEffect(() => {
     supabase.from('alunos').select('id, nome, objetivo, status, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data)))
-    supabase.from('registros').select('aluno_id').eq('data', hojeISO())
-      .then(({ data }) => setTreinaramHoje(new Set((data || []).map((r) => r.aluno_id)).size))
+    Promise.all([
+      supabase.from('registros').select('aluno_id').eq('data', hojeISO()),
+      supabase.from('checkins').select('aluno_id').eq('data', hojeISO()),
+    ]).then(([r, c]) => setTreinaramHoje(new Set([...(r.data || []), ...(c.data || [])].map((x) => x.aluno_id)).size))
   }, [])
 
   if (erro) return <p className="erro">Não foi possível carregar: {erro}</p>
