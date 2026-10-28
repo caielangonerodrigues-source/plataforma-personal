@@ -140,6 +140,50 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .foto-botao:focus-within { outline: 2px solid var(--accent); outline-offset: 2px }
 .foto-preview { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px }
 
+/* Spinning: mapa das bikes */
+.sala { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 8px 0 4px }
+.palco { width: min(100%, 420px); text-align: center; font-family: var(--display); font-weight: 700; letter-spacing: .2em; text-transform: uppercase; font-size: 14px; color: var(--muted); padding-bottom: 10px; border-bottom: 4px solid var(--accent); border-radius: 0 0 50% 50% / 0 0 14px 14px }
+.fileiras { display: flex; flex-direction: column; gap: 12px; align-items: center }
+.fileira { display: flex; gap: 10px; justify-content: center }
+.bike { width: 62px; padding: 8px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid var(--line); border-radius: 12px 12px 8px 8px; background: var(--surface); color: var(--ink) }
+.bike svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.bike-n { font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1 }
+.bike-nome { font-size: 11px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-height: 16px }
+.bike.livre { border-color: var(--accent); color: var(--accent) }
+.bike.livre:hover { background: var(--accent-soft) }
+.bike.selecionada { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.bike.ocupada { background: var(--pause-soft); border-color: var(--pause-soft); color: var(--pause) }
+.bike.ocupada:disabled { opacity: 1 }
+.bike.ocupada.pendente { background: var(--warn-soft); border-color: var(--warn-soft); color: var(--warn) }
+.bike.bloqueada { background: transparent; border-style: dashed; color: var(--muted); opacity: .6 }
+.bike:not(:disabled) { cursor: pointer }
+.sw-bike { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 6px; vertical-align: -2px; border: 2px solid var(--line) }
+.sw-bike.livre { border-color: var(--accent) }
+.sw-bike.selecionada { background: var(--accent); border-color: var(--accent) }
+.sw-bike.ocupada { background: var(--pause-soft); border-color: var(--pause-soft) }
+.sw-bike.ocupada.pendente { background: var(--warn-soft); border-color: var(--warn-soft) }
+.sw-bike.bloqueada { border-style: dashed }
+.aulas { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px }
+.aula { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--surface); text-align: left; font-weight: 400 }
+.aula:hover, .aula[aria-current="true"] { border-color: var(--accent) }
+.aula .hora { font-family: var(--display); font-size: 34px; font-weight: 700; line-height: 1 }
+.aula .dia { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent) }
+.aula.lotada .hora { color: var(--muted) }
+.ingresso { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden }
+.ingresso-topo { background: var(--accent); color: var(--accent-ink); padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px }
+.ingresso-topo .bike-grande { font-family: var(--display); font-size: 52px; font-weight: 700; line-height: .9; text-align: right }
+.ingresso-topo .bike-grande small { display: block; font-size: 12px; letter-spacing: .14em }
+.ingresso-corpo { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; border-top: 2px dashed var(--line) }
+.topo-publico { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px }
+.topo-publico .brand { margin: 0 }
+
+/* Consultoria online: antes e depois */
+.antes-depois { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px }
+.par { display: grid; grid-template-columns: 1fr 1fr; gap: 6px }
+.par figure { margin: 0 }
+.par img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; background: var(--line); display: block }
+.par .sem-foto { aspect-ratio: 3 / 4; border: 1.5px dashed var(--line); border-radius: 8px; display: grid; place-items: center; text-align: center; padding: 6px }
+
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none } }
 @media (max-width: 760px) {
   .app { grid-template-columns: 1fr }
@@ -152,4 +196,6 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
   .opcional { display: none }
   .comunidade > :last-child { order: -1 }
   h1 { font-size: 32px }
+  .bike { width: 54px }
+  .fileira { gap: 7px }
 }

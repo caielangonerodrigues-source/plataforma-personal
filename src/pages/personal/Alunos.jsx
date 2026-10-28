@@ -11,7 +11,7 @@ export default function Alunos() {
   const [novo, setNovo] = useState(false)
 
   useEffect(() => {
-    supabase.from('alunos').select('id, nome, objetivo, plano, status, user_id, treinos(id)').order('nome').then(({ data }) => setAlunos(data || []))
+    supabase.from('alunos').select('id, nome, objetivo, plano, status, modalidade, user_id, treinos(id)').order('nome').then(({ data }) => setAlunos(data || []))
   }, [])
 
   if (!alunos) return <p className="carregando">Carregando…</p>
@@ -30,7 +30,7 @@ export default function Alunos() {
             <Link className="item" key={a.id} to={`/alunos/${a.id}`}>
               <div>
                 <div className="name">{a.nome}</div>
-                <div className="meta">{[a.objetivo, a.plano, `${a.treinos.length} ficha(s)`, a.user_id ? 'acesso ativo' : 'ainda sem login'].filter(Boolean).join(' · ')}</div>
+                <div className="meta">{[a.modalidade === 'online' && 'Online', a.objetivo, a.plano, `${a.treinos.length} ficha(s)`, a.user_id ? 'acesso ativo' : 'ainda sem login'].filter(Boolean).join(' · ')}</div>
               </div>
               <Status status={a.status} />
             </Link>

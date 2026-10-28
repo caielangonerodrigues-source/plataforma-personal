@@ -7,11 +7,14 @@ import { linkWhatsApp } from '../../lib/whatsapp.js'
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
   const [treinaramHoje, setTreinaramHoje] = useState(0)
+  const [envios, setEnvios] = useState([])
   const [erro, setErro] = useState('')
 
   useEffect(() => {
     supabase.from('alunos').select('id, nome, telefone, objetivo, status, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data)))
+    supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
+      .then(({ data }) => setEnvios(data || []))
     Promise.all([
       supabase.from('registros').select('aluno_id').eq('data', hojeISO()),
       supabase.from('checkins').select('aluno_id').eq('data', hojeISO()),
@@ -41,6 +44,19 @@ export default function Painel() {
         <div className="panel" style={{ marginBottom: 16 }}>
           <h2>Comece cadastrando um aluno</h2>
           <p>Vá em <Link to="/alunos">Alunos</Link> e clique em "Novo aluno". Coloque o e-mail dele para ele conseguir entrar e ver o treino.</p>
+        </div>
+      )}
+      {envios.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
+          <div className="row between"><h2>Consultoria online</h2><span className="meta">{envios.length} {envios.length === 1 ? 'envio' : 'envios'} para responder</span></div>
+          <div className="list">
+            {envios.map((e) => (
+              <Link className="item" key={e.id} to={`/alunos/${e.aluno_id}?aba=consultoria`}>
+                <div><div className="name">{e.alunos?.nome}</div><div className="meta">Enviou medidas e fotos em {fmtData(e.data)}{e.peso != null ? ` · ${f1(e.peso)} kg` : ''}</div></div>
+                <span className="pill pendente">Responder</span>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
       <div className="grid2">

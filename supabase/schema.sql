@@ -34,6 +34,7 @@ create table public.alunos (
   comunidade boolean not null default true, -- aparece no feed e no ranking dos colegas
   valor_mensal numeric(8, 2),               -- mensalidade; vazio = não cobra pela plataforma
   dia_vencimento int check (dia_vencimento between 1 and 28),
+  modalidade text not null default 'presencial' check (modalidade in ('presencial', 'online')), -- online = consultoria
   created_at timestamptz not null default now()
 );
 create unique index alunos_email_unico on public.alunos (lower(email)) where email is not null;
@@ -415,3 +416,164 @@ create policy "ver foto de evolução" on storage.objects
 create policy "apagar foto de evolução" on storage.objects
   for delete to authenticated
   using (bucket_id = 'evolucao' and public.dono_do_aluno(((storage.foldername(name))[1])::uuid));
+
+-- ---------------------------------------------------------------------------
+-- Spinning: aulas com 14 bikes e reservas (alunos e visitantes, sem login)
+-- ---------------------------------------------------------------------------
+
+create table public.aulas_spinning (
+  id uuid primary key default gen_random_uuid(),
+  personal_id uuid not null default auth.uid() references public.personais (user_id) on delete cascade,
+  titulo text not null default 'Spinning' check (char_length(titulo) <= 60),
+  instrutor text check (char_length(instrutor) <= 60),
+  inicio timestamptz not null,
+  duracao_min int not null default 45 check (duracao_min between 10 and 240),
+  valor numeric(8, 2) not null default 0 check (valor >= 0),
+  vagas int not null default 14 check (vagas between 1 and 40),
+  bloqueadas int[] not null default '{}', -- bikes em manutenção
+  cancelada boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index aulas_spinning_inicio_idx on public.aulas_spinning (inicio);
+
+create table public.reservas_spinning (
+  id uuid primary key default gen_random_uuid(),
+  aula_id uuid not null references public.aulas_spinning (id) on delete cascade,
+  bike int not null,
+  nome text not null check (char_length(nome) between 2 and 80),
+  telefone text not null check (char_length(telefone) between 8 and 20),
+  aluno_id uuid references public.alunos (id) on delete set null,
+  status text not null default 'pendente' check (status in ('pendente', 'pago', 'cancelada')),
+  codigo text not null default upper(substr(md5(gen_random_uuid()::text), 1, 8)), -- referência do Pix
+  created_at timestamptz not null default now()
+);
+-- Uma bike só pode ter uma reserva ativa por aula.
+create unique index reservas_bike_unica on public.reservas_spinning (aula_id, bike) where status <> 'cancelada';
+create index reservas_aula_idx on public.reservas_spinning (aula_id);
+
+alter table public.aulas_spinning enable row level security;
+alter table public.reservas_spinning enable row level security;
+
+-- Qualquer pessoa (mesmo sem login) vê as aulas; só o personal cria e altera as suas.
+create policy "todos veem aulas" on public.aulas_spinning
+  for select to anon, authenticated using (true);
+create policy "personal gerencia aulas" on public.aulas_spinning
+  for all to authenticated using (personal_id = auth.uid())
+  with check (personal_id = auth.uid() and public.eh_personal());
+
+-- Reservas: só o personal da aula lê e altera direto. Visitantes usam as funções abaixo.
+create policy "personal gerencia reservas" on public.reservas_spinning
+  for all to authenticated
+  using (exists (select 1 from aulas_spinning a where a.id = aula_id and a.personal_id = auth.uid()))
+  with check (exists (select 1 from aulas_spinning a where a.id = aula_id and a.personal_id = auth.uid()));
+
+-- Reserva pendente há mais de 30 minutos libera a bike.
+create function public.liberar_reservas_vencidas(a uuid) returns void
+language sql security definer set search_path = public as $$
+  update reservas_spinning set status = 'cancelada'
+   where aula_id = a and status = 'pendente' and created_at < now() - interval '30 minutes'
+$$;
+
+-- Bikes ocupadas (sem nomes) para o mapa.
+create function public.bikes_ocupadas(a uuid) returns int[]
+language plpgsql security definer set search_path = public as $$
+begin
+  perform liberar_reservas_vencidas(a);
+  return coalesce((select array_agg(bike order by bike) from reservas_spinning where aula_id = a and status <> 'cancelada'), '{}');
+end;
+$$;
+
+create function public.reservar_bike(p_aula uuid, p_bike int, p_nome text, p_telefone text)
+returns table (id uuid, codigo text)
+language plpgsql security definer set search_path = public as $$
+declare
+  aula aulas_spinning;
+  tel text := regexp_replace(coalesce(p_telefone, ''), '\D', '', 'g');
+begin
+  select * into aula from aulas_spinning where aulas_spinning.id = p_aula;
+  if aula.id is null or aula.cancelada then raise exception 'Aula não encontrada ou cancelada.'; end if;
+  if aula.inicio < now() then raise exception 'Esta aula já começou.'; end if;
+  if p_bike < 1 or p_bike > aula.vagas or p_bike = any (aula.bloqueadas) then raise exception 'Bike indisponível.'; end if;
+  if char_length(trim(coalesce(p_nome, ''))) < 2 then raise exception 'Informe seu nome.'; end if;
+  if char_length(tel) < 10 then raise exception 'Informe um WhatsApp com DDD.'; end if;
+  perform liberar_reservas_vencidas(p_aula);
+  if (select count(*) from reservas_spinning r
+       where r.aula_id = p_aula and r.status <> 'cancelada' and regexp_replace(r.telefone, '\D', '', 'g') = tel) >= 2 then
+    raise exception 'Este WhatsApp já tem 2 bikes reservadas nesta aula.';
+  end if;
+  begin
+    return query
+      insert into reservas_spinning as r (aula_id, bike, nome, telefone, aluno_id, status)
+      values (p_aula, p_bike, trim(p_nome), trim(p_telefone),
+              (select x.id from alunos x where x.user_id = auth.uid() and x.personal_id = aula.personal_id),
+              case when aula.valor = 0 then 'pago' else 'pendente' end) -- aula gratuita já fica confirmada
+      returning r.id, r.codigo;
+  exception when unique_violation then
+    raise exception 'Essa bike acabou de ser reservada. Escolha outra.';
+  end;
+end;
+$$;
+
+-- Dados da reserva para quem tem o link (id + código): situação, aula e Pix do personal.
+create function public.minha_reserva(p_id uuid, p_codigo text)
+returns table (id uuid, codigo text, bike int, nome text, status text, criada timestamptz, aula_id uuid,
+               aula_titulo text, aula_inicio timestamptz, aula_duracao int, instrutor text, valor numeric,
+               pix_chave text, pix_nome text, pix_cidade text, personal_nome text, personal_telefone text)
+language plpgsql security definer set search_path = public as $$
+begin
+  perform liberar_reservas_vencidas((select r.aula_id from reservas_spinning r where r.id = p_id));
+  return query
+    select r.id, r.codigo, r.bike, r.nome, r.status, r.created_at, a.id,
+           a.titulo, a.inicio, a.duracao_min, a.instrutor, a.valor,
+           p.pix_chave, p.pix_nome, p.pix_cidade, p.nome, p.telefone
+      from reservas_spinning r
+      join aulas_spinning a on a.id = r.aula_id
+      join personais p on p.user_id = a.personal_id
+     where r.id = p_id and r.codigo = upper(p_codigo);
+end;
+$$;
+
+create function public.cancelar_minha_reserva(p_id uuid, p_codigo text) returns void
+language sql security definer set search_path = public as $$
+  update reservas_spinning set status = 'cancelada'
+   where id = p_id and codigo = upper(p_codigo) and status = 'pendente'
+$$;
+
+grant execute on function public.bikes_ocupadas(uuid), public.reservar_bike(uuid, int, text, text),
+  public.minha_reserva(uuid, text), public.cancelar_minha_reserva(uuid, text) to anon, authenticated;
+revoke execute on function public.liberar_reservas_vencidas(uuid) from anon, authenticated, public;
+
+-- ---------------------------------------------------------------------------
+-- Consultoria online: o aluno envia peso, medidas, fotos e como foi a semana;
+-- o personal responde e, se quiser, registra como avaliação.
+-- ---------------------------------------------------------------------------
+
+create table public.envios_consultoria (
+  id uuid primary key default gen_random_uuid(),
+  aluno_id uuid not null references public.alunos (id) on delete cascade,
+  data date not null default current_date,
+  peso numeric(5, 1),
+  gordura numeric(4, 1),       -- % de gordura da balança de bioimpedância, se o aluno tiver
+  medidas jsonb not null default '{}', -- centímetros, ex.: {"cintura": 82, "braco_d": 33}
+  sono smallint check (sono between 1 and 5),
+  energia smallint check (energia between 1 and 5),
+  dieta smallint check (dieta between 1 and 5),
+  treinos_semana smallint check (treinos_semana between 0 and 14),
+  comentario text check (char_length(comentario) <= 2000),
+  resposta text check (char_length(resposta) <= 4000),
+  respondido_em timestamptz,
+  avaliacao_id uuid references public.avaliacoes (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+create index envios_consultoria_aluno_idx on public.envios_consultoria (aluno_id, data);
+
+alter table public.envios_consultoria enable row level security;
+
+create policy "personal gerencia envios" on public.envios_consultoria
+  for all using (public.dono_do_aluno(aluno_id)) with check (public.dono_do_aluno(aluno_id));
+create policy "aluno vê seus envios" on public.envios_consultoria
+  for select using (public.eh_o_aluno(aluno_id));
+create policy "aluno envia" on public.envios_consultoria
+  for insert with check (public.eh_o_aluno(aluno_id) and resposta is null and respondido_em is null and avaliacao_id is null);
+create policy "aluno apaga envio sem resposta" on public.envios_consultoria
+  for delete using (public.eh_o_aluno(aluno_id) and resposta is null);

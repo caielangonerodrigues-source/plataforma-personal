@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Grafico from '../../components/Grafico.jsx'
 import Composicao from '../../components/Composicao.jsx'
@@ -10,6 +11,7 @@ import Medalhas from '../../components/Medalhas.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
+import Consultoria from '../../components/Consultoria.jsx'
 import { useComunidade } from '../../hooks/useComunidade.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
@@ -80,7 +82,7 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['treino', 'Treino'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['evolucao', 'Evolução'], ['conta', 'Conta']]
+  const abas = [['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['evolucao', 'Evolução'], ['conta', 'Conta']]
 
   return (
     <div className="solo">
@@ -109,6 +111,8 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} />}
 
+      {aba === 'consultoria' && <Consultoria aluno={aluno} />}
+
       {aba === 'conta' && (
         <div className="stack">
           <Mensalidade aluno={aluno} />
@@ -116,7 +120,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {aba !== 'comunidade' && aba !== 'conta' && !treinos && <p className="carregando">Carregando…</p>}
+      {!['comunidade', 'conta', 'consultoria'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">

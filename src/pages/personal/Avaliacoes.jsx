@@ -62,9 +62,10 @@ export default function Avaliacoes({ aluno, recarregar }) {
   )
 }
 
-function FormAvaliacao({ aluno, onFechar, onSalvo }) {
+export function FormAvaliacao({ aluno, inicial, onFechar, onSalvo }) {
   const ultima = aluno.avaliacoes.at(-1)
-  const [d, setD] = useState({ data: hojeISO(), peso: '', altura: ultima?.altura ?? '', protocolo: 'p7', gordura: '', cintura: '', quadril: '', braco: '', coxa: '' })
+  // `inicial` vem de um envio da consultoria online: sem dobras, então protocolo manual.
+  const [d, setD] = useState({ data: hojeISO(), peso: '', altura: ultima?.altura ?? '', protocolo: inicial ? 'manual' : 'p7', gordura: '', cintura: '', quadril: '', braco: '', coxa: '', ...inicial })
   const [dobras, setDobras] = useState({})
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -77,15 +78,15 @@ function FormAvaliacao({ aluno, onFechar, onSalvo }) {
     if (d.protocolo !== 'manual' && !aluno.idade) return setErro('Cadastre a idade do aluno: ela entra na equação de Pollock.')
     if (d.protocolo !== 'manual' && !calc) return setErro('Preencha todas as dobras do protocolo, em milímetros.')
     setSalvando(true)
-    const { error } = await supabase.from('avaliacoes').insert({
+    const { data: salva, error } = await supabase.from('avaliacoes').insert({
       aluno_id: aluno.id, data: d.data, peso: num(d.peso), altura: num(d.altura), protocolo: d.protocolo,
       dobras: calc ? Object.fromEntries(chaves.map((k) => [k, num(dobras[k])])) : null,
       gordura: calc ? Math.round(calc.gordura * 10) / 10 : num(d.gordura),
       cintura: num(d.cintura), quadril: num(d.quadril), braco: num(d.braco), coxa: num(d.coxa),
-    })
+    }).select('id').single()
     setSalvando(false)
     if (error) return setErro(`Não foi possível salvar: ${error.message}`)
-    onSalvo()
+    onSalvo(salva.id)
   }
 
   return (
