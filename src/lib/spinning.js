@@ -2,10 +2,14 @@
 
 export const MINUTOS_PARA_PAGAR = 30
 
-// Fileiras como num cinema: a primeira fica de frente para o instrutor.
-export function fileirasBikes(vagas, porFileira = 5) {
-  const fileiras = []
-  for (let n = 1; n <= vagas; n += porFileira) {
+export const INSTRUTOR = 'instrutor'
+
+// Sala vista de cima, como num cinema. Na frente ficam a bike 1, a do instrutor (no meio)
+// e a bike 2; atrás, fileiras de 3.
+export function fileirasBikes(vagas, porFileira = 3) {
+  const frente = vagas >= 2 ? [1, INSTRUTOR, 2] : vagas === 1 ? [INSTRUTOR, 1] : [INSTRUTOR]
+  const fileiras = [frente]
+  for (let n = 3; n <= vagas; n += porFileira) {
     fileiras.push(Array.from({ length: Math.min(porFileira, vagas - n + 1) }, (_, i) => n + i))
   }
   return fileiras
@@ -18,7 +22,7 @@ export function estadoBike(n, { ocupadas = [], bloqueadas = [], selecionada } = 
 }
 
 export const bikesLivres = (vagas, ocupadas = [], bloqueadas = []) =>
-  fileirasBikes(vagas).flat().filter((n) => !ocupadas.includes(n) && !bloqueadas.includes(n)).length
+  fileirasBikes(vagas).flat().filter((n) => n !== INSTRUTOR && !ocupadas.includes(n) && !bloqueadas.includes(n)).length
 
 // Minutos que faltam para a reserva pendente expirar (0 quando já expirou).
 export function minutosParaPagar(criada, agora = new Date()) {

@@ -2,9 +2,10 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { bikesLivres, estadoBike, fileirasBikes, minutosParaPagar, quandoAula, repetirSemanal } from './spinning.js'
 
-test('14 bikes viram fileiras de 5, 5 e 4', () => {
-  assert.deepEqual(fileirasBikes(14), [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14]])
-  assert.deepEqual(fileirasBikes(3), [[1, 2, 3]])
+test('14 bikes: frente com 1, instrutor e 2, depois fileiras de 3', () => {
+  assert.deepEqual(fileirasBikes(14), [[1, 'instrutor', 2], [3, 4, 5], [6, 7, 8], [9, 10, 11], [12, 13, 14]])
+  assert.deepEqual(fileirasBikes(6), [[1, 'instrutor', 2], [3, 4, 5], [6]])
+  assert.deepEqual(fileirasBikes(1), [['instrutor', 1]])
 })
 
 test('estado da bike: bloqueada vence ocupada, que vence selecionada', () => {

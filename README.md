@@ -37,7 +37,7 @@ Site para o personal gerenciar alunos, fichas de treino e avaliações físicas,
 - Mensalidade por Pix sem taxa: em **Configurações** você cadastra a chave Pix; no cadastro do aluno, o valor e o dia do vencimento. O aluno vê o QR Code e o copia e cola na aba **Conta**, e você marca quem pagou em **Financeiro**. Antes de divulgar, use o código de teste de R$ 1,00 de Configurações no app do seu banco para conferir se aparece o seu nome.
 
 **Spinning (aberto para quem não é aluno)**
-- Página pública `/spinning`, sem login: a pessoa escolhe a aula, escolhe a bike num mapa da sala igual ao de cinema (14 bikes, fileira 1 de frente para o instrutor), informa nome e WhatsApp e recebe o QR Code Pix com o valor da aula.
+- Página pública `/spinning`, sem login: a pessoa escolhe a aula, escolhe a bike num mapa da sala igual ao de cinema (14 bikes: na frente a 1, a do instrutor no meio e a 2; atrás, fileiras de 3), informa nome e WhatsApp e recebe o QR Code Pix com o valor da aula.
 - A bike fica segurada por 30 minutos esperando o Pix. Se ninguém pagar, ela volta a ficar livre sozinha. Cada WhatsApp reserva no máximo 2 bikes por aula, e duas pessoas nunca ficam com a mesma bike (o banco garante).
 - A pessoa recebe um link da reserva com um código (vai no Pix como identificador) para ver a situação, avisar no WhatsApp que pagou ou cancelar.
 - Em **Spinning**, você cria aulas (pode repetir toda semana), vê o mapa com o nome de quem está em cada bike, confirma os pagamentos, reserva para quem pagou na hora, coloca bike em manutenção e copia o link para divulgar. Aula com valor 0 é confirmada na hora.

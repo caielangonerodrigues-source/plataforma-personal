@@ -95,7 +95,7 @@ export default function AulaSpinning() {
   else if (!bike) lado = (
     <>
       <h2>Escolha sua bike</h2>
-      <p className="meta" style={{ margin: 0 }}>Toque numa bike laranja no mapa. A fileira 1 fica de frente para o instrutor.</p>
+      <p className="meta" style={{ margin: 0 }}>Toque numa bike laranja no mapa. As bikes 1 e 2 ficam ao lado do instrutor, na frente.</p>
       {pago && <p className="meta" style={{ margin: 0 }}>Vai fazer várias aulas? <Link to="/spinning/pacotes">Veja os pacotes</Link> e pague menos por aula.</p>}
     </>
   )
