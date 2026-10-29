@@ -6,6 +6,7 @@ import { fmtData, hojeISO, primeiroNome } from '../../lib/formato.js'
 import { somarDias } from '../../lib/comunidade.js'
 import { DIAS_SEMANA, atendimentos, diaDaSemana, hhmm, inicioDaSemana } from '../../lib/agenda.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 const ERRO_SQL = 'Para usar a agenda, rode o arquivo supabase/migracao-melhorias.sql no Supabase (SQL Editor).'
 const curta = (iso) => `${DIAS_SEMANA[diaDaSemana(iso)].toLowerCase()}, ${iso.slice(8, 10)}/${iso.slice(5, 7)}`
@@ -127,6 +128,7 @@ export default function Agenda() {
         <div><h1>Agenda</h1><p className="sub">Horários fixos dos alunos presenciais. Remarque um dia sem mudar o horário fixo.</p></div>
         <button className="primary" onClick={() => setNovo({})} disabled={erro === ERRO_SQL}>Novo horário</button>
       </div>
+      <AjudaDaPagina />
       {erro && <p className="erro">{erro}</p>}
 
       {(deAmanha.length > 0 || expDoDia(amanha).length > 0) && (

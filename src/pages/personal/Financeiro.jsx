@@ -4,6 +4,7 @@ import { supabase } from '../../supabase.js'
 import { MESES, brl, hojeISO, primeiroNome } from '../../lib/formato.js'
 import { situacaoMensalidade } from '../../lib/pix.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 const ROTULO = { pago: 'Pago', aberto: 'Em aberto', atrasado: 'Atrasado' }
 
@@ -71,6 +72,7 @@ export default function Financeiro() {
           <button className="small" aria-label="Próximo mês" onClick={() => mudarMes(1)}>›</button>
         </div>
       </div>
+      <AjudaDaPagina />
       {!temPix && <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>Cadastre sua chave Pix em <Link to="/configuracoes">Configurações</Link> para os alunos verem o QR Code da mensalidade.</div>}
       <div className="kpis" style={{ marginBottom: 20, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
         <div className="panel kpi"><div className="n" style={{ fontSize: 32 }}>{brl(recebido)}</div><div className="l">Recebido</div></div>

@@ -4,6 +4,7 @@ import { supabase } from '../../supabase.js'
 import Avatar from '../../components/Avatar.jsx'
 import ConversaPrivada from '../../components/ConversaPrivada.jsx'
 import { quandoFoi } from '../../lib/comunidade.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 // Conversas particulares com os alunos: quem mandou por último aparece primeiro.
 export default function Mensagens() {
@@ -51,6 +52,7 @@ export default function Mensagens() {
     <>
       <h1>Mensagens</h1>
       <p className="sub">Conversa particular com cada aluno, da academia e da consultoria online.</p>
+      <AjudaDaPagina />
       <div className={`conversas${atual ? ' aberta' : ''}`}>
         <div className="panel conversas-lista">
           <input placeholder="Buscar aluno" aria-label="Buscar aluno" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ marginBottom: 6 }} />

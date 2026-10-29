@@ -9,6 +9,7 @@ import { fichasDaIA, pedirIA } from '../../lib/ia.js'
 import { resumoModelo } from '../../lib/modelos.js'
 import { FormModelo, aplicarModelo } from './Modelos.jsx'
 import Relatorio from '../../components/Relatorio.jsx'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 const DIAS = ['2', '3', '4', '5', '6']
 
@@ -70,6 +71,7 @@ export default function Assistente() {
     <>
       <h1>Assistente IA</h1>
       <p className="sub">A IA monta um rascunho de treino, dieta ou do relatório mensal com base na avaliação física, na anamnese, nas cargas e no objetivo do aluno. Você revisa e decide se aplica.</p>
+      <AjudaDaPagina />
 
       <div className="panel ia-caixa stack">
         <div className="form">

@@ -6,12 +6,14 @@ import { ROTULO_RESERVA, inicioISO, quandoAula, repetirSemanal } from '../../lib
 import { brl, hojeISO, num, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 import PacotesPersonal from './PacotesPersonal.jsx'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Spinning() {
   const [aba, setAba] = useState('aulas')
   return (
     <>
       <h1>Spinning</h1>
+      <AjudaDaPagina />
       <div className="tabs" role="tablist" style={{ marginTop: 8 }}>
         {[['aulas', 'Aulas'], ['pacotes', 'Pacotes']].map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>{l}</button>)}
       </div>

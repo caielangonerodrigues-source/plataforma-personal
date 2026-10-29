@@ -6,6 +6,7 @@ import FormAluno from './FormAluno.jsx'
 import { brl, fmtData, num, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 import { DIAS_SEMANA, diaDaSemana, hhmm } from '../../lib/agenda.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 const STATUS = [['novo', 'Novo'], ['conversando', 'Conversando'], ['fechou', 'Fechou'], ['nao_fechou', 'Não fechou']]
 const COR = { novo: 'pendente', conversando: 'pendente', fechou: 'ativo', nao_fechou: 'pausado' }
@@ -17,6 +18,7 @@ export default function Vendas() {
     <>
       <h1>Vendas</h1>
       <p className="sub">Sua página de consultoria online e quem pediu contato por ela.</p>
+      <AjudaDaPagina />
       <div className="tabs" role="tablist">
         {[['interessados', 'Interessados'], ['pagina', 'Página e planos']].map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>{l}</button>)}
       </div>

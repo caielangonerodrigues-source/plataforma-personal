@@ -39,7 +39,7 @@ import { useAcademia } from '../../hooks/useAcademia.js'
 import { codigoDoLink } from '../../lib/academia.js'
 import { medalhas } from '../../lib/medalhas.js'
 import { conquistasAtuais, conquistasParaPublicar, recordesDoDia } from '../../lib/social.js'
-import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
+import { somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
 import { segundosDescanso } from '../../lib/descanso.js'
 import { situacaoFicha } from '../../lib/ficha.js'
@@ -209,8 +209,6 @@ export default function AreaAluno({ aluno }) {
   const pct = ficha?.exercicios.length ? Math.round((qtdFeitos / ficha.exercicios.length) * 100) : 0
   const ultima = avaliacoes.at(-1)
   const fezHoje = diasCheckin.includes(hoje)
-  const seq = sequencia(diasCheckin, hoje)
-  const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
   const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   // No celular: barra flutuante (Início, Treino, Check-in no meio, Turma/Consultoria e Você); o resto fica em Você › Mais.
@@ -224,7 +222,7 @@ export default function AreaAluno({ aluno }) {
 
   return (
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
-      <Cabecalho aluno={aluno} whatsapp={whatsapp} naoLidas={aba === 'mensagens' ? 0 : naoLidas} onMensagens={() => irPara('mensagens')} />
+      <Cabecalho aluno={aluno} whatsapp={whatsapp} naoLidas={aba === 'mensagens' ? 0 : naoLidas} onMensagens={() => irPara('mensagens')} onCheckin={() => setCheckinAberto(true)} fezHoje={fezHoje} />
       <InstalarApp />
       {qr && (
         <div className={`panel qr-resultado${qr.erro ? ' erro' : ''}`} role="status">
@@ -244,17 +242,6 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {aba !== 'inicio' && <>
-      <div className="streak so-computador">
-        <div className="panel kpi"><div className="n">{seq}</div><div className="l">{seq === 1 ? 'Dia seguido' : 'Dias seguidos'}</div></div>
-        <div className="panel kpi"><div className="n">{noMes}</div><div className="l">Treinos no mês</div></div>
-        <div className="panel kpi"><div className="n">{new Set(diasCheckin).size}</div><div className="l">Check-ins no total</div></div>
-      </div>
-      <div className="checkin-cta so-computador">
-        <p>{fezHoje ? `Check-in de hoje feito. ${seq > 1 ? `São ${seq} dias seguidos!` : 'Bora manter a sequência amanhã.'}` : 'Treinou hoje? Registre e apareça no ranking.'}</p>
-        <button onClick={() => setCheckinAberto(true)}>{fezHoje ? 'Novo check-in' : 'Fazer check-in'}</button>
-      </div>
-      </>}
 
       <div className="tabs so-computador" role="tablist">
         {abas.map(([k, l]) => (
@@ -469,7 +456,7 @@ function Series({ exercicio, inicial, onSalvar, onFechar }) {
   )
 }
 
-function Cabecalho({ aluno, whatsapp, naoLidas = 0, onMensagens }) {
+function Cabecalho({ aluno, whatsapp, naoLidas = 0, onMensagens, onCheckin, fezHoje }) {
   return (
     <div className="row between">
       <div className="row" style={{ gap: 12, flexWrap: 'nowrap' }}>
@@ -483,6 +470,7 @@ function Cabecalho({ aluno, whatsapp, naoLidas = 0, onMensagens }) {
           </button>
         )}
         {whatsapp && <a className="botao-whatsapp redondo" href={whatsapp} target="_blank" rel="noreferrer" aria-label="Grupo da academia no WhatsApp" title="Grupo da academia no WhatsApp"><IconeWhatsApp /></a>}
+        {onCheckin && <button className="primary small so-computador" onClick={onCheckin}>{fezHoje ? 'Novo check-in' : '📸 Fazer check-in'}</button>}
         <button className="small so-computador" onClick={() => supabase.auth.signOut()}>Sair</button>
       </div>
     </div>

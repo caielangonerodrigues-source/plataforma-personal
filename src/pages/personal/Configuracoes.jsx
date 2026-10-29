@@ -3,6 +3,7 @@ import { supabase } from '../../supabase.js'
 import { pixCopiaECola } from '../../lib/pix.js'
 import { num } from '../../lib/formato.js'
 import AtivarNotificacoes from '../../components/AtivarNotificacoes.jsx'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Configuracoes() {
   const [d, setD] = useState(null)
@@ -35,6 +36,7 @@ export default function Configuracoes() {
     <>
       <h1>Configurações</h1>
       <p className="sub">Seus dados e a chave Pix das mensalidades.</p>
+      <AjudaDaPagina />
       <form className="stack" style={{ maxWidth: 640 }} onSubmit={salvar}>
         <div className="panel form">
           <div className="secao" style={{ marginTop: 0 }}>Seus dados</div>
@@ -55,7 +57,7 @@ export default function Configuracoes() {
         {'motivacao_auto' in d && (
           <div className="panel form">
             <div className="secao" style={{ marginTop: 0 }}>Motivação automática</div>
-            <label className="full row" style={{ gap: 8, flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+            <label className="full lembrar" style={{ alignItems: 'flex-start' }}>
               <input type="checkbox" checked={!!d.motivacao_auto} onChange={(e) => { setAviso(''); setD({ ...d, motivacao_auto: e.target.checked }) }} style={{ width: 'auto', marginTop: 4 }} />
               <span>Mandar uma frase de motivação para o aluno que está sem treinar</span>
             </label>

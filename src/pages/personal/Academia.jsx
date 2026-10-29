@@ -7,6 +7,7 @@ import { reduzirFoto } from '../../lib/foto.js'
 import { DIAS_LONGOS, dividirEquipes, TIPOS_AVISO, fmtHora, limparLinkGrupo, linkCheckinQR, ordenarAvisos, placarEquipes } from '../../lib/academia.js'
 import { quandoFoi } from '../../lib/comunidade.js'
 import { hojeISO } from '../../lib/formato.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 const CORES_EQUIPE = ['#fc4c02', '#161618', '#1a7f37', '#3d5a80', '#b5523b', '#7a3ea8']
 
@@ -46,6 +47,7 @@ export default function Academia() {
     <>
       <h1>Academia</h1>
       <p className="sub">Novidades, grade de aulas, grupo do WhatsApp, QR code da recepção, equipes e fotos da tela de entrada.</p>
+      <AjudaDaPagina />
       <div className="academia">
         <div className="stack">
           <Novidades avisos={d.avisos} alunos={d.alunos} recarregar={carregar} />
