@@ -340,7 +340,7 @@ export default function AreaAluno({ aluno }) {
                           <div className="meta mono">{e.carga}</div>
                         </div>
                       </div>
-                      {musculos === e.id && <div className="panel" style={{ margin: '6px 0 10px' }}><Corpo {...musculosDoExercicio(troca || e.nome)} tamanho={78} /></div>}
+                      {musculos === e.id && <div className="panel" style={{ margin: '6px 0 10px' }}><Corpo {...musculosDoExercicio(troca || e.nome)} tamanho={96} /></div>}
                       {aberto === e.id && <Series exercicio={e} inicial={hojeReg?.series || anterior?.series} onSalvar={(s) => salvarCargas(e, s)} onFechar={() => setAberto(null)} />}
                     </div>
                   )

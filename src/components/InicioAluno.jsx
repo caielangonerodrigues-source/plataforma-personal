@@ -266,7 +266,7 @@ function MusculosDaSemana({ registros, treinos, desde }) {
   return (
     <div className="panel musculos-semana">
       <h3>Músculos da semana</h3>
-      <Corpo intensidade={intensidade} tamanho={64} />
+      <Corpo intensidade={intensidade} tamanho={80} />
       <p className="meta" style={{ margin: 0 }}>
         {!feitos.length ? 'Marque os exercícios no treino e o bonequinho vai acendendo.'
           : faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.`
