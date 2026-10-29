@@ -321,10 +321,11 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
 .mini-barras i { flex: 1; background: var(--accent-soft); border-radius: 3px 3px 0 0 }
 .mini-barras i.atual { background: var(--accent) }
 .comecar { padding: 0; overflow: hidden }
-.comecar-banner { display: flex; align-items: flex-end; gap: 18px; padding: 18px 22px 0; background: linear-gradient(120deg, #161618, #2c2c32); color: #fff; min-height: 130px }
+.comecar-banner { display: flex; align-items: flex-end; gap: 18px; padding: 18px 22px 0; background: linear-gradient(120deg, #fff1ea, #ffe2d3); color: var(--ink); min-height: 130px; border-bottom: 1px solid rgb(252 76 2 / .12) }
 .comecar-banner svg path { fill: #fc4c02 }
 .comecar-banner > div { display: flex; flex-direction: column; gap: 4px; padding-bottom: 20px }
 .comecar-banner strong { font-family: var(--display); font-size: 32px; text-transform: uppercase; line-height: 1 }
+.comecar-banner span { color: #6a3a24 }
 .passos { display: flex; flex-direction: column; padding: 6px 18px 10px }
 .passo { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line) }
 .passo:last-child { border-bottom: 0 }
