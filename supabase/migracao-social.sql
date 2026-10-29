@@ -278,3 +278,14 @@ drop policy if exists "apagar foto do prato" on storage.objects;
 create policy "apagar foto do prato" on storage.objects
   for delete to authenticated
   using (bucket_id = 'pratos' and public.eh_o_aluno(((storage.foldername(name))[1])::uuid));
+
+-- Ranking separado: a lista da turma passa a dizer se o aluno é da academia ou da consultoria online.
+drop function if exists public.comunidade_membros();
+create function public.comunidade_membros() returns table (id uuid, nome text, avatar text, equipe_id uuid, modalidade text)
+language sql stable security definer set search_path = public as $$
+  select a.id, a.nome, a.avatar, a.equipe_id, a.modalidade from alunos a
+   where a.personal_id = auth.uid()
+      or (a.comunidade and a.status <> 'pausado' and a.personal_id = public.meu_grupo())
+      or a.user_id = auth.uid()
+$$;
+grant execute on function public.comunidade_membros() to authenticated;

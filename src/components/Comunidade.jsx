@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
+import { doGrupo, grupoDe, nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
 import Reacoes from './Reacoes.jsx'
@@ -19,11 +19,14 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   const { dados, erro, reagir, apagar, carregar } = comunidade
   const [visao, setVisao] = useState('feed') // feed | fotos | chat
   const [perfilDe, setPerfilDe] = useState(null) // aluno com o perfil aberto
+  const [grupo, setGrupo] = useState(null) // ranking: academia | online (começa no grupo do aluno)
   if (erro) return <p className="erro">{erro}</p>
   if (!dados) return <p className="carregando">Carregando…</p>
 
   const membro = Object.fromEntries(dados.membros.map((m) => [m.id, m]))
-  const tabela = ranking(dados.mes, dados.membros)
+  const temOnline = dados.membros.some((m) => grupoDe(m) === 'online')
+  const meuGrupo = grupo || grupoDe(dados.membros.find((m) => m.id === meuAlunoId))
+  const tabela = ranking(dados.mes, temOnline ? doGrupo(dados.membros, meuGrupo) : dados.membros)
   const feed = dados.feed.filter((c) => membro[c.aluno_id])
   const comFoto = feed.filter((c) => c.foto && dados.fotos[c.foto])
   const equipes = placarEquipes(dados.equipes || [], dados.membros, dados.mes)
@@ -92,7 +95,14 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
       <Desafios desafios={dados.desafios} checkins={dados.periodo} membros={dados.membros} minhasDatas={minhasDatas} podeGerenciar={podeApagarTudo} recarregar={carregar} />
       <div className="panel">
         <h2>Ranking de {nomeDoMes()}</h2>
-        <p className="meta" style={{ margin: '2px 0 8px' }}>Dias com check-in neste mês</p>
+        {temOnline && (
+          <div className="segmentos" role="tablist" style={{ margin: '8px 0 4px' }}>
+            {[['academia', 'Academia'], ['online', 'Online']].map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={meuGrupo === k} onClick={() => setGrupo(k)}>{l}</button>
+            ))}
+          </div>
+        )}
+        <p className="meta" style={{ margin: '2px 0 8px' }}>{temOnline ? (meuGrupo === 'online' ? 'Alunos da consultoria online: dias com check-in neste mês' : 'Quem treina na academia: dias com check-in neste mês') : 'Dias com check-in neste mês'}</p>
         <div>
           {tabela.map((r, i) => (
             <div key={r.id} className={`rank${i < 3 && r.dias > 0 ? ' top' : ''}${r.id === meuAlunoId ? ' eu' : ''}`} role="button" tabIndex={0} style={{ cursor: 'pointer' }}

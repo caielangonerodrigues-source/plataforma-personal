@@ -46,3 +46,7 @@ export function quandoFoi(createdAt, agora = Date.now()) {
   const d = new Date(createdAt)
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`
 }
+
+// Ranking separado: academia (presencial) e consultoria online. Sem a coluna nova, todo mundo é da academia.
+export const grupoDe = (m) => (m?.modalidade === 'online' ? 'online' : 'academia')
+export const doGrupo = (membros, grupo) => membros.filter((m) => grupoDe(m) === grupo)

@@ -668,3 +668,11 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .contador-macros.compacto { gap: 8px 12px }
 .contador-macros.compacto .macro-falta { display: none }
 .contador-macros.compacto .macro-num strong { font-size: 14px }
+
+/* "Como funciona" no topo de cada aba */
+.como-funciona { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 12px; padding: 10px 14px; margin: 0 0 14px; font-size: 14px }
+.como-funciona summary { cursor: pointer; font-weight: 600; color: var(--ink); list-style: none }
+.como-funciona summary::-webkit-details-marker { display: none }
+.como-funciona summary::after { content: ' ›'; color: var(--muted) }
+.como-funciona[open] summary::after { content: ' ⌄' }
+.como-funciona ul { margin: 8px 0 2px; padding-left: 18px; color: var(--muted); display: grid; gap: 4px }

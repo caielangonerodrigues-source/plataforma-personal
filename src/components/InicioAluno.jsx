@@ -6,7 +6,7 @@ import BotaoWhatsApp from './BotaoWhatsApp.jsx'
 import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, ordenarAvisos, proximaAula } from '../lib/academia.js'
 import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
-import { inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
+import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
 import { situacaoRelato } from '../lib/consultoria.js'
 import { minhasDatas } from '../lib/ficha.js'
@@ -56,7 +56,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   ]
   const faltam = passos.filter((p) => !p.feito)
 
-  const membros = dados?.membros || []
+  const membros = doGrupo(dados?.membros || [], online ? 'online' : 'academia') // ranking só com quem treina do mesmo jeito
   const tabela = dados ? ranking(dados.mes, membros).slice(0, 3) : []
   const desafio = (dados?.desafios || []).find((d) => d.inicio <= hoje && d.fim >= hoje)
   const aula = !online && academia?.aulas && proximaAula(academia.aulas)
@@ -185,7 +185,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         {aluno.comunidade && dados && (
           <div className="panel stack" style={{ gap: 10 }}>
             <div className="row between"><h2 style={{ margin: 0 }}>Comunidade</h2><button className="link" onClick={() => irPara('comunidade')}>Ver feed ›</button></div>
-            <div className="meta">Ranking do mês</div>
+            <div className="meta">Ranking do mês · {online ? 'consultoria online' : 'academia'}</div>
             {tabela.map((r, i) => (
               <div key={r.id} className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
                 <span className="meta" style={{ width: 14 }}>{i + 1}</span>
