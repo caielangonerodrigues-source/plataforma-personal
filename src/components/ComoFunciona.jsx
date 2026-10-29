@@ -58,3 +58,60 @@ export const AJUDA_ALUNO = {
   spinning: ['Reserve sua bike na aula de spinning. A reserva fica guardada por 30 minutos até o pagamento ser confirmado.'],
   conta: ['Troque sua foto, ligue as notificações, veja a mensalidade, indique amigos e preencha a anamnese.'],
 }
+
+// Textos das telas do personal (por endereço).
+export const AJUDA_PERSONAL = {
+  '/painel': [
+    'Resumo do dia: quem precisa de atenção (sumido, ficha vencida, reavaliação, relato atrasado), aniversários e vídeos para avaliar.',
+    'Toque no nome do aluno para abrir a ficha dele, ou no botão de WhatsApp para chamar com a mensagem pronta.',
+    'Uma vez por dia o Painel também dispara os avisos automáticos (ficha para trocar, mensalidade e motivação para quem sumiu).',
+  ],
+  '/alunos': [
+    'Lista de todos os alunos. Use os filtros Academia / Online e a busca para achar alguém.',
+    '"Novo aluno" cadastra pelo e-mail: quando o aluno entrar com esse e-mail, a conta dele já fica ligada a você.',
+  ],
+  '/mensagens': [
+    'Conversas particulares com cada aluno. O número laranja mostra as mensagens que você ainda não leu.',
+    'Quando você responde, o aluno recebe um aviso no celular (se ativou as notificações).',
+  ],
+  '/agenda': ['Seus horários fixos com cada aluno na semana. Remarque um dia sem mudar o horário fixo; o aluno recebe lembrete na véspera.'],
+  '/comunidade': [
+    'O feed com os check-ins de todos os alunos. Reaja, comente e apague posts se precisar.',
+    'O ranking é separado: Academia e Online. Em "Desafios" você cria metas do mês (ex.: 16 treinos em novembro).',
+    'Equipes: cada dia de treino de um membro vale 1 ponto para o time. Crie as equipes em Academia.',
+  ],
+  '/academia': [
+    'Dados da academia que os alunos veem: grade de aulas, avisos (Novidades), grupo do WhatsApp e o QR code do check-in da recepção.',
+    'Equipes: crie times (ex.: Laranja × Preta) e coloque cada aluno em um. Cada dia de treino vale 1 ponto e o time com mais pontos no mês ganha a coroa.',
+    'Fotos da tela de entrada: suba fotos da academia para aparecerem no login.',
+  ],
+  '/modelos': ['Fichas prontas para reaproveitar. Monte uma vez e aplique em qualquer aluno pela aba Treinos dele.'],
+  '/exercicios': ['Biblioteca de exercícios com vídeo. Os que você criar aparecem na hora de montar fichas.'],
+  '/assistente': ['A IA monta um rascunho de treino, dieta ou relatório para você revisar antes de mandar ao aluno.'],
+  '/aulas': ['Aulas de spinning: bikes reservadas, pagamentos para confirmar, lista de espera e pacotes.'],
+  '/vendas': ['Página de vendas da consultoria online e os contatos de quem se interessou (leads).'],
+  '/financeiro': ['Mensalidades do mês: quem pagou, quem está para vencer e quem está atrasado. Marque o pagamento quando receber o Pix.'],
+  '/configuracoes': ['Seus dados, chave Pix, prazo para trocar ficha, mensagem de motivação automática e notificações neste celular.'],
+}
+
+// Textos das abas dentro do aluno (área do personal).
+export const AJUDA_ALUNO_DETALHE = {
+  treinos: [
+    'As fichas (A, B, C…) que o aluno vê no app. Use "Aplicar modelo" para uma ficha pronta ou "Nova ficha" para montar do zero.',
+    'Depois de mexer, toque em "Avisar aluno 🔔" para ele receber "Treino novo pronto" no celular.',
+    'Em "Fases" você programa a próxima ficha para entrar sozinha numa data.',
+  ],
+  consultoria: ['Relatos semanais do aluno online: peso, medidas, fotos e como foi a semana. Responda e, se quiser, transforme em avaliação.'],
+  videos: ['Vídeos de execução que o aluno mandou. Assista e responda com as correções; ele recebe a resposta no app.'],
+  mensagens: ['Conversa particular com este aluno. Só vocês dois veem.'],
+  avaliacoes: ['Avaliações físicas com dobras (Pollock 3 ou 7), peso e medidas. A reavaliação é sugerida a cada 60 dias.'],
+  progressao: ['Evolução das cargas que o aluno anotou em cada exercício.'],
+  nutricao: [
+    'Defina as metas do dia (a sugestão vem da última avaliação) e monte as refeições.',
+    '"Usar modelo pronto" preenche uma dieta inteira ajustada à meta de calorias; depois é só trocar o que quiser e salvar.',
+    'No "Diário da dieta" você vê o que o aluno marcou nos últimos 7 dias, com as fotos dos pratos.',
+  ],
+  relatorio: ['Relatório do mês para mandar ao aluno: treinos, cargas e avaliação.'],
+  anamnese: ['Histórico de saúde e PAR-Q que o aluno preencheu.'],
+  fotos: ['Fotos de evolução (frente, lado e costas) por data.'],
+}
