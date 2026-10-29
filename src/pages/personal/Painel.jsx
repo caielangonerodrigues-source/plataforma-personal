@@ -38,6 +38,7 @@ export default function Painel() {
       if (localStorage.getItem('aviso-fichas') !== hoje) {
         localStorage.setItem('aviso-fichas', hoje)
         supabase.functions.invoke('notificacoes', { body: { acao: 'fichas' } }).catch(() => {})
+        supabase.functions.invoke('notificacoes', { body: { acao: 'mensalidades' } }).catch(() => {})
       }
     } catch { /* sem localStorage */ }
     supabase.from('feedbacks_treino').select('*').gte('data', somarDias(hoje, -7)).order('data', { ascending: false }).limit(30)

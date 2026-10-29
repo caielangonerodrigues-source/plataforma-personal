@@ -3,14 +3,17 @@ import { nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
 import Desafios from './Desafios.jsx'
+import ChatTurma from './ChatTurma.jsx'
+import BotaoWhatsApp from './BotaoWhatsApp.jsx'
+import { placarEquipes } from '../lib/academia.js'
 
 const nomeDoMes = () => new Date().toLocaleDateString('pt-BR', { month: 'long' })
 
 // Feed de check-ins (foto em destaque, curtidas e comentários), grade de fotos e ranking do mês.
 // `meuAlunoId` destaca o aluno logado; `podeApagarTudo` é o personal.
-export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeApagarTudo }) {
+export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeApagarTudo, whatsapp }) {
   const { dados, erro, curtir, apagar, carregar } = comunidade
-  const [visao, setVisao] = useState('feed') // feed | fotos
+  const [visao, setVisao] = useState('feed') // feed | fotos | chat
   if (erro) return <p className="erro">{erro}</p>
   if (!dados) return <p className="carregando">Carregando…</p>
 
@@ -18,6 +21,9 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   const tabela = ranking(dados.mes, dados.membros)
   const feed = dados.feed.filter((c) => membro[c.aluno_id])
   const comFoto = feed.filter((c) => c.foto && dados.fotos[c.foto])
+  const equipes = placarEquipes(dados.equipes || [], dados.membros, dados.mes)
+  const maxPontos = Math.max(1, ...equipes.map((e) => e.pontos))
+  const minhaEquipe = dados.membros.find((m) => m.id === meuAlunoId)?.equipe_id
 
   function abrirPost(id) {
     setVisao('feed')
@@ -30,7 +36,10 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
         <div className="tabs" role="tablist" style={{ marginBottom: 0 }}>
           <button className="tab" role="tab" aria-selected={visao === 'feed'} onClick={() => setVisao('feed')}>Feed</button>
           <button className="tab" role="tab" aria-selected={visao === 'fotos'} onClick={() => setVisao('fotos')}>Fotos{comFoto.length ? ` (${comFoto.length})` : ''}</button>
+          <button className="tab" role="tab" aria-selected={visao === 'chat'} onClick={() => setVisao('chat')}>Chat da turma</button>
         </div>
+
+        {visao === 'chat' && <ChatTurma dados={dados} podeApagarTudo={podeApagarTudo} />}
 
         {visao === 'fotos' && (
           comFoto.length ? (
@@ -52,6 +61,25 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
       </div>
 
       <aside className="stack">
+      {whatsapp && <BotaoWhatsApp link={whatsapp} />}
+      {equipes.length > 0 && (
+        <div className="panel">
+          <h2>Equipes de {nomeDoMes()}</h2>
+          <p className="meta" style={{ margin: '2px 0 10px' }}>Cada dia de treino de um membro vale 1 ponto</p>
+          <div className="stack" style={{ gap: 12 }}>
+            {equipes.map((e, i) => (
+              <div key={e.id} className={`equipe${e.id === minhaEquipe ? ' eu' : ''}`}>
+                <div className="row between" style={{ flexWrap: 'nowrap' }}>
+                  <span className="name"><span className="equipe-cor" style={{ background: e.cor }} />{i === 0 && e.pontos > 0 ? '👑 ' : ''}{e.nome}{e.id === minhaEquipe && <span className="meta"> (sua)</span>}</span>
+                  <span><span className="dias">{e.pontos}</span> <span className="meta">pts</span></span>
+                </div>
+                <div className="bar" style={{ marginTop: 6 }}><i style={{ width: `${Math.round((e.pontos / maxPontos) * 100)}%`, background: e.cor }} /></div>
+                <div className="meta" style={{ fontSize: 12, marginTop: 4 }}>{e.membros.length ? e.membros.map((m) => `${nomeCurto(m.nome)} ${m.pontos}`).join(' · ') : 'Sem membros ainda'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <Desafios desafios={dados.desafios} checkins={dados.periodo} membros={dados.membros} minhasDatas={minhasDatas} podeGerenciar={podeApagarTudo} recarregar={carregar} />
       <div className="panel">
         <h2>Ranking de {nomeDoMes()}</h2>

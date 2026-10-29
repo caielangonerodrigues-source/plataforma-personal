@@ -14,9 +14,20 @@ export function useBiblioteca() {
 }
 
 // Busca + filtro por grupo muscular. Com onAlternar, cada linha tem caixa de seleção.
-export function ListaExercicios({ lista, selecionados, onAlternar, acoes, grupoInicial = '' }) {
+// Com onCadastrar, quando a busca não acha nada, dá para cadastrar o exercício ali mesmo.
+export function ListaExercicios({ lista, selecionados, onAlternar, acoes, onCadastrar, grupoInicial = '' }) {
   const [busca, setBusca] = useState('')
   const [grupo, setGrupo] = useState(grupoInicial)
+  const [grupoNovo, setGrupoNovo] = useState('')
+  const [cadastrando, setCadastrando] = useState(false)
+  const [erroNovo, setErroNovo] = useState('')
+  async function cadastrar() {
+    setCadastrando(true)
+    const falha = await onCadastrar(busca.trim(), grupoNovo || grupo || GRUPOS[0])
+    setCadastrando(false)
+    setErroNovo(falha || '')
+    if (!falha) { setBusca(''); setGrupo('') }
+  }
   const achados = filtrarExercicios(lista, { busca, grupo })
   return (
     <div className="stack" style={{ gap: 10 }}>
@@ -50,6 +61,19 @@ export function ListaExercicios({ lista, selecionados, onAlternar, acoes, grupoI
           )
         })}
         {!achados.length && <p className="empty">Nenhum exercício encontrado.</p>}
+        {!achados.length && onCadastrar && busca.trim() && (
+          <div className="cadastrar-exercicio">
+            <div className="name">Cadastrar "{busca.trim()}"</div>
+            <div className="row" style={{ gap: 8 }}>
+              <select aria-label="Grupo muscular do exercício novo" value={grupoNovo || grupo || GRUPOS[0]} onChange={(e) => setGrupoNovo(e.target.value)}>
+                {GRUPOS.map((g) => <option key={g}>{g}</option>)}
+              </select>
+              <button type="button" className="primary small" disabled={cadastrando} onClick={cadastrar}>{cadastrando ? 'Salvando…' : onAlternar ? 'Cadastrar e marcar' : 'Cadastrar'}</button>
+            </div>
+            <div className="meta" style={{ fontSize: 12 }}>Fica salvo na sua lista de exercícios para as próximas fichas.</div>
+            {erroNovo && <p className="erro" style={{ margin: 0 }}>{erroNovo}</p>}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -57,7 +81,7 @@ export function ListaExercicios({ lista, selecionados, onAlternar, acoes, grupoI
 
 // Modal de escolha de vários exercícios de uma vez para uma ficha.
 export default function SeletorExercicios({ treino, onFechar, onPersonalizado, onAdicionar }) {
-  const { lista } = useBiblioteca()
+  const { lista, recarregar } = useBiblioteca()
   const [sel, setSel] = useState(() => new Map())
   const [padrao, setPadrao] = useState({ series: '3', reps: '12', descanso: '60s' })
   const [salvando, setSalvando] = useState(false)
@@ -74,6 +98,16 @@ export default function SeletorExercicios({ treino, onFechar, onPersonalizado, o
     if (m.has(chave)) m.delete(chave); else m.set(chave, e)
     setSel(m)
   }
+  // Exercício que não está na lista: salva na biblioteca do personal e já marca para a ficha.
+  async function cadastrar(nome, grupo) {
+    if (nome.length > 80) return 'Nome muito longo.'
+    const { data, error } = await supabase.from('exercicios_biblioteca').insert({ nome, grupo }).select().single()
+    if (error) return `Não foi possível cadastrar: ${error.message}`
+    recarregar()
+    setSel((m) => new Map(m).set(`${data.grupo}|${data.nome}`, { ...data, meu: true }))
+    return ''
+  }
+
   async function adicionar() {
     if (!sel.size) return setErro('Marque pelo menos um exercício.')
     setSalvando(true)
@@ -92,7 +126,7 @@ export default function SeletorExercicios({ treino, onFechar, onPersonalizado, o
           <h2>Exercícios para a ficha {treino.nome}</h2>
           <button type="button" className="link" onClick={onPersonalizado}>Exercício fora da lista</button>
         </div>
-        <ListaExercicios lista={lista} selecionados={sel} onAlternar={alternar} />
+        <ListaExercicios lista={lista} selecionados={sel} onAlternar={alternar} onCadastrar={cadastrar} />
         <div className="form" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
           <label>Séries<input id="sel-series" type="number" min="1" {...campo('series')} /></label>
           <label>Repetições<input id="sel-reps" {...campo('reps')} /></label>

@@ -164,6 +164,12 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 5. Em **Authentication > URL Configuration**, confira se o endereço do site está em **Site URL** e em **Redirect URLs**.
 6. Os botões "Continuar com Google/Apple" só aparecem na tela de entrada depois que o provedor é ligado no Supabase. Quem entra assim pela primeira vez vira aluno com o nome da conta Google/Apple (o personal completa telefone e o resto).
 
+### 10. Academia: grade de aulas, novidades, WhatsApp, equipes, chat, QR code e fotos da entrada
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-academia.sql` e toque em **Run** (pode rodar mais de uma vez). Ele já coloca a grade de aulas atual e o link do grupo do WhatsApp.
+2. Publique de novo a função `notificacoes` (Edge Functions › notificacoes › cole o `supabase/functions/notificacoes/index.ts` › Deploy). Ela passa a mandar o lembrete da mensalidade (2 dias antes, no dia e 3 dias depois do vencimento, se não estiver paga).
+3. No site, entre em **Academia** para publicar novidades, editar a grade, imprimir o QR code da recepção, montar as equipes e subir as fotos da tela de entrada.
+
 ## Desenvolvimento
 
 ```bash
