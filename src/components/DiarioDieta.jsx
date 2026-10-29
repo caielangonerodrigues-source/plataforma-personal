@@ -3,6 +3,7 @@ import { supabase } from '../supabase.js'
 import { ALIMENTOS, somarItens } from '../lib/nutricao.js'
 import { MACROS, consumoDoDia, consumoPrevisto, faltando, macrosDoExtra, metasDaDieta, situacaoDoDia, sugestoes } from '../lib/diario.js'
 import { reduzirFoto } from '../lib/foto.js'
+import ListaAlimentos from './ListaAlimentos.jsx'
 import { f1, fmtData, num } from '../lib/formato.js'
 import { somarDias } from '../lib/comunidade.js'
 
@@ -51,6 +52,7 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
   const [erro, setErro] = useState('')
   const [ocupado, setOcupado] = useState(null)
   const [extra, setExtra] = useState({ alimento: '', gramas: '' })
+  const [lista, setLista] = useState(false)
   if (!diario.itens) return <p className="carregando">Carregando…</p>
   if (diario.indisponivel) return <p className="meta">O diário da dieta (marcar refeições e contar os macros) aparece aqui assim que seu personal atualizar o sistema.</p>
 
@@ -145,8 +147,10 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
       <div className="panel stack" style={{ gap: 10 }}>
         <h3 style={{ margin: 0 }}>Comeu algo fora do plano?</h3>
         <p className="meta" style={{ margin: 0 }}>Anote aqui para o contador ficar certo. Sem culpa: seu personal usa isso para ajustar a dieta.</p>
+        {lista && <ListaAlimentos titulo="O que você comeu?" onEscolher={(a) => { setExtra({ alimento: a.nome, gramas: a.gramas ? String(a.gramas) : '' }); setLista(false) }} onFechar={() => setLista(false)} />}
         <datalist id="alimentos-diario">{ALIMENTOS.map((a) => <option key={a.nome} value={a.nome} />)}</datalist>
         <form className="row" style={{ gap: 8, flexWrap: 'nowrap' }} onSubmit={anotarExtra}>
+          <button type="button" className="small" aria-label="Escolher na lista de alimentos" onClick={() => setLista(true)}>☰</button>
           <input list="alimentos-diario" aria-label="Alimento" placeholder="Ex.: Banana prata" style={{ flex: 1, minWidth: 0 }} value={extra.alimento} onChange={(e) => setExtra({ ...extra, alimento: e.target.value })} maxLength={80} />
           <input aria-label="Gramas" placeholder="g" inputMode="decimal" style={{ width: 70 }} value={extra.gramas} onChange={(e) => setExtra({ ...extra, gramas: e.target.value })} />
           <button className="primary small" disabled={!extra.alimento.trim() || ocupado === 'extra'}>Anotar</button>

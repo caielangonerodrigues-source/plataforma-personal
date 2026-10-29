@@ -101,7 +101,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); flex-wrap: wrap }
 .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle }
 
-.overlay { position: fixed; inset: 0; background: rgba(10, 14, 12, .45); display: flex; align-items: flex-start; justify-content: center; padding: max(40px, env(safe-area-inset-top, 0px)) 16px 16px; z-index: 20; overflow-y: auto }
+.overlay { position: fixed; inset: 0; background: rgba(10, 14, 12, .45); display: flex; align-items: flex-start; justify-content: center; padding: max(40px, env(safe-area-inset-top, 0px)) 16px 16px; z-index: 35; overflow-y: auto }
 .modal { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; width: 100%; max-width: 620px }
 
 .check { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 14px 4px; border-bottom: 1px solid var(--line); text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--ink); font-weight: 400; cursor: pointer }
@@ -676,3 +676,23 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .como-funciona summary::after { content: ' ›'; color: var(--muted) }
 .como-funciona[open] summary::after { content: ' ⌄' }
 .como-funciona ul { margin: 8px 0 2px; padding-left: 18px; color: var(--muted); display: grid; gap: 4px }
+
+/* Ofensiva semanal na aba Início */
+.ofensiva { display: flex; gap: 10px; align-items: center; padding: 10px 12px; margin: 0 0 12px; border-radius: 12px; background: rgba(252, 76, 2, .06); border: 1px solid var(--line) }
+.ofensiva > span { font-size: 24px; line-height: 1 }
+.ofensiva div { display: flex; flex-direction: column; min-width: 0 }
+.ofensiva .meta { font-size: 13px }
+.ofensiva.risco { border-color: var(--accent); background: rgba(252, 76, 2, .1) }
+.ofensiva.ok strong { color: var(--accent) }
+
+/* Lista grande de alimentos (dieta do aluno e diário) */
+.lista-alimentos { display: flex; flex-direction: column; gap: 10px; max-height: calc(100dvh - 72px); padding: 18px }
+.chips-alimentos { margin: 0; padding-bottom: 2px; flex: none }
+.chips-alimentos button { font-size: 13px; padding: 5px 12px }
+.lista-alimentos-itens { overflow-y: auto; margin: 0 -18px; padding: 0 18px 8px; overscroll-behavior: contain }
+.lista-alimentos-itens .secao { position: sticky; top: 0; background: var(--surface); padding: 8px 0 4px; margin: 0; z-index: 1 }
+.item-alimento { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; padding: 10px 2px }
+.item-alimento:hover { background: rgba(252, 76, 2, .06) }
+.item-alimento.outro .name { color: var(--accent) }
+.campo-alimento { display: flex; gap: 6px; align-items: center }
+.campo-alimento input { flex: 1; min-width: 0 }
