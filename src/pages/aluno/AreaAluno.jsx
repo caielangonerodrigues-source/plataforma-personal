@@ -315,6 +315,8 @@ export default function AreaAluno({ aluno }) {
                   const hojeReg = deHoje(e.id)
                   const troca = trocaDe(e.id)
                   const anterior = !troca && ultimaSessao(registros, e.id, hoje)
+                  const mus = musculosDoExercicio(troca || e.nome)
+                  const { foco } = mus
                   return (
                     <div key={e.id}>
                       <div className={`check${hojeReg ? ' done' : ''}`}>
@@ -325,6 +327,7 @@ export default function AreaAluno({ aluno }) {
                           </label>
                           {troca && <div className="meta" style={{ fontSize: 12 }}>no lugar de {e.nome}</div>}
                           <div className="meta">{e.series} × {e.reps} · descanso {e.descanso}{e.obs ? ` · ${e.obs}` : ''}</div>
+                          {foco && <div className="foco-musculo">🎯 Mais ativo: {foco}</div>}
                           <BolinhasSeries exercicio={e} feitas={hojeReg ? Infinity : seriesFeitas[e.id] || 0} onMarcar={(i) => marcarSerie(e, i)} />
                           <div className="row" style={{ gap: 12, marginTop: 2, rowGap: 2 }}>
                             <button className="link" style={{ fontSize: 13 }} onClick={() => setAberto(aberto === e.id ? null : e.id)}>
@@ -336,11 +339,11 @@ export default function AreaAluno({ aluno }) {
                           {anterior && <div className="meta" style={{ fontSize: 12 }}>Última vez: {anterior.series.map((s) => `${f1(s.carga)}×${s.reps}`).join(', ')}</div>}
                         </div>
                         <div className="col-carga">
-                          <CorpoMini {...musculosDoExercicio(troca || e.nome)} onClick={() => setMusculos(musculos === e.id ? null : e.id)} />
+                          <CorpoMini {...mus} onClick={() => setMusculos(musculos === e.id ? null : e.id)} />
                           <div className="meta mono">{e.carga}</div>
                         </div>
                       </div>
-                      {musculos === e.id && <div className="panel" style={{ margin: '6px 0 10px' }}><Corpo {...musculosDoExercicio(troca || e.nome)} tamanho={96} /></div>}
+                      {musculos === e.id && <div className="panel" style={{ margin: '6px 0 10px' }}><Corpo {...mus} tamanho={96} /></div>}
                       {aberto === e.id && <Series exercicio={e} inicial={hojeReg?.series || anterior?.series} onSalvar={(s) => salvarCargas(e, s)} onFechar={() => setAberto(null)} />}
                     </div>
                   )

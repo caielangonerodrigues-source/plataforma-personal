@@ -5,7 +5,7 @@ import { cargaPorMusculo, faltouNaSemana, musculosDoExercicio } from './musculos
 
 test('cada exercício acende os músculos certos', () => {
   const m = (n) => musculosDoExercicio(n)
-  assert.deepEqual(m('Supino reto com barra'), { principais: ['peito'], secundarios: ['triceps', 'ombro'] })
+  assert.deepEqual(m('Supino reto com barra'), { principais: ['peito'], secundarios: ['triceps', 'ombro'], ativo: 'peito', foco: 'Peitoral maior' })
   assert.deepEqual(m('Agachamento livre com barra').principais, ['quadriceps', 'gluteos'])
   assert.deepEqual(m('Tríceps coice com halter').principais, ['triceps'])
   assert.deepEqual(m('Coice na polia (glúteo)').principais, ['gluteos'])
@@ -14,6 +14,16 @@ test('cada exercício acende os músculos certos', () => {
   assert.deepEqual(m('Bicicleta ergométrica').principais, []) // cardio: pernas só como secundário
   assert.deepEqual(m('Rosca martelo').principais, ['biceps', 'antebraco'])
   assert.deepEqual(m('Supino do Caiê (variação)').principais, ['peito']) // nome fora da lista
+})
+
+test('músculo mais ativo de cada exercício', () => {
+  const m = (n) => musculosDoExercicio(n)
+  assert.equal(m('Supino inclinado com halteres').foco, 'Peitoral (parte de cima)')
+  assert.equal(m('Elevação lateral com halteres').foco, 'Deltoide lateral')
+  assert.equal(m('Panturrilha sentado').foco, 'Sóleo')
+  assert.equal(m('Agachamento livre com barra').ativo, 'quadriceps')
+  assert.equal(m('Supino do Caiê (variação)').foco, 'Peitoral maior')
+  assert.equal(m('Bicicleta ergométrica').foco, null) // cardio: sem músculo principal
 })
 
 test('todo exercício de força da biblioteca tem músculo principal', () => {
