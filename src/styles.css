@@ -35,7 +35,7 @@ h3 { font-size: 16px; margin: 0 }
 .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center }
 .between { justify-content: space-between }
 .stack { display: flex; flex-direction: column; gap: 16px }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; min-width: 0 }
+.panel { background: var(--surface); border: 1px solid rgb(20 20 30 / .05); border-radius: 16px; padding: 18px; min-width: 0; box-shadow: 0 1px 2px rgb(20 20 30 / .04), 0 6px 20px rgb(20 20 30 / .05) }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
 .kpi .n { font-family: var(--display); font-size: 42px; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 700 }
 .kpi .n.txt { font-size: 28px; padding-block: 7px }
@@ -321,7 +321,8 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
 .mini-barras i { flex: 1; background: var(--accent-soft); border-radius: 3px 3px 0 0 }
 .mini-barras i.atual { background: var(--accent) }
 .comecar { padding: 0; overflow: hidden }
-.comecar-banner { display: flex; align-items: flex-end; gap: 18px; padding: 18px 22px 0; background: linear-gradient(120deg, #fc4c02, #ff7a2b); color: #fff; min-height: 130px }
+.comecar-banner { display: flex; align-items: flex-end; gap: 18px; padding: 18px 22px 0; background: linear-gradient(120deg, #161618, #2c2c32); color: #fff; min-height: 130px }
+.comecar-banner svg path { fill: #fc4c02 }
 .comecar-banner > div { display: flex; flex-direction: column; gap: 4px; padding-bottom: 20px }
 .comecar-banner strong { font-family: var(--display); font-size: 32px; text-transform: uppercase; line-height: 1 }
 .passos { display: flex; flex-direction: column; padding: 6px 18px 10px }
@@ -446,3 +447,18 @@ aside > .botao-whatsapp { width: 100% }
 .gaveta-item:last-child { border-bottom: 0 }
 .gaveta-item.ativo { color: var(--accent) }
 .gaveta-item.perigo { color: var(--warn) }
+
+/* Início: cartão de perfil laranja, estilo perfil do Strava */
+.perfil.panel { background: linear-gradient(150deg, #fc4c02 0%, #ff7a2b 100%); color: #fff; border: 0; box-shadow: 0 10px 28px rgb(252 76 2 / .28) }
+.perfil .meta { color: rgb(255 255 255 / .85) }
+.perfil > :first-child { box-shadow: 0 0 0 4px rgb(255 255 255 / .9); border-radius: 50% }
+.perfil-numeros { border-color: rgb(255 255 255 / .3) !important }
+.perfil-numeros span { color: rgb(255 255 255 / .85) !important }
+.perfil .link { color: #fff; text-decoration: underline; text-underline-offset: 3px }
+@media (max-width: 720px) {
+  .inicio-esq { display: contents }
+  .inicio .perfil { order: -2 }
+}
+.gaveta-item > span:first-child { display: inline-flex; align-items: center; gap: 12px }
+.gaveta-item svg { color: var(--muted) }
+.gaveta-item.ativo svg { color: var(--accent) }

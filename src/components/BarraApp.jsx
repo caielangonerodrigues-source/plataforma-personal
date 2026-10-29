@@ -12,6 +12,18 @@ const ICONES = {
   alunos: 'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6',
   agenda: 'M4 6h16v14H4zM4 10h16M9 3v4M15 3v4M8 14h3',
   academia: 'M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6',
+  dieta: 'M12 7c-1-3-4-4-6-2-3 3-1 11 3 13 1 .5 2 .5 3 0 1 .5 2 .5 3 0 4-2 6-10 3-13-2-2-5-1-6 2zM12 7c0-2 1-3 3-4',
+  evolucao: 'M4 20V4M4 20h16M7 15l4-4 3 3 5-6',
+  spinning: 'M6 18a3 3 0 1 0 0-.01M18 18a3 3 0 1 0 0-.01M6 18l4-8h5l3 8M10 10l-1-3H7M15 10l1-4h2',
+  conta: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 21a7 7 0 0 1 14 0',
+  consultoria: 'M4 5h16v11H9l-5 4z',
+  modelos: 'M8 8h12v12H8zM4 16V4h12',
+  exercicios: 'M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12',
+  assistente: 'M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM19 15l1 2 2 1-2 1-1 2-1-2-2-1 2-1z',
+  vendas: 'M3 12V4h8l10 10-8 8zM7.5 7.5h.01',
+  financeiro: 'M12 3v18M16 7c0-1.5-1.8-2.5-4-2.5S8 5.5 8 7.5s1.8 2.7 4 3.2 4 1.3 4 3.3-1.8 3.5-4 3.5-4-1-4-2.5',
+  configuracoes: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 15H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9.7 4.4V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8',
+  sair: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
 }
 
 export function Icone({ nome, tamanho = 22 }) {
@@ -43,7 +55,7 @@ export default function BarraApp({ itens, mais = [] }) {
             <div className="gaveta-alca" aria-hidden="true" />
             {mais.map((m) => (
               <button key={m.chave} className={`gaveta-item${m.ativo ? ' ativo' : ''}${m.perigo ? ' perigo' : ''}`} onClick={() => { setAberta(false); m.onClick() }}>
-                <span>{m.rotulo}</span>
+                <span>{m.icone && <Icone nome={m.icone} />}{m.rotulo}</span>
                 {m.badge > 0 && <span className="tab-badge">{m.badge}</span>}
               </button>
             ))}

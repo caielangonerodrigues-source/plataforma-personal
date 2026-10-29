@@ -41,7 +41,7 @@ export function proximaAula(aulas, agora = new Date()) {
 }
 
 // Cor de cada aula na grade (a mesma aula tem sempre a mesma cor).
-const CORES = ['#fc4c02', '#161618', '#e8a33d', '#7a5c4f', '#2f6f5e', '#b5523b', '#4a5a8c']
+const CORES = ['#fc4c02', '#161618', '#c63d00', '#45454d', '#e8600f', '#2a2a30', '#a83300'] // só tons da marca
 export function corDaAula(nome) {
   let h = 0
   for (const c of String(nome).toLowerCase()) h = (h * 31 + c.charCodeAt(0)) >>> 0

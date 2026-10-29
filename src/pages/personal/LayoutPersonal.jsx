@@ -7,9 +7,9 @@ import BarraApp from '../../components/BarraApp.jsx'
 // Menu em grupos (computador) e barra de app embaixo com "Mais" (celular).
 const GRUPOS = [
   [null, [['/painel', 'Painel', 'painel'], ['/agenda', 'Agenda', 'agenda']]],
-  ['Alunos', [['/alunos', 'Alunos', 'alunos'], ['/modelos', 'Modelos de treino'], ['/exercicios', 'Exercícios'], ['/assistente', 'Assistente IA']]],
-  ['Academia', [['/academia', 'Academia', 'academia'], ['/comunidade', 'Comunidade'], ['/aulas', 'Spinning']]],
-  ['Negócio', [['/vendas', 'Vendas'], ['/financeiro', 'Financeiro'], ['/configuracoes', 'Configurações']]],
+  ['Alunos', [['/alunos', 'Alunos', 'alunos'], ['/modelos', 'Modelos de treino', 'modelos'], ['/exercicios', 'Exercícios', 'exercicios'], ['/assistente', 'Assistente IA', 'assistente']]],
+  ['Academia', [['/academia', 'Academia', 'academia'], ['/comunidade', 'Comunidade', 'comunidade'], ['/aulas', 'Spinning', 'spinning']]],
+  ['Negócio', [['/vendas', 'Vendas', 'vendas'], ['/financeiro', 'Financeiro', 'financeiro'], ['/configuracoes', 'Configurações', 'configuracoes']]],
 ]
 const PRINCIPAIS = ['/painel', '/alunos', '/agenda', '/academia']
 
@@ -38,8 +38,8 @@ export default function LayoutPersonal({ nome }) {
       <BarraApp
         itens={PRINCIPAIS.map((to) => { const [, rotulo, icone] = todos.find(([t]) => t === to); return { chave: to, rotulo, icone, ativo: ativo(to), onClick: () => ir(to) } })}
         mais={[
-          ...todos.filter(([to]) => !PRINCIPAIS.includes(to)).map(([to, rotulo]) => ({ chave: to, rotulo, ativo: ativo(to), onClick: () => ir(to) })),
-          { chave: 'sair', rotulo: 'Sair', perigo: true, onClick: () => supabase.auth.signOut() },
+          ...todos.filter(([to]) => !PRINCIPAIS.includes(to)).map(([to, rotulo, icone]) => ({ chave: to, rotulo, icone, ativo: ativo(to), onClick: () => ir(to) })),
+          { chave: 'sair', rotulo: 'Sair', icone: 'sair', perigo: true, onClick: () => supabase.auth.signOut() },
         ]}
       />
     </div>

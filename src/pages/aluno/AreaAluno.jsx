@@ -318,7 +318,7 @@ export default function AreaAluno({ aluno }) {
       </button>
       <BarraApp
         itens={principais.map((k) => ({ chave: k, rotulo: abas.find(([c]) => c === k)[1], icone: ICONE_ABA[k], ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
-        mais={abas.filter(([k]) => !principais.includes(k)).map(([k, l]) => ({ chave: k, rotulo: l, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
+        mais={abas.filter(([k]) => !principais.includes(k)).map(([k, l]) => ({ chave: k, rotulo: l, icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
       />
 
       {trocando && <TrocaExercicio exercicio={trocando} trocaAtual={trocaDe(trocando.id)} onEscolher={(nome) => trocar(trocando, nome)} onFechar={() => setTrocando(null)} />}
