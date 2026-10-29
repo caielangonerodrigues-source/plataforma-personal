@@ -26,6 +26,7 @@ import GradeAulas from '../../components/GradeAulas.jsx'
 import NovidadesAcademia from '../../components/NovidadesAcademia.jsx'
 import CompartilharStory from '../../components/CompartilharStory.jsx'
 import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
+import BarraApp from '../../components/BarraApp.jsx'
 import { SimboloCA } from '../../components/Logo.jsx'
 import { buscaVideo } from '../../lib/exercicios.js'
 import { useComunidade } from '../../hooks/useComunidade.js'
@@ -160,6 +161,10 @@ export default function AreaAluno({ aluno }) {
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
   const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ['aulas', 'Aulas'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  // No celular: barra de app embaixo com as abas principais; o resto fica em "Mais".
+  const principais = ['inicio', 'treino', 'aulas', aluno.comunidade ? 'comunidade' : 'novidades']
+  const ICONE_ABA = { inicio: 'inicio', treino: 'treino', aulas: 'aulas', comunidade: 'comunidade', novidades: 'novidades' }
+  const badgeAba = (k) => (k === 'novidades' && aba !== k ? academia.novos : 0)
 
   return (
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
@@ -184,18 +189,18 @@ export default function AreaAluno({ aluno }) {
       )}
 
       {aba !== 'inicio' && <>
-      <div className="streak">
+      <div className="streak so-computador">
         <div className="panel kpi"><div className="n">{seq}</div><div className="l">{seq === 1 ? 'Dia seguido' : 'Dias seguidos'}</div></div>
         <div className="panel kpi"><div className="n">{noMes}</div><div className="l">Treinos no mês</div></div>
         <div className="panel kpi"><div className="n">{new Set(diasCheckin).size}</div><div className="l">Check-ins no total</div></div>
       </div>
-      <div className="checkin-cta">
+      <div className="checkin-cta so-computador">
         <p>{fezHoje ? `Check-in de hoje feito. ${seq > 1 ? `São ${seq} dias seguidos!` : 'Bora manter a sequência amanhã.'}` : 'Treinou hoje? Registre e apareça no ranking.'}</p>
         <button onClick={() => setCheckinAberto(true)}>{fezHoje ? 'Novo check-in' : 'Fazer check-in'}</button>
       </div>
       </>}
 
-      <div className="tabs" role="tablist">
+      <div className="tabs so-computador" role="tablist">
         {abas.map(([k, l]) => (
           <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>
             {l}{k === 'novidades' && academia.novos > 0 && aba !== k && <span className="tab-badge" aria-label={`${academia.novos} novas`}>{academia.novos}</span>}
@@ -307,6 +312,14 @@ export default function AreaAluno({ aluno }) {
           <FotosEvolucao alunoId={aluno.id} />
         </div>
       )}
+
+      <button className="botao-checkin-flutuante" onClick={() => setCheckinAberto(true)} aria-label="Fazer check-in">
+        <span aria-hidden="true">📸</span> {fezHoje ? 'Novo check-in' : 'Check-in'}
+      </button>
+      <BarraApp
+        itens={principais.map((k) => ({ chave: k, rotulo: abas.find(([c]) => c === k)[1], icone: ICONE_ABA[k], ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
+        mais={abas.filter(([k]) => !principais.includes(k)).map(([k, l]) => ({ chave: k, rotulo: l, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
+      />
 
       {trocando && <TrocaExercicio exercicio={trocando} trocaAtual={trocaDe(trocando.id)} onEscolher={(nome) => trocar(trocando, nome)} onFechar={() => setTrocando(null)} />}
       {descanso && <Cronometro descanso={descanso} onFechar={() => setDescanso(null)} />}
