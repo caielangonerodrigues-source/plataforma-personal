@@ -22,9 +22,15 @@ import ComoFoiTreino from '../../components/ComoFoiTreino.jsx'
 import IndiqueAmigo from '../../components/IndiqueAmigo.jsx'
 import AtivarNotificacoes from '../../components/AtivarNotificacoes.jsx'
 import { RelatoriosAluno } from '../../components/Relatorio.jsx'
+import GradeAulas from '../../components/GradeAulas.jsx'
+import NovidadesAcademia from '../../components/NovidadesAcademia.jsx'
+import CompartilharStory from '../../components/CompartilharStory.jsx'
+import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
 import { SimboloCA } from '../../components/Logo.jsx'
 import { buscaVideo } from '../../lib/exercicios.js'
 import { useComunidade } from '../../hooks/useComunidade.js'
+import { useAcademia } from '../../hooks/useAcademia.js'
+import { codigoDoLink } from '../../lib/academia.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
 import { segundosDescanso } from '../../lib/descanso.js'
@@ -52,6 +58,8 @@ export default function AreaAluno({ aluno }) {
   const [proximaFase, setProximaFase] = useState(null)
   const [prazoFicha, setPrazoFicha] = useState(null) // semanas para trocar a ficha (do personal)
   const comunidade = useComunidade()
+  const academia = useAcademia()
+  const [qr, setQr] = useState(null) // resultado do check-in pelo QR code da recepção
   const hoje = hojeISO()
 
   const carregar = useCallback(async () => {
@@ -81,6 +89,18 @@ export default function AreaAluno({ aluno }) {
       .then(({ data }) => setProximaFase(data?.[0] || null))
     supabase.rpc('prazo_troca_ficha').then(({ data, error }) => !error && setPrazoFicha(data || 6))
   }, [aluno.id, hoje])
+
+  // Abriu pelo QR code da recepção (o código fica guardado se precisou entrar na conta antes).
+  useEffect(() => {
+    let codigo = codigoDoLink(window.location.search)
+    try { codigo ||= sessionStorage.getItem('checkin-qr'); sessionStorage.removeItem('checkin-qr') } catch { /* sem armazenamento */ }
+    if (!codigo) return
+    window.history.replaceState(null, '', window.location.pathname)
+    supabase.rpc('checkin_qr', { p_codigo: codigo }).then(({ data, error }) => {
+      setQr(error ? { erro: error.message.includes('QR') ? error.message : 'Não foi possível fazer o check-in pelo QR code. Tente de novo.' } : { feito: data === 'feito' })
+      if (!error) { carregar(); comunidade.carregar() }
+    })
+  }, [])
 
   const situacao = prazoFicha && !proximaFase && treinos ? situacaoFicha({ ...aluno, treinos }, hoje, prazoFicha) : null
   const fichaVencida = situacao?.vencida ? situacao : null
@@ -138,12 +158,24 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ['aulas', 'Aulas'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
+  const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
   return (
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
-      <Cabecalho aluno={aluno} />
+      <Cabecalho aluno={aluno} whatsapp={academia.whatsapp} />
       <InstalarApp />
+      {qr && (
+        <div className={`panel qr-resultado${qr.erro ? ' erro' : ''}`} role="status">
+          <span aria-hidden="true" style={{ fontSize: 26 }}>{qr.erro ? '⚠️' : '✅'}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <strong>{qr.erro ? 'Check-in não feito' : qr.feito ? 'Check-in na academia feito!' : 'Você já fez o check-in na academia hoje'}</strong>
+            <div className="meta">{qr.erro || (qr.feito ? 'Contou para a sequência, o ranking e as medalhas. Quer postar uma foto do treino?' : 'Sua presença de hoje já está registrada.')}</div>
+          </div>
+          {!qr.erro && <button className="small" onClick={() => { setQr(null); setCheckinAberto(true) }}>Postar foto</button>}
+          <button className="ghost small" aria-label="Fechar" onClick={() => setQr(null)}>✕</button>
+        </div>
+      )}
       {aba !== 'inicio' && !temAnamnese && (
         <div className="panel row between" style={{ marginTop: 16, borderColor: 'var(--accent)' }}>
           <div className="meta" style={{ color: 'var(--ink)', flex: 1, minWidth: 0 }}>Preencha sua anamnese e o PAR-Q para seu personal conhecer seu histórico de saúde.</div>
@@ -164,16 +196,22 @@ export default function AreaAluno({ aluno }) {
       </>}
 
       <div className="tabs" role="tablist">
-        {abas.map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>{l}</button>)}
+        {abas.map(([k, l]) => (
+          <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>
+            {l}{k === 'novidades' && academia.novos > 0 && aba !== k && <span className="tab-badge" aria-label={`${academia.novos} novas`}>{academia.novos}</span>}
+          </button>
+        ))}
       </div>
 
       {aba === 'inicio' && (
         <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos}
-          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida}
-          irPara={(k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }} onCheckin={() => setCheckinAberto(true)} />
+          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} academia={academia}
+          irPara={irPara} onCheckin={() => setCheckinAberto(true)} />
       )}
 
-      {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} />}
+      {aba === 'aulas' && (academia.aulas ? <GradeAulas aulas={academia.aulas} /> : <p className="carregando">Carregando…</p>)}
+      {aba === 'novidades' && <NovidadesAcademia academia={academia} />}
+      {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} whatsapp={academia.whatsapp} />}
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
 
@@ -189,7 +227,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['inicio', 'comunidade', 'conta', 'consultoria', 'dieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['inicio', 'comunidade', 'conta', 'consultoria', 'dieta', 'aulas', 'novidades'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">
@@ -263,6 +301,7 @@ export default function AreaAluno({ aluno }) {
           {ultima ? <Composicao avaliacao={ultima} sexo={aluno.sexo} titulo="Última avaliação" /> : <div className="panel empty">Seu personal ainda não registrou nenhuma avaliação.</div>}
           {avaliacoes.length > 0 && <div className="panel"><h2 style={{ marginBottom: 10 }}>Peso e gordura</h2><Grafico avaliacoes={avaliacoes} /></div>}
           <div className="panel"><h2 style={{ marginBottom: 10 }}>Evolução das cargas</h2><Progressao treinos={todosTreinos} registros={registros} /></div>
+          <CompartilharStory aluno={aluno} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} treinos={todosTreinos} desafios={comunidade.dados?.desafios || []} />
           <RelatoriosAluno alunoId={aluno.id} />
           <Medalhas datas={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} desafios={comunidade.dados?.desafios || []} />
           <FotosEvolucao alunoId={aluno.id} />
@@ -326,14 +365,17 @@ function Series({ exercicio, inicial, onSalvar, onFechar }) {
   )
 }
 
-function Cabecalho({ aluno }) {
+function Cabecalho({ aluno, whatsapp }) {
   return (
     <div className="row between">
       <div className="row" style={{ gap: 12, flexWrap: 'nowrap' }}>
         <SimboloCA size={44} />
         <div><p className="meta" style={{ margin: 0 }}>Corpo Atlético · Área do aluno</p><h1>Olá, {primeiroNome(aluno.nome)}</h1></div>
       </div>
-      <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
+      <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+        {whatsapp && <a className="botao-whatsapp redondo" href={whatsapp} target="_blank" rel="noreferrer" aria-label="Grupo da academia no WhatsApp" title="Grupo da academia no WhatsApp"><IconeWhatsApp /></a>}
+        <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
+      </div>
     </div>
   )
 }

@@ -13,6 +13,7 @@ export default function LayoutPersonal({ nome }) {
         <NavLink to="/alunos" className={cls}>Alunos</NavLink>
         <NavLink to="/agenda" className={cls}>Agenda</NavLink>
         <NavLink to="/modelos" className={cls}>Modelos</NavLink>
+        <NavLink to="/academia" className={cls}>Academia</NavLink>
         <NavLink to="/comunidade" className={cls}>Comunidade</NavLink>
         <NavLink to="/exercicios" className={cls}>Exercícios</NavLink>
         <NavLink to="/assistente" className={cls}>Assistente IA</NavLink>

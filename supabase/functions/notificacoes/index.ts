@@ -5,8 +5,9 @@
 //   { acao: 'enviar', aluno_ids, titulo, corpo, url }  → o personal manda para os alunos dele
 //   { acao: 'lembretes' }                              → lembrete dos atendimentos de amanhã (da agenda)
 //   { acao: 'fichas' }                                 → avisa aluno e personal quando a ficha passou do prazo de troca
-// Os lembretes (e o aviso das fichas) podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
-// O painel do personal também chama 'fichas' uma vez por dia.
+//   { acao: 'mensalidades' }                           → lembra o aluno da mensalidade (2 dias antes, no dia e 3 dias depois)
+// Os lembretes (e os avisos de ficha e mensalidade) podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
+// O painel do personal também chama 'fichas' e 'mensalidades' uma vez por dia.
 import webpush from 'npm:web-push@3.6.7'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
@@ -110,6 +111,43 @@ async function fichas(personalId?: string) {
   return { avisados }
 }
 
+// Mesma regra de src/lib/academia.js (lembreteMensalidade).
+function lembreteMensalidade(diaVencimento: number | null, hoje: string) {
+  if (!diaVencimento) return null
+  const dia = Number(hoje.slice(8, 10))
+  if (dia === diaVencimento - 2) return 'antes'
+  if (dia === diaVencimento) return 'hoje'
+  if (dia === diaVencimento + 3) return 'atrasada'
+  return null
+}
+
+// Mensalidade do mês ainda não paga: lembrete no celular do aluno, no máximo um por dia (alunos.mensalidade_avisada_em).
+async function mensalidades(personalId?: string) {
+  const hoje = diaSP()
+  const competencia = hoje.slice(0, 7)
+  let q = admin.from('alunos').select('id, user_id, valor_mensal, dia_vencimento, mensalidade_avisada_em').neq('status', 'pausado')
+    .not('valor_mensal', 'is', null).not('dia_vencimento', 'is', null).not('user_id', 'is', null)
+  if (personalId) q = q.eq('personal_id', personalId)
+  const { data: alunos, error } = await q
+  if (error) return { erro: error.message }
+  const { data: pagos } = await admin.from('pagamentos').select('aluno_id').eq('competencia', competencia)
+  const pagou = new Set((pagos || []).map((p) => p.aluno_id))
+  const textos = {
+    antes: (d: number) => `Sua mensalidade vence dia ${d}. Dá para pagar pelo Pix direto no app, na aba Conta.`,
+    hoje: () => 'Sua mensalidade vence hoje. Pague pelo Pix na aba Conta do app. 💪',
+    atrasada: (d: number) => `A mensalidade venceu dia ${d}. Se já pagou, é só ignorar. Se não, o Pix está na aba Conta.`,
+  }
+  let avisados = 0
+  for (const a of alunos || []) {
+    const quando = lembreteMensalidade(a.dia_vencimento, hoje)
+    if (!quando || pagou.has(a.id) || a.mensalidade_avisada_em === hoje) continue
+    await enviar([a.user_id], { titulo: quando === 'atrasada' ? 'Mensalidade em aberto' : 'Lembrete da mensalidade', corpo: textos[quando](a.dia_vencimento), url: '/' })
+    await admin.from('alunos').update({ mensalidade_avisada_em: hoje }).eq('id', a.id)
+    avisados++
+  }
+  return { avisados }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -119,7 +157,7 @@ Deno.serve(async (req) => {
     webpush.setVapidDetails(Deno.env.get('PUSH_CONTATO') || 'mailto:notificacoes@corpoatletico.app', k.publica, k.privada)
 
     // Agendamento diário: confere o segredo e manda os lembretes de todos.
-    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas() })
+    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas(), mensalidades: await mensalidades() })
 
     // Daqui para baixo só o personal, com o login dele (as regras do banco limitam aos alunos dele).
     const db = createClient(URL_SUPABASE, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } })
@@ -130,6 +168,7 @@ Deno.serve(async (req) => {
 
     if (corpo.acao === 'lembretes') return resposta(await lembretes(user.id))
     if (corpo.acao === 'fichas') return resposta(await fichas(user.id))
+    if (corpo.acao === 'mensalidades') return resposta(await mensalidades(user.id))
     if (corpo.acao === 'enviar') {
       const ids = Array.isArray(corpo.aluno_ids) ? corpo.aluno_ids.slice(0, 500).map(String) : []
       if (!ids.length || !corpo.titulo || !corpo.corpo) return resposta({ erro: 'Faltou aluno, título ou texto.' }, 400)

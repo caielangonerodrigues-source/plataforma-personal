@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import Boneco from './Boneco.jsx'
+import { supabase } from '../supabase.js'
 
-// Ilustrações da tela de entrada (trocam sozinhas, como no Strava). Desenho chapado nas cores da marca.
+// Fotos da tela de entrada (trocam sozinhas, como no Strava): as que o personal sobe em Academia ou,
+// enquanto não tiver nenhuma, fotos de academia do Unsplash. Se a foto não carregar, aparece a ilustração.
+const unsplash = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1400&q=70`
 const B = '#fff'
 const ESCURO = '#161618'
 const LARANJA = '#fc4c02'
@@ -73,33 +76,60 @@ function ComunidadeIlustracao() {
 }
 
 export const SLIDES = [
-  { titulo: 'Seu treino no bolso', texto: 'Ficha, cargas e cronômetro de descanso direto no celular.', Desenho: Musculacao, fundo: LARANJA },
-  { titulo: 'Reserve sua bike', texto: 'Aulas de spinning com a bike escolhida, sem fila.', Desenho: Spinning, fundo: ESCURO },
-  { titulo: 'Bora treinar', texto: 'Check-in com foto, sequência de dias e ranking do mês.', Desenho: Corrida, fundo: LARANJA },
-  { titulo: 'A turma motiva', texto: 'Desafios, medalhas, curtidas e comentários da comunidade.', Desenho: ComunidadeIlustracao, fundo: ESCURO },
+  { titulo: 'Seu treino no bolso', texto: 'Ficha, cargas e cronômetro de descanso direto no celular.', Desenho: Musculacao, fundo: LARANJA, foto: unsplash('1534438327276-14e5300c3a48') },
+  { titulo: 'Reserve sua bike', texto: 'Aulas de spinning com a bike escolhida, sem fila.', Desenho: Spinning, fundo: ESCURO, foto: unsplash('1534787238916-9ba6764efd4f') },
+  { titulo: 'Bora treinar', texto: 'Check-in com foto, sequência de dias e ranking do mês.', Desenho: Corrida, fundo: LARANJA, foto: unsplash('1517836357463-d25dfeac3438') },
+  { titulo: 'A turma motiva', texto: 'Desafios, medalhas, curtidas e comentários da comunidade.', Desenho: ComunidadeIlustracao, fundo: ESCURO, foto: unsplash('1571902943202-507ec2618e8f') },
 ]
 
+// Fotos do personal (tabela fotos_entrada, bucket público "entrada"); sem o SQL novo, lista vazia.
+function useFotosDoPersonal() {
+  const [fotos, setFotos] = useState([])
+  useEffect(() => {
+    supabase?.from('fotos_entrada').select('*').order('ordem').order('created_at').limit(8).then(({ data, error }) => {
+      if (error || !data?.length) return
+      setFotos(data.map((f, k) => ({
+        ...SLIDES[k % SLIDES.length],
+        titulo: f.titulo || SLIDES[k % SLIDES.length].titulo,
+        texto: f.texto || SLIDES[k % SLIDES.length].texto,
+        foto: supabase.storage.from('entrada').getPublicUrl(f.caminho).data.publicUrl,
+        chave: f.id,
+      })))
+    })
+  }, [])
+  return fotos
+}
+
 export default function HeroEntrada({ intervalo = 5000 }) {
+  const doPersonal = useFotosDoPersonal()
+  const slides = doPersonal.length ? doPersonal : SLIDES
   const [i, setI] = useState(0)
+  const [falhou, setFalhou] = useState({}) // fotos que não carregaram: mostra a ilustração
+  const atual = i % slides.length
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    const t = setInterval(() => setI((x) => (x + 1) % SLIDES.length), intervalo)
+    const t = setInterval(() => setI((x) => (x + 1) % slides.length), intervalo)
     return () => clearInterval(t)
-  }, [intervalo])
+  }, [intervalo, slides.length])
 
   return (
-    <div className="hero-entrada" style={{ background: SLIDES[i].fundo }}>
-      {SLIDES.map(({ titulo, texto, Desenho }, k) => (
-        <div key={titulo} className={`hero-slide${k === i ? ' ativo' : ''}`} aria-hidden={k !== i}>
-          <div className="hero-desenho"><Desenho /></div>
-          <div className="hero-texto">
-            <strong>{titulo}</strong>
-            <span>{texto}</span>
+    <div className="hero-entrada" style={{ background: slides[atual].fundo }}>
+      {slides.map(({ titulo, texto, Desenho, foto, chave }, k) => {
+        const comFoto = foto && !falhou[foto]
+        return (
+          <div key={chave || titulo} className={`hero-slide${k === atual ? ' ativo' : ''}${comFoto ? ' com-foto' : ''}`} aria-hidden={k !== atual}>
+            {comFoto
+              ? <img className="hero-foto" src={foto} alt="" loading={k === 0 ? 'eager' : 'lazy'} onError={() => setFalhou((f) => ({ ...f, [foto]: true }))} />
+              : <div className="hero-desenho"><Desenho /></div>}
+            <div className="hero-texto">
+              <strong>{titulo}</strong>
+              <span>{texto}</span>
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
       <div className="hero-pontos" role="tablist" aria-label="Imagens">
-        {SLIDES.map((s, k) => <button key={s.titulo} role="tab" aria-selected={k === i} aria-label={s.titulo} onClick={() => setI(k)} />)}
+        {slides.map((s, k) => <button key={s.chave || s.titulo} role="tab" aria-selected={k === atual} aria-label={s.titulo} onClick={() => setI(k)} />)}
       </div>
     </div>
   )

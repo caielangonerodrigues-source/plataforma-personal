@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import Avatar from './Avatar.jsx'
 import Boneco from './Boneco.jsx'
+import BotaoWhatsApp from './BotaoWhatsApp.jsx'
+import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, ordenarAvisos, proximaAula } from '../lib/academia.js'
 import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
@@ -11,7 +13,7 @@ const segunda = (iso) => somarDias(iso, -((new Date(`${iso}T12:00:00Z`).getUTCDa
 
 // Aba "Início" da área do aluno: perfil e semana à esquerda, primeiros passos e treino do dia no meio,
 // comunidade, desafio e medalhas à direita (no celular vira uma coluna só).
-export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, irPara, onCheckin }) {
+export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, academia, irPara, onCheckin }) {
   const [notificacoes, setNotificacoes] = useState(true)
   const [comoInstalar, setComoInstalar] = useState(false)
   useEffect(() => { inscricaoAtual().then((s) => setNotificacoes(!!s)).catch(() => setNotificacoes(false)) }, [])
@@ -44,6 +46,8 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const membros = dados?.membros || []
   const tabela = dados ? ranking(dados.mes, membros).slice(0, 3) : []
   const desafio = (dados?.desafios || []).find((d) => d.inicio <= hoje && d.fim >= hoje)
+  const aula = academia?.aulas && proximaAula(academia.aulas)
+  const aviso = academia && ordenarAvisos(academia.avisos)[0]
   const feitosHoje = ficha ? ficha.exercicios.filter((e) => registros.some((r) => r.exercicio_id === e.id && r.data === hoje)).length : 0
 
   return (
@@ -119,6 +123,21 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
       </div>
 
       <aside className="stack inicio-dir">
+        {aula && (
+          <button className="panel stack cartao-link" style={{ gap: 4 }} onClick={() => irPara('aulas')}>
+            <div className="meta">🗓️ Próxima aula</div>
+            <div className="name">{aula.nome}</div>
+            <div className="meta">{aula.emDias === 0 ? 'Hoje' : aula.emDias === 1 ? 'Amanhã' : DIAS_LONGOS[aula.dia_semana]} às {fmtHora(aula.hora)} · ver a grade ›</div>
+          </button>
+        )}
+        {aviso && (
+          <button className="panel stack cartao-link" style={{ gap: 4 }} onClick={() => irPara('novidades')}>
+            <div className="meta">{TIPOS_AVISO[aviso.tipo]?.[1]} {TIPOS_AVISO[aviso.tipo]?.[0]}{academia.novos > 0 ? ` · ${academia.novos} ${academia.novos === 1 ? 'nova' : 'novas'}` : ''}</div>
+            <div className="name">{aviso.titulo}</div>
+            {aviso.texto && <div className="meta" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{aviso.texto}</div>}
+          </button>
+        )}
+        {academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
         {aluno.comunidade && dados && (
           <div className="panel stack" style={{ gap: 10 }}>
             <div className="row between"><h2 style={{ margin: 0 }}>Comunidade</h2><button className="link" onClick={() => irPara('comunidade')}>Ver feed ›</button></div>

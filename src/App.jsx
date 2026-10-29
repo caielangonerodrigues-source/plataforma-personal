@@ -24,6 +24,10 @@ import Vendas from './pages/personal/Vendas.jsx'
 import Exercicios from './pages/personal/Exercicios.jsx'
 import Assistente from './pages/personal/Assistente.jsx'
 import Agenda from './pages/personal/Agenda.jsx'
+import Academia from './pages/personal/Academia.jsx'
+
+// QR code da recepção: guarda o código para fazer o check-in depois de entrar na conta.
+try { const c = new URLSearchParams(window.location.search).get('checkin'); if (c) sessionStorage.setItem('checkin-qr', c) } catch { /* sem armazenamento */ }
 
 export default function App() {
   const navigate = useNavigate()
@@ -96,6 +100,7 @@ export default function App() {
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
+          <Route path="/academia" element={<Academia />} />
           <Route path="/modelos" element={<Modelos />} />
           <Route path="/exercicios" element={<Exercicios />} />
           <Route path="/assistente" element={<Assistente />} />

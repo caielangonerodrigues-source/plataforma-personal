@@ -3,18 +3,19 @@ import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { inicioDoMes } from '../lib/comunidade.js'
 
-// Feed (últimos 30 check-ins), check-ins do mês para o ranking, curtidas, comentários, fotos e avatares.
+// Feed (últimos 30 check-ins), check-ins do mês para o ranking, curtidas, comentários, fotos, avatares e equipes.
 export function useComunidade() {
   const [dados, setDados] = useState(null)
   const [erro, setErro] = useState('')
 
   const carregar = useCallback(async () => {
     const hoje = hojeISO()
-    const [sessao, membros, feed, desafios] = await Promise.all([
+    const [sessao, membros, feed, desafios, equipes] = await Promise.all([
       supabase.auth.getSession(),
       supabase.rpc('comunidade_membros'),
       supabase.from('checkins').select('id, aluno_id, data, titulo, comentario, foto, created_at').order('created_at', { ascending: false }).limit(30),
       supabase.from('desafios').select('*').order('fim'),
+      supabase.from('equipes').select('*').order('nome'), // SQL novo: sem ele, sem equipes
     ])
     // Check-ins desde o começo do mês ou do desafio ativo mais antigo (para ranking e desafios).
     const desde = [inicioDoMes(hoje), ...(desafios.data || []).filter((d) => d.fim >= hoje).map((d) => d.inicio)].sort()[0]
@@ -39,6 +40,7 @@ export function useComunidade() {
       mes: periodo.data.filter((c) => c.data >= inicioDoMes(hoje)),
       periodo: periodo.data,
       desafios: desafios.data,
+      equipes: equipes.error ? [] : equipes.data || [],
       curtidas: curtidas.data || [],
       comentarios: comentarios.error ? null : comentarios.data || [],
       fotos: Object.fromEntries([...(fotos.data || []), ...(fotosAvatar.data || [])].filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])),
