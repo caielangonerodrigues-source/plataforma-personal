@@ -8,16 +8,25 @@ import { BIBLIOTECA } from '../../lib/exercicios.js'
 import SeletorExercicios from '../../components/SeletorExercicios.jsx'
 import { AplicarModelo, FormModelo } from './Modelos.jsx'
 import Fases from '../../components/Fases.jsx'
+import { avisarNoApp } from '../../lib/push.js'
+import { primeiroNome } from '../../lib/formato.js'
 
 export default function Treinos({ aluno, recarregar }) {
   const [modal, setModal] = useState(null) // { tipo: 'ficha' } | { tipo: 'exercicio', treino, exercicio? }
   const [confirmar, setConfirmar] = useState(null)
   const [erro, setErro] = useState('')
+  const [aviso, setAviso] = useState(null) // null | 'mudou' | 'enviando' | 'enviado' | 'falhou'
+
+  async function avisarAluno() {
+    setAviso('enviando')
+    const r = await avisarNoApp([aluno.id], 'Treino novo pronto 💪', `${primeiroNome(aluno.nome)}, seu personal atualizou sua ficha. Abra o app e confira antes do próximo treino!`)
+    setAviso(r?.enviadas ? 'enviado' : 'falhou')
+  }
 
   async function rodar(q) {
     const { error } = await q
     if (error) { setErro(`Não foi possível salvar: ${error.message}`); return false }
-    setErro(''); await recarregar(); return true
+    setErro(''); setAviso('mudou'); await recarregar(); return true
   }
 
   return (
@@ -32,6 +41,17 @@ export default function Treinos({ aluno, recarregar }) {
         </div>
       </div>
       {erro && <p className="erro">{erro}</p>}
+      {aviso && (
+        <div className="panel row between aviso-treino" role="status">
+          <span style={{ flex: 1, minWidth: 0 }}>
+            {aviso === 'enviado' ? `Pronto! ${primeiroNome(aluno.nome)} recebeu o aviso no celular.`
+              : aviso === 'falhou' ? 'Não deu para avisar agora (o aluno precisa ter ativado as notificações). Tente de novo mais tarde.'
+              : `Você mexeu no treino de ${primeiroNome(aluno.nome)}. Quer mandar um aviso no celular?`}
+          </span>
+          {(aviso === 'mudou' || aviso === 'enviando') && <button className="primary small" disabled={aviso === 'enviando'} onClick={avisarAluno}>{aviso === 'enviando' ? 'Enviando…' : 'Avisar aluno 🔔'}</button>}
+          {aviso !== 'enviando' && <button className="ghost small" aria-label="Fechar" onClick={() => setAviso(null)}>✕</button>}
+        </div>
+      )}
       <div className="stack">
         {aluno.treinos.map((t) => (
           <div className="panel" key={t.id}>
@@ -68,7 +88,7 @@ export default function Treinos({ aluno, recarregar }) {
       </div>
       <Fases aluno={aluno} recarregar={recarregar} />
 
-      {modal?.tipo === 'aplicarModelo' && <AplicarModelo aluno={aluno} onFechar={() => setModal(null)} onAplicado={() => { setModal(null); recarregar() }} />}
+      {modal?.tipo === 'aplicarModelo' && <AplicarModelo aluno={aluno} onFechar={() => setModal(null)} onAplicado={() => { setModal(null); setAviso('mudou'); recarregar() }} />}
       {modal?.tipo === 'salvarModelo' && <FormModelo fichas={fichasDoAluno(aluno.treinos)} onFechar={() => setModal(null)} onSalvo={() => setModal(null)} />}
       {modal?.tipo === 'ficha' && <FormFicha aluno={aluno} onFechar={() => setModal(null)} rodar={rodar} />}
       {modal?.tipo === 'biblioteca' && (
@@ -80,7 +100,7 @@ export default function Treinos({ aluno, recarregar }) {
             const ordem = modal.treino.exercicios.reduce((m, e) => Math.max(m, e.ordem + 1), 0)
             const { error } = await supabase.from('exercicios').insert(lista.map((e, i) => ({ ...e, treino_id: modal.treino.id, ordem: ordem + i })))
             if (error) return `Não foi possível salvar: ${error.message}`
-            setModal(null); recarregar(); return null
+            setModal(null); setAviso('mudou'); recarregar(); return null
           }}
         />
       )}

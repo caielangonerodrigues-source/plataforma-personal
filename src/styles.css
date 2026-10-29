@@ -633,3 +633,4 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 /* "+" das reações: abre a grade com todos os emojis */
 .reacoes-menu .mais-emojis { color: var(--muted); background: var(--bg) }
 .reacoes-menu.todos { display: grid; grid-template-columns: repeat(6, 40px); border-radius: 18px; max-width: calc(100vw - 32px) }
+.aviso-treino { margin-bottom: 12px; border: 1.5px solid var(--accent); background: var(--accent-soft) }

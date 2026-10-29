@@ -47,3 +47,13 @@ export async function avisarNoApp(alunoIds, titulo, corpo, url = '/') {
   const { data, error } = await supabase.functions.invoke('notificacoes', { body: { acao: 'enviar', aluno_ids: alunoIds, titulo, corpo, url } })
   return error ? null : data
 }
+
+// Comentário, reação ou mensagem particular: pede para a função avisar quem recebeu (o texto vem do banco).
+// Não espera nem mostra erro: se o aviso não sair, a interação continua salva.
+const ultimoAviso = {}
+export function avisarInteracao(tipo, dados, intervalo = 0) {
+  const chave = `${tipo}:${dados.checkin_id || dados.aluno_id}`
+  if (intervalo && Date.now() - (ultimoAviso[chave] || 0) < intervalo) return
+  ultimoAviso[chave] = Date.now()
+  supabase.functions.invoke('notificacoes', { body: { acao: 'interacao', tipo, ...dados } }).catch(() => {})
+}

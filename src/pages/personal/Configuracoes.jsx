@@ -87,7 +87,7 @@ export default function Configuracoes() {
         <div><button className="primary">Salvar</button></div>
       </form>
       <div style={{ maxWidth: 640, marginTop: 16 }}>
-        <AtivarNotificacoes texto="Aviso de ficha para trocar e outros avisos dos seus alunos, neste celular." />
+        <AtivarNotificacoes texto="Mensagens dos alunos, ficha para trocar e outros avisos, neste celular." />
       </div>
     </>
   )
