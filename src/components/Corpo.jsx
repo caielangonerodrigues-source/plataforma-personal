@@ -1,6 +1,7 @@
 // Bonequinho de frente e de costas com os músculos acesos em laranja.
 // Base: ilustração 3D em cinza (public/corpo/<vista>.webp). Cada músculo aceso é a versão laranja
-// da mesma ilustração recortada pela máscara do músculo (public/corpo/<vista>-<músculo>.png).
+// da mesma ilustração recortada pela máscara do músculo (public/corpo/<vista>-<músculo>.png);
+// o mais ativo usa a versão em laranja escuro (<vista>-escuro.webp).
 // `principais`/`secundarios`: ids de MUSCULOS, com `ativo` (o mais ativo) aceso mais forte e brilhando;
 // ou `intensidade`: { id: 0..1 } para o mapa da semana.
 import { MUSCULOS } from '../lib/musculos.js'
@@ -23,7 +24,8 @@ function Vista({ lado, titulo, nivel, ativo, tamanho }) {
           const n = nivel(m)
           if (!n) return null
           const mascara = `url(/corpo/${lado}-${m}.png)`
-          return <img key={m} className={m === ativo ? 'ativo' : undefined} src={`/corpo/${lado}-laranja.webp`} alt="" draggable="false" style={{ opacity: 0.3 + 0.7 * n, WebkitMaskImage: mascara, maskImage: mascara }} />
+          const forte = m === ativo // o mais ativo usa o laranja escuro, para o aluno achar o músculo de cara
+          return <img key={m} className={forte ? 'ativo' : undefined} src={`/corpo/${lado}-${forte ? 'escuro' : 'laranja'}.webp`} alt="" draggable="false" style={{ opacity: forte ? 1 : 0.3 + 0.7 * n, WebkitMaskImage: mascara, maskImage: mascara }} />
         })}
       </div>
       {titulo && <figcaption>{titulo}</figcaption>}
@@ -31,7 +33,7 @@ function Vista({ lado, titulo, nivel, ativo, tamanho }) {
   )
 }
 
-// Mais ativo: 1; outros principais: 0,6; secundários: 0,3. Sem `ativo`, todos os principais ficam fortes.
+// Mais ativo: laranja escuro; outros principais: 0,6; secundários: 0,3. Sem `ativo`, todos os principais ficam fortes.
 const nivelDe = (principais, secundarios, ativo) => (id) =>
   id === ativo ? 1 : principais.includes(id) ? (ativo ? 0.6 : 1) : secundarios.includes(id) ? 0.3 : 0
 
@@ -59,10 +61,9 @@ export default function Corpo({ principais = [], secundarios = [], ativo, foco, 
 
 // Versão pequena para a lista de exercícios: só a vista onde está o músculo principal.
 export function CorpoMini({ principais = [], secundarios = [], ativo, tamanho = 26, onClick }) {
-  const naFrente = (m) => VISTAS.frente.musculos.includes(m)
-  const naCostas = (m) => VISTAS.costas.musculos.includes(m)
-  const chave = ativo ? [ativo] : principais
-  const lado = chave.some((m) => naFrente(m) && !naCostas(m)) || !chave.some(naCostas) ? 'frente' : 'costas'
+  // Vista onde o músculo principal aparece melhor: frente, a não ser que só exista nas costas (ou seja o trapézio).
+  const chave = ativo || principais[0] || secundarios[0]
+  const lado = VISTAS.frente.musculos.includes(chave) && chave !== 'trapezio' ? 'frente' : 'costas'
   const nivel = nivelDe(principais, secundarios, ativo)
   const nomes = principais.map((m) => MUSCULOS[m]).join(', ')
   if (!principais.length && !secundarios.length) return null
