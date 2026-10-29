@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Modal from '../../components/Modal.jsx'
 import { MODELOS_PRONTOS, letrasAoAplicar, resumoModelo } from '../../lib/modelos.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 // Cria as fichas e os exercícios do modelo no aluno. Devolve a mensagem de erro, se houver.
 export async function aplicarModelo(aluno, modelo) {
@@ -56,6 +57,7 @@ export default function Modelos() {
         <div><h1>Treinos modelo</h1><p className="sub">Fichas prontas para aplicar em qualquer aluno com um clique.</p></div>
         {faltamProntos && <button className="primary" onClick={adicionarProntos}>Adicionar modelos prontos</button>}
       </div>
+      <AjudaDaPagina />
       {erro && <p className="erro">{erro}</p>}
       <div className="panel meta" style={{ marginBottom: 16 }}>
         Para criar um modelo seu, monte as fichas num aluno e clique em <strong>Salvar como modelo</strong> na aba Treinos dele. Para aplicar, abra o aluno e clique em <strong>Aplicar modelo</strong>.

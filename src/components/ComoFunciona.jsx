@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 // Explicação curta de cada aba. Aberta na primeira visita; depois que a pessoa fecha, fica fechada naquele aparelho.
 export default function ComoFunciona({ chave, itens }) {
@@ -15,6 +16,13 @@ export default function ComoFunciona({ chave, itens }) {
       <ul>{itens.map((t) => <li key={t}>{t}</li>)}</ul>
     </details>
   )
+}
+
+// Telas do personal: a explicação da tela atual, logo abaixo do título.
+export function AjudaDaPagina() {
+  const { pathname } = useLocation()
+  const itens = AJUDA_PERSONAL[pathname]
+  return itens ? <ComoFunciona key={pathname} chave={`personal${pathname}`} itens={itens} /> : null
 }
 
 // Textos das abas da área do aluno.

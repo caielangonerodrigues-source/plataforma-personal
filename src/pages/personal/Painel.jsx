@@ -9,6 +9,7 @@ import { relatosAtrasados } from '../../lib/consultoria.js'
 import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { atendimentos } from '../../lib/agenda.js'
 import { fichasParaTrocar, DIAS_REAVALIACAO } from '../../lib/ficha.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
@@ -105,6 +106,7 @@ export default function Painel() {
     <>
       <h1>Painel</h1>
       <p className="sub">Resumo dos seus alunos hoje.</p>
+      <AjudaDaPagina />
       <div className="kpis" style={{ marginBottom: 20 }}>
         <div className="panel kpi"><div className="n">{alunos.length}</div><div className="l">Alunos</div></div>
         <div className="panel kpi"><div className="n">{ativos}</div><div className="l">Ativos</div></div>

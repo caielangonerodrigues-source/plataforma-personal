@@ -3,6 +3,7 @@ import { supabase } from '../../supabase.js'
 import Modal from '../../components/Modal.jsx'
 import { ListaExercicios, useBiblioteca } from '../../components/SeletorExercicios.jsx'
 import { GRUPOS } from '../../lib/exercicios.js'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Exercicios() {
   const { lista, meus, recarregar } = useBiblioteca()
@@ -22,6 +23,7 @@ export default function Exercicios() {
         <div><h1>Exercícios</h1><p className="sub">{lista.length} exercícios para montar as fichas, separados por grupo muscular.</p></div>
         <button className="primary" onClick={() => setEditando({})}>Cadastrar exercício</button>
       </div>
+      <AjudaDaPagina />
       {erro && <p className="erro">{erro}</p>}
       <div className="panel meta" style={{ marginBottom: 16 }}>
         Na aba Treinos do aluno, clique em <strong>Adicionar exercícios</strong> para marcar vários de uma vez. Os que você cadastrar aqui aparecem primeiro, com o seu vídeo de execução{meus.length ? ` (você tem ${meus.length})` : ''}.

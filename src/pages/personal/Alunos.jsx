@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Status from '../../components/Status.jsx'
 import FormAluno from './FormAluno.jsx'
+import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Alunos() {
   const navigate = useNavigate()
@@ -28,6 +29,7 @@ export default function Alunos() {
         <div><h1>Alunos</h1><p className="sub">{alunos.length} cadastrado(s)</p></div>
         <button className="primary" onClick={() => setNovo(true)}>Novo aluno</button>
       </div>
+      <AjudaDaPagina />
       <div className="panel">
         <input id="busca" placeholder="Buscar pelo nome" aria-label="Buscar aluno" value={busca} onChange={(e) => setBusca(e.target.value)} />
         <div className="segmentos" role="group" aria-label="Tipo de aluno">
