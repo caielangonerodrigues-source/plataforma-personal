@@ -747,11 +747,9 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .corpo { display: flex; flex-direction: column; gap: 6px; align-items: center }
 .corpo-vistas { display: flex; gap: 10px; justify-content: center }
 .corpo-vista { margin: 0; display: flex; flex-direction: column; align-items: center }
-.corpo-vista svg { overflow: visible; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .18)) }
+.corpo-img { position: relative; filter: drop-shadow(0 3px 4px rgb(0 0 0 / .22)) }
+.corpo-img img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; -webkit-mask-size: 100% 100%; mask-size: 100% 100% }
 .corpo-vista figcaption { font-size: 11px; color: var(--muted); margin-top: 2px }
-.corpo-silhueta path { fill: color-mix(in srgb, var(--ink) 13%, var(--surface)) }
-.corpo-musculo path { fill: color-mix(in srgb, var(--ink) 26%, var(--surface)); stroke: var(--surface); stroke-width: .7; stroke-linejoin: round }
-.corpo-musculo[style] path { fill: inherit; fill-opacity: inherit }
 .corpo-legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: 12px; color: var(--muted) }
 .corpo-legenda span { display: inline-flex; align-items: center; gap: 5px }
 .corpo-legenda i { width: 10px; height: 10px; border-radius: 3px; background: var(--accent) }
