@@ -3,12 +3,16 @@ import Modal from './Modal.jsx'
 import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { reduzirFoto } from '../lib/foto.js'
+import { ESPORTES, fmtTempo, resumoCardio, resumoTreino, ritmo } from '../lib/social.js'
 
 const OUTRO = 'outro'
 
-export default function FormCheckin({ aluno, treinos, treinoInicial, onFechar, onFeito }) {
+// O post ganha um card sozinho: do treino da ficha (exercícios, volume, recordes) ou de corrida, pedal e caminhada (km, tempo, ritmo).
+export default function FormCheckin({ aluno, treinos, registros = [], treinoInicial, onFechar, onFeito }) {
   const [treinoId, setTreinoId] = useState(treinoInicial || treinos[0]?.id || OUTRO)
   const [atividade, setAtividade] = useState('')
+  const [km, setKm] = useState('')
+  const [tempo, setTempo] = useState('')
   const [comentario, setComentario] = useState('')
   const [foto, setFoto] = useState(null)
   const [preview, setPreview] = useState('')
@@ -24,9 +28,15 @@ export default function FormCheckin({ aluno, treinos, treinoInicial, onFechar, o
     setErro(''); setFoto(f); setPreview(URL.createObjectURL(f))
   }
 
+  const hoje = hojeISO()
+  const treino = treinos.find((t) => t.id === treinoId)
+  const esporte = ESPORTES[treinoId] ? treinoId : null
+  const cardio = esporte && resumoCardio(esporte, km, tempo)
+  const resumo = treino ? resumoTreino(treino, registros, hoje) : cardio || null
+
   async function salvar() {
-    const treino = treinos.find((t) => t.id === treinoId)
-    if (!treino && !atividade.trim()) return setErro('Diga o que você treinou (ex.: corrida, aula de spinning).')
+    if (esporte && !cardio) return setErro('Coloque a distância (ex.: 5,2) e o tempo (ex.: 28:30).')
+    if (!treino && !esporte && !atividade.trim()) return setErro('Diga o que você treinou (ex.: aula de spinning, funcional).')
     setSalvando(true); setErro('')
     let caminho = null
     try {
@@ -35,11 +45,13 @@ export default function FormCheckin({ aluno, treinos, treinoInicial, onFechar, o
         const { error } = await supabase.storage.from('checkins').upload(caminho, await reduzirFoto(foto), { contentType: 'image/jpeg' })
         if (error) throw error
       }
-      const { error } = await supabase.from('checkins').insert({
-        aluno_id: aluno.id, data: hojeISO(), treino_id: treino?.id || null,
-        titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : atividade.trim(),
+      const post = {
+        aluno_id: aluno.id, data: hoje, treino_id: treino?.id || null,
+        titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : esporte ? `${ESPORTES[esporte][0]} · ${String(cardio.km).replace('.', ',')} km` : atividade.trim(),
         comentario: comentario.trim() || null, foto: caminho,
-      })
+      }
+      let { error } = await supabase.from('checkins').insert(resumo ? { ...post, resumo } : post)
+      if (error && resumo && /resumo/.test(error.message)) ({ error } = await supabase.from('checkins').insert(post)) // SQL novo ainda não rodou
       if (error) throw error
       onFeito()
     } catch (e) {
@@ -54,10 +66,21 @@ export default function FormCheckin({ aluno, treinos, treinoInicial, onFechar, o
       <label className="full">O que você treinou?
         <select id="checkin-treino" value={treinoId} onChange={(e) => setTreinoId(e.target.value)}>
           {treinos.map((t) => <option key={t.id} value={t.id}>Treino {t.nome}{t.foco ? ` · ${t.foco}` : ''}</option>)}
+          {Object.entries(ESPORTES).map(([k, [nome, icone]]) => <option key={k} value={k}>{icone} {nome}</option>)}
           <option value={OUTRO}>Outra atividade</option>
         </select>
       </label>
-      {treinoId === OUTRO && <label className="full">Atividade<input id="checkin-atividade" maxLength={80} placeholder="Ex.: Corrida 5 km" value={atividade} onChange={(e) => setAtividade(e.target.value)} /></label>}
+      {treinoId === OUTRO && <label className="full">Atividade<input id="checkin-atividade" maxLength={80} placeholder="Ex.: Aula de funcional" value={atividade} onChange={(e) => setAtividade(e.target.value)} /></label>}
+      {esporte && <>
+        <label>Distância (km)<input id="checkin-km" inputMode="decimal" placeholder="5,2" value={km} onChange={(e) => setKm(e.target.value)} /></label>
+        <label>Tempo<input id="checkin-tempo" inputMode="numeric" placeholder="28:30" value={tempo} onChange={(e) => setTempo(e.target.value)} /></label>
+        <p className="meta full" style={{ margin: 0 }}>{cardio ? `${esporte === 'bike' ? 'Velocidade média' : 'Ritmo'}: ${ritmo(esporte, cardio.km, cardio.segundos)} · ${fmtTempo(cardio.segundos)}` : 'Use os números do relógio ou do app de corrida. Dá para anexar o print do mapa como foto.'}</p>
+      </>}
+      {treino && resumo && (
+        <p className="meta full" style={{ margin: 0 }}>
+          Vai junto no post: {resumo.feitos} de {resumo.total} exercícios{resumo.volume ? ` · ${resumo.volume.toLocaleString('pt-BR')} kg levantados` : ''}{resumo.recordes.length ? ` · ${resumo.recordes.length} recorde${resumo.recordes.length > 1 ? 's' : ''} 💪` : ''}
+        </p>
+      )}
       <div className="full stack" style={{ gap: 4 }}>
         <span className="meta" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>Foto (opcional)</span>
         <label className="foto-botao">

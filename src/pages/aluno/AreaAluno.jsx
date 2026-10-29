@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Grafico from '../../components/Grafico.jsx'
@@ -32,6 +32,8 @@ import { buscaVideo } from '../../lib/exercicios.js'
 import { useComunidade } from '../../hooks/useComunidade.js'
 import { useAcademia } from '../../hooks/useAcademia.js'
 import { codigoDoLink } from '../../lib/academia.js'
+import { medalhas } from '../../lib/medalhas.js'
+import { conquistasAtuais, conquistasParaPublicar, recordesDoDia } from '../../lib/social.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
 import { segundosDescanso } from '../../lib/descanso.js'
@@ -104,6 +106,24 @@ export default function AreaAluno({ aluno }) {
       if (!error) { carregar(); comunidade.carregar() }
     })
   }, [])
+
+  // Medalhas novas e recordes de hoje viram post no feed da turma (sem o SQL novo, não faz nada).
+  const sincronizando = useRef(false)
+  const desafios = comunidade.dados?.desafios
+  useEffect(() => {
+    if (!treinos || !desafios || sincronizando.current) return
+    sincronizando.current = true
+    ;(async () => {
+      const { data: salvas, error } = await supabase.from('conquistas').select('chave').eq('aluno_id', aluno.id)
+      if (error) return
+      const lista = medalhas({ datas: diasCheckin, registros, avaliacoes: avaliacoes.length }, desafios)
+      const recordesHoje = recordesDoDia(registros, todosTreinos.flatMap((t) => t.exercicios), hoje)
+      const novas = conquistasParaPublicar(conquistasAtuais(lista, recordesHoje, hoje), salvas)
+      if (!novas.length) return
+      await supabase.from('conquistas').upsert(novas.map((c) => ({ aluno_id: aluno.id, ...c })), { onConflict: 'aluno_id,chave', ignoreDuplicates: true })
+      if (novas.some((c) => c.visivel)) comunidade.carregar()
+    })().finally(() => { sincronizando.current = false })
+  }, [treinos, desafios, diasCheckin, registros, avaliacoes.length])
 
   const situacao = prazoFicha && !proximaFase && treinos ? situacaoFicha({ ...aluno, treinos }, hoje, prazoFicha) : null
   const fichaVencida = situacao?.vencida ? situacao : null
@@ -330,6 +350,7 @@ export default function AreaAluno({ aluno }) {
         <FormCheckin
           aluno={aluno}
           treinos={treinos || []}
+          registros={registros}
           treinoInicial={ficha?.id}
           onFechar={() => setCheckinAberto(false)}
           onFeito={() => { setCheckinAberto(false); carregar(); comunidade.carregar(); if (aluno.comunidade) setAba('comunidade') }}

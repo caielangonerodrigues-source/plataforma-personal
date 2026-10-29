@@ -18,10 +18,11 @@ export function useComunidade() {
 
   const carregar = useCallback(async () => {
     const hoje = hojeISO()
-    const [sessao, membros, feed, desafios, equipes] = await Promise.all([
+    const [sessao, membros, feed, conquistas, desafios, equipes] = await Promise.all([
       supabase.auth.getSession(),
       supabase.rpc('comunidade_membros'),
-      supabase.from('checkins').select('id, aluno_id, data, titulo, comentario, foto, created_at').order('created_at', { ascending: false }).limit(30),
+      supabase.from('checkins').select('*').order('created_at', { ascending: false }).limit(30), // * traz o card do treino (resumo) quando o SQL novo rodou
+      supabase.from('conquistas').select('*').eq('visivel', true).order('created_at', { ascending: false }).limit(20),
       supabase.from('desafios').select('*').order('fim'),
       supabase.from('equipes').select('*').order('nome'), // SQL novo: sem ele, sem equipes
     ])
@@ -34,17 +35,21 @@ export function useComunidade() {
     const caminhos = feed.data.map((c) => c.foto).filter(Boolean)
     const avatares = membros.data.map((m) => m.avatar).filter((a) => a && !a.startsWith('p:'))
     // Comentários e avatares são do SQL novo: se ainda não rodou, só não aparecem.
-    const [curtidas, fotos, comentarios, fotosAvatar] = await Promise.all([
+    const idsConquistas = conquistas.error ? [] : conquistas.data.map((c) => c.id)
+    const [curtidas, fotos, comentarios, fotosAvatar, reacoesConquistas] = await Promise.all([
       ids.length ? lerCurtidas(ids) : { data: [] },
       caminhos.length ? supabase.storage.from('checkins').createSignedUrls(caminhos, 3600) : { data: [] },
       ids.length ? supabase.from('comentarios_checkin').select('*').in('checkin_id', ids).order('created_at') : { data: [] },
       avatares.length ? supabase.storage.from('avatares').createSignedUrls(avatares, 3600) : { data: [] },
+      idsConquistas.length ? supabase.from('reacoes_conquista').select('conquista_id, user_id, emoji').in('conquista_id', idsConquistas) : { data: [] },
     ])
     setErro('')
     setDados({
       eu: sessao.data.session?.user.id,
       membros: membros.data,
       feed: feed.data,
+      conquistas: conquistas.error ? [] : conquistas.data, // SQL novo: sem ele, sem conquistas no feed
+      reacoesConquistas: reacoesConquistas.data || [],
       mes: periodo.data.filter((c) => c.data >= inicioDoMes(hoje)),
       periodo: periodo.data,
       desafios: desafios.data,
@@ -72,6 +77,19 @@ export function useComunidade() {
     carregar()
   }
 
+  async function reagirConquista(conquistaId, emoji) {
+    const minha = dados.reacoesConquistas.find((k) => k.conquista_id === conquistaId && k.user_id === dados.eu)
+    const acao = acaoReacao(minha?.emoji || null, emoji)
+    const tabela = supabase.from('reacoes_conquista')
+    const { error } = acao === 'tirar'
+      ? await tabela.delete().eq('conquista_id', conquistaId).eq('user_id', dados.eu)
+      : acao === 'trocar'
+        ? await tabela.update({ emoji }).eq('conquista_id', conquistaId).eq('user_id', dados.eu)
+        : await tabela.insert({ conquista_id: conquistaId, emoji })
+    if (error && error.code !== '23505') setErro('Não foi possível reagir agora. Tente de novo.')
+    carregar()
+  }
+
   async function apagar(checkin) {
     if (checkin.foto) await supabase.storage.from('checkins').remove([checkin.foto])
     const { error } = await supabase.from('checkins').delete().eq('id', checkin.id)
@@ -92,5 +110,5 @@ export function useComunidade() {
     carregar()
   }
 
-  return { dados, erro, carregar, reagir, apagar, comentar, apagarComentario }
+  return { dados, erro, carregar, reagir, reagirConquista, apagar, comentar, apagarComentario }
 }
