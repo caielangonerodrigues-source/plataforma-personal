@@ -1,10 +1,25 @@
-import { ESPORTES, fmtTempo, ritmo } from '../lib/social.js'
+import { ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, ritmo } from '../lib/social.js'
+import Corpo from './Corpo.jsx'
 
 const kg = (n) => `${Number(n).toLocaleString('pt-BR')} kg`
 
-// Números do treino no post, como no Strava: da ficha (exercícios, séries, volume, recordes) ou de corrida/pedal/caminhada.
+// Números do treino no post, como no Strava: da ficha (exercícios, séries, volume, recordes), de musculação livre
+// (bonequinho com os grupos e duração) ou de corrida/pedal/caminhada.
 export default function CardTreino({ resumo }) {
   if (!resumo) return null
+  if (resumo.tipo === 'musculacao') {
+    const grupos = (resumo.grupos || []).filter((g) => GRUPOS_MUSCULACAO[g])
+    return (
+      <div className="card-treino card-musculacao">
+        <Corpo principais={grupos.flatMap((g) => GRUPOS_MUSCULACAO[g][1])} tamanho={34} legenda={false} />
+        <div className="card-treino-nums">
+          <div><span>Treino</span><strong>🏋️ Musculação</strong></div>
+          {resumo.minutos && <div><span>Duração</span><strong>{resumo.minutos} min</strong></div>}
+          {grupos.length > 0 && <div><span>Grupos</span><strong>{grupos.map((g) => GRUPOS_MUSCULACAO[g][0]).join(', ')}</strong></div>}
+        </div>
+      </div>
+    )
+  }
   if (resumo.tipo === 'cardio') {
     const [nome, icone] = ESPORTES[resumo.esporte] || ['Cardio', '🏃']
     return (

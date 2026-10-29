@@ -69,7 +69,7 @@ alter table public.personais add column if not exists motivacao_auto boolean not
 alter table public.checkins add column if not exists resumo jsonb;
 alter table public.checkins drop constraint if exists checkins_resumo_check;
 alter table public.checkins add constraint checkins_resumo_check
-  check (resumo is null or (jsonb_typeof(resumo) = 'object' and resumo->>'tipo' in ('treino', 'cardio') and pg_column_size(resumo) < 2000));
+  check (resumo is null or (jsonb_typeof(resumo) = 'object' and resumo->>'tipo' in ('treino', 'cardio', 'musculacao') and pg_column_size(resumo) < 2000));
 
 -- ---------------------------------------------------------------------------
 -- Conquistas no feed: medalhas e recordes de carga viram post sozinhos.

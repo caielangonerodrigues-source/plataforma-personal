@@ -32,6 +32,22 @@ export function resumoTreino(ficha, registros, hoje) {
 
 export const ESPORTES = { corrida: ['Corrida', '🏃'], bike: ['Pedal', '🚴'], caminhada: ['Caminhada', '🚶'] }
 
+// Check-in de musculação sem ficha: o aluno marca os grupos e a duração; o card acende os músculos no bonequinho.
+export const GRUPOS_MUSCULACAO = {
+  peito: ['Peito', ['peito']], costas: ['Costas', ['dorsais', 'trapezio', 'lombar']], ombros: ['Ombros', ['ombro']],
+  bracos: ['Braços', ['biceps', 'triceps', 'antebraco']], pernas: ['Pernas', ['quadriceps', 'posterior', 'adutores', 'panturrilha']],
+  gluteos: ['Glúteos', ['gluteos']], abdomen: ['Abdômen', ['abdomen', 'obliquos']],
+}
+
+export function resumoMusculacao(grupos, minutos) {
+  const lista = [...new Set(grupos)].filter((g) => GRUPOS_MUSCULACAO[g])
+  const min = Math.round(Number(String(minutos || '').replace(',', '.')))
+  return { tipo: 'musculacao', grupos: lista, minutos: min > 0 && min < 600 ? min : null }
+}
+
+export const tituloMusculacao = (grupos) =>
+  `Musculação${grupos.length ? ` · ${grupos.map((g) => GRUPOS_MUSCULACAO[g][0]).join(', ')}` : ''}`
+
 // "32:15" ou "1:05:30" → segundos.
 export function lerTempo(texto) {
   const partes = String(texto || '').trim().split(':').map((p) => p.trim())
