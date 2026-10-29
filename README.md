@@ -156,6 +156,14 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
    ```
    (22h no horário do servidor = 19h de Brasília.)
 
+### 9. Comentários, avatar, troca de ficha e login com Google/Apple
+1. No Supabase, abra **SQL Editor > New query**, cole o conteúdo de [`supabase/migracao-comunidade-fichas.sql`](supabase/migracao-comunidade-fichas.sql) e clique em **Run** (pode rodar mais de uma vez).
+2. Em **Edge Functions**, abra `notificacoes`, cole de novo o conteúdo de [`supabase/functions/notificacoes/index.ts`](supabase/functions/notificacoes/index.ts) e clique em **Deploy** (agora ela também avisa das fichas para trocar).
+3. Entrar com Google: em [console.cloud.google.com](https://console.cloud.google.com) crie um projeto, abra **APIs e serviços > Tela de consentimento OAuth** (tipo Externo) e depois **Credenciais > Criar credenciais > ID do cliente OAuth** (Aplicativo da Web). Em "URIs de redirecionamento autorizados" coloque `https://SEU-PROJETO.supabase.co/auth/v1/callback`. Copie o ID e a chave secreta para o Supabase em **Authentication > Sign In / Providers > Google** e ligue.
+4. Entrar com Apple: precisa de uma conta no Apple Developer Program (US$ 99 por ano). Siga o passo a passo em **Authentication > Sign In / Providers > Apple** no Supabase.
+5. Em **Authentication > URL Configuration**, confira se o endereço do site está em **Site URL** e em **Redirect URLs**.
+6. Os botões "Continuar com Google/Apple" só aparecem na tela de entrada depois que o provedor é ligado no Supabase. Quem entra assim pela primeira vez vira aluno com o nome da conta Google/Apple (o personal completa telefone e o resto).
+
 ## Desenvolvimento
 
 ```bash

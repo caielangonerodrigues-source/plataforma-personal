@@ -4,7 +4,9 @@
 //   { acao: 'chave' }                                  → chave pública para o aparelho se inscrever
 //   { acao: 'enviar', aluno_ids, titulo, corpo, url }  → o personal manda para os alunos dele
 //   { acao: 'lembretes' }                              → lembrete dos atendimentos de amanhã (da agenda)
-// Os lembretes podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
+//   { acao: 'fichas' }                                 → avisa aluno e personal quando a ficha passou do prazo de troca
+// Os lembretes (e o aviso das fichas) podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
+// O painel do personal também chama 'fichas' uma vez por dia.
 import webpush from 'npm:web-push@3.6.7'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
@@ -77,6 +79,37 @@ async function lembretes(personalId?: string) {
   return { atendimentos: avisos.length, enviadas }
 }
 
+// Ficha passou do prazo (Configurações > trocar a cada N semanas): uma notificação para o aluno
+// e uma para o personal, só uma vez por ficha (alunos.ficha_avisada_em).
+async function fichas(personalId?: string) {
+  const hoje = diaSP()
+  let q = admin.from('alunos').select('id, nome, user_id, personal_id, ficha_renovada_em, ficha_avisada_em, treinos(created_at, arquivado), personais(trocar_ficha_semanas)').neq('status', 'pausado')
+  if (personalId) q = q.eq('personal_id', personalId)
+  const { data: alunos, error } = await q
+  if (error) return { erro: error.message }
+  const { data: fases } = await admin.from('fases').select('aluno_id').is('aplicada_em', null)
+  const comFase = new Set((fases || []).map((f) => f.aluno_id))
+  const porPersonal: Record<string, string[]> = {}
+  let avisados = 0
+  for (const a of alunos || []) {
+    const atuais = (a.treinos || []).filter((t) => !t.arquivado)
+    if (!atuais.length || comFase.has(a.id)) continue
+    const inicio = [...atuais.map((t) => String(t.created_at).slice(0, 10)), a.ficha_renovada_em].filter(Boolean).sort().at(-1) as string
+    // deno-lint-ignore no-explicit-any
+    const semanas = (a.personais as any)?.trocar_ficha_semanas || 6
+    const dias = Math.round((Date.parse(`${hoje}T12:00:00Z`) - Date.parse(`${inicio}T12:00:00Z`)) / 864e5)
+    if (dias < semanas * 7 || (a.ficha_avisada_em && a.ficha_avisada_em >= inicio)) continue
+    if (a.user_id) await enviar([a.user_id], { titulo: 'Hora de trocar a ficha 💪', corpo: `Você está há ${Math.floor(dias / 7)} semanas na mesma ficha. Seu personal já foi avisado para montar a próxima.`, url: '/' })
+    ;(porPersonal[a.personal_id] ||= []).push(`${a.nome.split(' ')[0]} (${Math.floor(dias / 7)} sem.)`)
+    await admin.from('alunos').update({ ficha_avisada_em: hoje }).eq('id', a.id)
+    avisados++
+  }
+  for (const [p, nomes] of Object.entries(porPersonal)) {
+    await enviar([p], { titulo: nomes.length === 1 ? 'Ficha para trocar' : `${nomes.length} fichas para trocar`, corpo: `${nomes.join(', ')} já passaram do prazo da ficha.`, url: '/' })
+  }
+  return { avisados }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -86,7 +119,7 @@ Deno.serve(async (req) => {
     webpush.setVapidDetails(Deno.env.get('PUSH_CONTATO') || 'mailto:notificacoes@corpoatletico.app', k.publica, k.privada)
 
     // Agendamento diário: confere o segredo e manda os lembretes de todos.
-    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta(await lembretes())
+    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas() })
 
     // Daqui para baixo só o personal, com o login dele (as regras do banco limitam aos alunos dele).
     const db = createClient(URL_SUPABASE, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } })
@@ -96,6 +129,7 @@ Deno.serve(async (req) => {
     if (!personal) return resposta({ erro: 'Só o personal envia notificações.' }, 403)
 
     if (corpo.acao === 'lembretes') return resposta(await lembretes(user.id))
+    if (corpo.acao === 'fichas') return resposta(await fichas(user.id))
     if (corpo.acao === 'enviar') {
       const ids = Array.isArray(corpo.aluno_ids) ? corpo.aluno_ids.slice(0, 500).map(String) : []
       if (!ids.length || !corpo.titulo || !corpo.corpo) return resposta({ erro: 'Faltou aluno, título ou texto.' }, 400)

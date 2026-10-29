@@ -8,6 +8,8 @@ import FormCheckin from '../../components/FormCheckin.jsx'
 import InstalarApp from '../../components/InstalarApp.jsx'
 import Progressao from '../../components/Progressao.jsx'
 import Medalhas from '../../components/Medalhas.jsx'
+import EditarAvatar from '../../components/EditarAvatar.jsx'
+import InicioAluno from '../../components/InicioAluno.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
@@ -26,11 +28,13 @@ import { useComunidade } from '../../hooks/useComunidade.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
 import { segundosDescanso } from '../../lib/descanso.js'
+import { situacaoFicha } from '../../lib/ficha.js'
 import { DIAS_SEMANA, diaDaSemana, proximoAtendimento } from '../../lib/agenda.js'
 import { f1, hojeISO, num, porData, porOrdem, primeiroNome } from '../../lib/formato.js'
 
 export default function AreaAluno({ aluno }) {
-  const [aba, setAba] = useState('treino')
+  const [aba, setAba] = useState('inicio')
+  const [meuAvatar, setMeuAvatar] = useState(aluno.avatar || null)
   const [treinos, setTreinos] = useState(null)
   const [todosTreinos, setTodosTreinos] = useState([]) // inclui fichas de fases anteriores, para o histórico
   const [avaliacoes, setAvaliacoes] = useState([])
@@ -46,6 +50,7 @@ export default function AreaAluno({ aluno }) {
   const [trocas, setTrocas] = useState(() => lerTrocas(hojeISO())) // trocas escolhidas hoje e ainda não marcadas
   const [agenda, setAgenda] = useState(null) // próximo atendimento presencial
   const [proximaFase, setProximaFase] = useState(null)
+  const [prazoFicha, setPrazoFicha] = useState(null) // semanas para trocar a ficha (do personal)
   const comunidade = useComunidade()
   const hoje = hojeISO()
 
@@ -55,7 +60,7 @@ export default function AreaAluno({ aluno }) {
       supabase.from('treinos').select('*, exercicios(*)').eq('aluno_id', aluno.id),
       supabase.from('avaliacoes').select('*').eq('aluno_id', aluno.id),
       supabase.from('registros').select('*').eq('aluno_id', aluno.id).gte('data', somarDias(hoje, -365)),
-      supabase.from('checkins').select('data').eq('aluno_id', aluno.id).gte('data', somarDias(hoje, -400)),
+      supabase.from('checkins').select('data').eq('aluno_id', aluno.id), // todos, para as medalhas
       supabase.from('anamneses').select('aluno_id').eq('aluno_id', aluno.id),
     ])
     const lista = (t.data || []).sort(porOrdem)
@@ -74,8 +79,11 @@ export default function AreaAluno({ aluno }) {
       .then(([h, r]) => !h.error && setAgenda(proximoAtendimento(h.data || [], r.data || [], hoje, new Date().toTimeString().slice(0, 5))))
     supabase.from('fases').select('nome, inicio').eq('aluno_id', aluno.id).is('aplicada_em', null).order('inicio').limit(1)
       .then(({ data }) => setProximaFase(data?.[0] || null))
+    supabase.rpc('prazo_troca_ficha').then(({ data, error }) => !error && setPrazoFicha(data || 6))
   }, [aluno.id, hoje])
 
+  const situacao = prazoFicha && !proximaFase && treinos ? situacaoFicha({ ...aluno, treinos }, hoje, prazoFicha) : null
+  const fichaVencida = situacao?.vencida ? situacao : null
   const deHoje = (id) => registros.find((r) => r.exercicio_id === id && r.data === hoje)
 
   const trocaDe = (id) => deHoje(id)?.troca || trocas[id] || null
@@ -130,19 +138,20 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
 
   return (
-    <div className="solo">
+    <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
       <Cabecalho aluno={aluno} />
       <InstalarApp />
-      {!temAnamnese && (
+      {aba !== 'inicio' && !temAnamnese && (
         <div className="panel row between" style={{ marginTop: 16, borderColor: 'var(--accent)' }}>
           <div className="meta" style={{ color: 'var(--ink)', flex: 1, minWidth: 0 }}>Preencha sua anamnese e o PAR-Q para seu personal conhecer seu histórico de saúde.</div>
           <button className="small" onClick={() => setAba('conta')}>Preencher</button>
         </div>
       )}
 
+      {aba !== 'inicio' && <>
       <div className="streak">
         <div className="panel kpi"><div className="n">{seq}</div><div className="l">{seq === 1 ? 'Dia seguido' : 'Dias seguidos'}</div></div>
         <div className="panel kpi"><div className="n">{noMes}</div><div className="l">Treinos no mês</div></div>
@@ -152,10 +161,17 @@ export default function AreaAluno({ aluno }) {
         <p>{fezHoje ? `Check-in de hoje feito. ${seq > 1 ? `São ${seq} dias seguidos!` : 'Bora manter a sequência amanhã.'}` : 'Treinou hoje? Registre e apareça no ranking.'}</p>
         <button onClick={() => setCheckinAberto(true)}>{fezHoje ? 'Novo check-in' : 'Fazer check-in'}</button>
       </div>
+      </>}
 
       <div className="tabs" role="tablist">
         {abas.map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>{l}</button>)}
       </div>
+
+      {aba === 'inicio' && (
+        <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos}
+          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida}
+          irPara={(k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }} onCheckin={() => setCheckinAberto(true)} />
+      )}
 
       {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} />}
 
@@ -165,6 +181,7 @@ export default function AreaAluno({ aluno }) {
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">
+          <EditarAvatar aluno={aluno} onMudou={(novo) => { setMeuAvatar(novo); comunidade.carregar() }} />
           <AtivarNotificacoes />
           <Mensalidade aluno={aluno} />
           <IndiqueAmigo aluno={aluno} />
@@ -172,7 +189,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['comunidade', 'conta', 'consultoria', 'dieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['inicio', 'comunidade', 'conta', 'consultoria', 'dieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">
@@ -185,6 +202,12 @@ export default function AreaAluno({ aluno }) {
                 <div className="meta" style={{ marginBottom: 10, color: 'var(--ink)' }}>
                   Próximo treino com o personal: <strong>{agenda.data === hoje ? 'hoje' : `${DIAS_SEMANA[diaDaSemana(agenda.data)].toLowerCase()}, ${fmtCurta(agenda.data)}`} às {agenda.hora}</strong>
                   {agenda.horario.local ? ` · ${agenda.horario.local}` : ''}{agenda.remarcado ? ' (remarcado)' : ''}
+                </div>
+              )}
+              {fichaVencida && (
+                <div className="aviso-ficha">
+                  <strong>Hora de trocar a ficha 💪</strong>
+                  <span className="meta" style={{ color: 'inherit' }}>Você está há {fichaVencida.semanas} semanas na mesma ficha. Seu personal já foi avisado para montar a próxima. Até lá, siga com esta.</span>
                 </div>
               )}
               {proximaFase && <div className="meta" style={{ marginBottom: 10 }}>Nova fase do treino ({proximaFase.nome}) começa em {fmtCurta(proximaFase.inicio)}.</div>}
@@ -241,7 +264,7 @@ export default function AreaAluno({ aluno }) {
           {avaliacoes.length > 0 && <div className="panel"><h2 style={{ marginBottom: 10 }}>Peso e gordura</h2><Grafico avaliacoes={avaliacoes} /></div>}
           <div className="panel"><h2 style={{ marginBottom: 10 }}>Evolução das cargas</h2><Progressao treinos={todosTreinos} registros={registros} /></div>
           <RelatoriosAluno alunoId={aluno.id} />
-          <Medalhas datas={diasCheckin} desafios={comunidade.dados?.desafios || []} />
+          <Medalhas datas={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} desafios={comunidade.dados?.desafios || []} />
           <FotosEvolucao alunoId={aluno.id} />
         </div>
       )}

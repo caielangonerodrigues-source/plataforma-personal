@@ -122,7 +122,9 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .post { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden }
 .post-head { display: flex; gap: 10px; align-items: center; padding: 12px 14px }
 .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none }
-.post-foto { display: block; width: 100%; max-height: 440px; object-fit: cover; background: var(--line) }
+.post-foto-caixa { position: relative }
+.post-foto { display: block; width: 100%; aspect-ratio: 4 / 5; max-height: 540px; object-fit: cover; background: var(--line) }
+.post-tag.sobre-foto { position: absolute; left: 12px; bottom: 12px; margin: 0; background: var(--accent); color: var(--accent-ink); font-size: 13px; padding: 3px 10px; box-shadow: 0 2px 8px rgb(0 0 0 / .25) }
 .post-body { padding: 10px 14px 12px }
 .post-body p { margin: 0 0 6px }
 .post-tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 1px 8px; margin-right: 6px }
@@ -263,3 +265,69 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
   .bike.instrutor { width: 78px }
   .fileira { gap: 7px }
 }
+.medalha-proxima { display: flex; gap: 12px; align-items: center; margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft) }
+.aviso-ficha { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; margin-bottom: 12px; border-radius: 10px; background: var(--accent-soft); border: 1px solid var(--accent); color: var(--ink) }
+.comentarios { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px; border-top: 1px solid var(--line); padding-top: 12px }
+.comentario { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; line-height: 1.4 }
+.grade-fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-radius: 14px; overflow: hidden }
+.grade-fotos button { padding: 0; border: 0; border-radius: 0; background: var(--line); aspect-ratio: 1 }
+.grade-fotos img { display: block; width: 100%; height: 100%; object-fit: cover }
+.avatares-prontos { display: grid; grid-template-columns: repeat(auto-fill, 46px); gap: 8px }
+.avatares-prontos button { width: 46px; height: 46px; border-radius: 50%; border: 3px solid transparent; padding: 0; font-size: 22px; display: grid; place-items: center }
+.avatares-prontos button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--surface) inset }
+/* Tela de entrada: imagens trocando + formulário */
+.entrada { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) }
+.entrada-form { display: grid; place-items: center; padding: 32px 16px }
+.hero-entrada { position: relative; overflow: hidden; color: #fff; min-height: 100vh; transition: background .8s ease }
+.hero-slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px 40px 90px; opacity: 0; transform: scale(1.03); transition: opacity .8s ease, transform 1.2s ease }
+.hero-slide.ativo { opacity: 1; transform: none }
+.hero-desenho { width: min(520px, 100%) }
+.hero-desenho svg { display: block; width: 100%; height: auto }
+.hero-texto { text-align: center; max-width: 440px; display: flex; flex-direction: column; gap: 6px; margin-top: 8px }
+.hero-texto strong { font-family: var(--display); font-size: 44px; line-height: 1; text-transform: uppercase; letter-spacing: .01em }
+.hero-texto span { font-size: 17px; opacity: .9 }
+.hero-pontos { position: absolute; bottom: 28px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px }
+.hero-pontos button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: rgb(255 255 255 / .45) }
+.hero-pontos button[aria-selected="true"] { background: #fff; width: 26px; border-radius: 5px }
+.botao-social { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; background: var(--surface); border: 1px solid var(--line) }
+.botao-social.apple { background: #000; color: #fff; border-color: #000 }
+.ou { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px }
+.ou::before, .ou::after { content: ''; flex: 1; height: 1px; background: var(--line) }
+@media (max-width: 860px) {
+  .entrada { grid-template-columns: 1fr }
+  .hero-entrada { min-height: 0; height: 250px }
+  .hero-slide { flex-direction: row; padding: 20px 16px 40px; gap: 12px }
+  .hero-desenho { width: 48%; flex: none }
+  .hero-texto { text-align: left; margin: 0 }
+  .hero-texto strong { font-size: 30px }
+  .hero-texto span { font-size: 14px }
+  .hero-pontos { bottom: 14px }
+}
+@media (prefers-reduced-motion: reduce) { .hero-slide, .hero-entrada { transition: none } }
+/* Início do aluno (3 colunas no computador, 1 no celular) */
+.solo.largo { max-width: 1180px }
+.inicio { display: grid; grid-template-columns: 270px minmax(0, 1fr) 280px; gap: 16px; align-items: start; margin-top: 4px }
+.perfil { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px }
+.perfil-nome { font-family: var(--display); font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1.1; margin-top: 6px }
+.perfil-numeros { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; margin: 12px 0 8px; padding: 10px 0; border-block: 1px solid var(--line) }
+.perfil-numeros span { display: block; font-size: 12px; color: var(--muted) }
+.perfil-numeros strong { font-family: var(--display); font-size: 28px; line-height: 1.1 }
+.semana-num { margin: 4px 0 8px } .semana-num strong { font-family: var(--display); font-size: 34px; color: var(--accent) }
+.semana-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 14px }
+.semana-dias span { aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--line); color: var(--muted) }
+.semana-dias span.on { background: var(--accent); color: var(--accent-ink) }
+.semana-dias span.hoje { box-shadow: 0 0 0 2px var(--ink) }
+.mini-barras { display: flex; align-items: flex-end; gap: 5px; height: 48px; margin-bottom: 6px }
+.mini-barras i { flex: 1; background: var(--accent-soft); border-radius: 3px 3px 0 0 }
+.mini-barras i.atual { background: var(--accent) }
+.comecar { padding: 0; overflow: hidden }
+.comecar-banner { display: flex; align-items: flex-end; gap: 18px; padding: 18px 22px 0; background: linear-gradient(120deg, #fc4c02, #ff7a2b); color: #fff; min-height: 130px }
+.comecar-banner > div { display: flex; flex-direction: column; gap: 4px; padding-bottom: 20px }
+.comecar-banner strong { font-family: var(--display); font-size: 32px; text-transform: uppercase; line-height: 1 }
+.passos { display: flex; flex-direction: column; padding: 6px 18px 10px }
+.passo { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line) }
+.passo:last-child { border-bottom: 0 }
+.passo-icone { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; background: var(--accent-soft); flex: none }
+.cartao-link { text-align: left; width: 100%; font: inherit; color: inherit; cursor: pointer }
+@media (max-width: 1000px) { .inicio { grid-template-columns: 250px minmax(0, 1fr) } .inicio-dir { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) } }
+@media (max-width: 720px) { .inicio, .inicio-dir { grid-template-columns: 1fr } .inicio-meio { order: -1 } }
