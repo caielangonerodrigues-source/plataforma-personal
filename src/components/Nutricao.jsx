@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import ListaAlimentos from './ListaAlimentos.jsx'
 import { ALIMENTOS, ATIVIDADE, MODELOS_DIETA, REFEICOES_PADRAO, aplicarModeloDieta, macrosDoItem, somarItens, sugerirMetas, totalDaDieta } from '../lib/nutricao.js'
 import { f1, fmtData, hojeISO, num, porData } from '../lib/formato.js'
 import DiarioDieta, { DiarioDoAluno } from './DiarioDieta.jsx'
@@ -89,6 +90,7 @@ export default function Nutricao({ aluno }) {
   const [msg, setMsg] = useState({})
   const [salvando, setSalvando] = useState(false)
   const [modelos, setModelos] = useState(false)
+  const [escolhendo, setEscolhendo] = useState(null) // { i: refeição, j: item a trocar } na lista de alimentos
 
   useEffect(() => { if (dieta !== undefined) setD(dieta ? { ...VAZIA, ...dieta } : VAZIA) }, [dieta])
   if (!d) return <p className="carregando">Carregando…</p>
@@ -111,6 +113,14 @@ export default function Nutricao({ aluno }) {
       return novo
     })
     mudaRefeicao(i, { ...r, itens })
+  }
+  // Alimento escolhido na lista grande: entra com a medida caseira e os gramas, e as calorias saem sozinhas.
+  function escolherAlimento(a) {
+    const { i, j } = escolhendo
+    const r = d.refeicoes[i]
+    const item = a.kcal != null ? { alimento: a.nome, quantidade: a.medida, gramas: a.gramas, ...macrosDoItem(a.nome, a.gramas) } : { alimento: a.nome, quantidade: '', gramas: '', kcal: '' }
+    mudaRefeicao(i, { ...r, itens: j == null ? [...r.itens, item] : r.itens.map((it, n) => (n === j ? item : it)) })
+    setEscolhendo(null)
   }
   async function salvar() {
     setSalvando(true)
@@ -185,6 +195,7 @@ export default function Nutricao({ aluno }) {
         </p>
       </div>
 
+      {escolhendo && <ListaAlimentos titulo={`Adicionar em ${d.refeicoes[escolhendo.i]?.nome || 'refeição'}`} onEscolher={escolherAlimento} onFechar={() => setEscolhendo(null)} />}
       <datalist id="alimentos">{ALIMENTOS.map((a) => <option key={a.nome} value={a.nome} />)}</datalist>
       {d.refeicoes.map((r, i) => (
         <div className="panel refeicao" key={i}>
@@ -200,7 +211,7 @@ export default function Nutricao({ aluno }) {
                 <tbody>
                   {r.itens.map((it, j) => (
                     <tr key={j}>
-                      <td style={{ minWidth: 150 }}><input list="alimentos" aria-label="Alimento" value={it.alimento || ''} onChange={(e) => mudaItem(i, j, 'alimento', e.target.value)} /></td>
+                      <td style={{ minWidth: 170 }}><div className="campo-alimento"><input list="alimentos" aria-label="Alimento" value={it.alimento || ''} onChange={(e) => mudaItem(i, j, 'alimento', e.target.value)} /><button type="button" className="ghost small" aria-label="Trocar pela lista" title="Escolher na lista" onClick={() => setEscolhendo({ i, j })}>☰</button></div></td>
                       <td style={{ minWidth: 110 }}><input aria-label="Medida caseira" placeholder="Ex.: 1 concha" value={it.quantidade || ''} onChange={(e) => mudaItem(i, j, 'quantidade', e.target.value)} /></td>
                       <td><input aria-label="Gramas" placeholder="g" inputMode="decimal" value={it.gramas ?? ''} onChange={(e) => mudaItem(i, j, 'gramas', e.target.value)} /></td>
                       <td><input aria-label="Calorias" placeholder="kcal" inputMode="numeric" value={it.kcal ?? ''} onChange={(e) => mudaItem(i, j, 'kcal', e.target.value)} /></td>
@@ -212,7 +223,7 @@ export default function Nutricao({ aluno }) {
               </table>
             </div>
           )}
-          <button className="small" style={{ marginTop: 8 }} onClick={() => mudaRefeicao(i, { ...r, itens: [...r.itens, { alimento: '', quantidade: '', gramas: '' }] })}>Adicionar alimento</button>
+          <button className="small" style={{ marginTop: 8 }} onClick={() => setEscolhendo({ i })}>Adicionar alimento</button>
         </div>
       ))}
       <div><button className="small" onClick={() => setD({ ...d, refeicoes: [...d.refeicoes, { nome: 'Nova refeição', horario: '', itens: [] }] })}>Adicionar refeição</button></div>
@@ -221,7 +232,7 @@ export default function Nutricao({ aluno }) {
         <label>Orientações para o aluno
           <textarea id="dieta-orientacoes" rows={4} maxLength={4000} placeholder="Ex.: beber água ao longo do dia, trocas permitidas, o que comer antes do treino…" value={d.orientacoes || ''} onChange={(e) => muda('orientacoes', e.target.value)} />
         </label>
-        <p className="meta" style={{ marginBottom: 0 }}>{AVISO} Escolha um alimento da lista e informe os gramas para calcular as calorias sozinho (valores aproximados da tabela TACO).</p>
+        <p className="meta" style={{ marginBottom: 0 }}>{AVISO} Toque em Adicionar alimento para escolher na lista (mais de 250 alimentos por grupo, já com a medida caseira). Mudou os gramas, as calorias se ajustam sozinhas (valores aproximados da tabela TACO).</p>
       </div>
       {msg.erro && <p className="erro">{msg.erro}</p>}
       {msg.ok && <p className="ok">{msg.ok}</p>}

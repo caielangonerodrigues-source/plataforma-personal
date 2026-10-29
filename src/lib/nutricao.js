@@ -1,29 +1,10 @@
 // Nutrição: tabela de alimentos, gasto calórico e metas de macronutrientes.
 import { semAcento } from './exercicios.js'
+import { TABELA_ALIMENTOS } from './alimentos.js'
 
-// Valores aproximados por 100 g (base: Tabela TACO/Unicamp e USDA), alimento pronto para comer.
-// [nome, kcal, proteína, carboidrato, gordura]
-const TABELA = [
-  ['Arroz branco cozido', 128, 2.5, 28.1, 0.2], ['Arroz integral cozido', 124, 2.6, 25.8, 1.0], ['Feijão carioca cozido', 76, 4.8, 13.6, 0.5],
-  ['Feijão preto cozido', 77, 4.5, 14.0, 0.5], ['Lentilha cozida', 93, 6.3, 16.3, 0.5], ['Grão-de-bico cozido', 164, 8.9, 27.4, 2.6],
-  ['Macarrão cozido', 158, 5.8, 30.9, 0.9], ['Batata inglesa cozida', 52, 1.2, 11.9, 0.1], ['Batata doce cozida', 77, 0.6, 18.4, 0.1],
-  ['Mandioca cozida', 125, 0.6, 30.1, 0.3], ['Cuscuz de milho cozido', 113, 2.2, 25.3, 0.7], ['Tapioca (goma hidratada)', 240, 0.1, 59.0, 0.1],
-  ['Pão francês', 300, 8.0, 58.6, 3.1], ['Pão de forma integral', 253, 9.4, 49.9, 3.7], ['Pão de queijo assado', 363, 5.1, 34.2, 24.6],
-  ['Aveia em flocos', 394, 13.9, 66.6, 8.5], ['Granola', 420, 10.0, 65.0, 13.0], ['Peito de frango grelhado', 159, 32.0, 0, 2.5],
-  ['Coxa de frango assada', 215, 26.0, 0, 12.0], ['Patinho grelhado', 219, 35.9, 0, 7.3], ['Carne moída refogada', 212, 26.7, 0, 10.9],
-  ['Alcatra grelhada', 241, 31.9, 0, 11.6], ['Tilápia grelhada', 128, 26.2, 0, 2.7], ['Salmão grelhado', 206, 22.1, 0, 12.4],
-  ['Atum em lata (em água)', 116, 25.5, 0, 0.8], ['Ovo cozido', 146, 13.3, 0.6, 9.5], ['Clara de ovo cozida', 52, 10.9, 0.7, 0.2],
-  ['Tofu', 76, 8.1, 1.9, 4.8], ['Leite integral', 61, 2.9, 4.3, 3.2], ['Leite desnatado', 35, 3.4, 5.0, 0.1],
-  ['Iogurte natural integral', 51, 4.1, 1.9, 3.0], ['Iogurte grego natural desnatado', 59, 10.2, 3.6, 0.4], ['Queijo minas frescal', 264, 17.4, 3.2, 20.2],
-  ['Queijo cottage', 98, 11.1, 3.4, 4.3], ['Whey protein concentrado', 400, 78.0, 8.0, 6.0], ['Banana prata', 98, 1.3, 26.0, 0.1],
-  ['Maçã', 56, 0.3, 15.2, 0], ['Mamão papaia', 40, 0.5, 10.4, 0.1], ['Morango', 30, 0.9, 6.8, 0.3], ['Laranja', 37, 1.0, 8.9, 0.1],
-  ['Manga', 72, 0.4, 19.4, 0.2], ['Melancia', 33, 0.9, 8.1, 0], ['Uva', 53, 0.7, 13.6, 0.2], ['Abacate', 96, 1.2, 6.0, 8.4],
-  ['Açaí (polpa sem açúcar)', 58, 0.8, 6.2, 3.9], ['Brócolis cozido', 25, 2.1, 4.4, 0.5], ['Alface', 11, 1.3, 1.7, 0.2],
-  ['Tomate', 15, 1.1, 3.1, 0.2], ['Cenoura crua', 34, 1.3, 7.7, 0.2], ['Abobrinha cozida', 15, 1.1, 3.0, 0.2], ['Chuchu cozido', 19, 0.4, 4.8, 0],
-  ['Azeite de oliva', 884, 0, 0, 100], ['Pasta de amendoim', 588, 25.0, 20.0, 50.0], ['Amendoim torrado', 606, 22.5, 18.7, 54.0],
-  ['Castanha-do-pará', 643, 14.5, 15.1, 63.5], ['Mel', 309, 0, 84.0, 0], ['Chocolate 70% cacau', 580, 8.0, 43.0, 42.0],
-]
-export const ALIMENTOS = TABELA.map(([nome, kcal, proteina, carboidrato, gordura]) => ({ nome, kcal, proteina, carboidrato, gordura }))
+// Lista completa em src/lib/alimentos.js (por grupo, com medida caseira).
+export { CATEGORIAS_ALIMENTOS } from './alimentos.js'
+export const ALIMENTOS = TABELA_ALIMENTOS
 
 export const acharAlimento = (nome) => ALIMENTOS.find((a) => semAcento(a.nome) === semAcento(nome))
 
