@@ -8,7 +8,7 @@ import { alunosSumidos, aniversariantes, mensalidadesAtrasadas } from '../../lib
 import { relatosAtrasados } from '../../lib/consultoria.js'
 import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { atendimentos } from '../../lib/agenda.js'
-import { fichasParaTrocar } from '../../lib/ficha.js'
+import { fichasParaTrocar, DIAS_REAVALIACAO } from '../../lib/ficha.js'
 
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
@@ -76,7 +76,7 @@ export default function Painel() {
 
   const ultima = (a) => a.avaliacoes.slice().sort(porData).at(-1)
   const ativos = alunos.filter((a) => a.status === 'ativo').length
-  const reavaliar = alunos.filter((a) => { const u = ultima(a); return a.status !== 'pausado' && (!u || diasDesde(u.data) > 60) })
+  const reavaliar = alunos.filter((a) => { const u = ultima(a); return a.status !== 'pausado' && (!u || diasDesde(u.data) > DIAS_REAVALIACAO) })
   const semTreino = alunos.filter((a) => a.status !== 'pausado' && a.treinos.length === 0)
   const evolucao = alunos.filter((a) => a.avaliacoes.length > 1)
   const sumidos = alunosSumidos(alunos, atividades, hoje)

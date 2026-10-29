@@ -265,7 +265,7 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'inicio' && (
         <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos}
-          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} academia={academia} online={online}
+          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} situacaoFicha={situacao} proximaFase={proximaFase} academia={academia} online={online}
           irPara={irPara} onCheckin={() => setCheckinAberto(true)} />
       )}
 
@@ -282,7 +282,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {aba === 'dieta' && <DietaAluno alunoId={aluno.id} />}
+      {aba === 'dieta' && <DietaAluno aluno={aluno} hoje={hoje} />}
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">

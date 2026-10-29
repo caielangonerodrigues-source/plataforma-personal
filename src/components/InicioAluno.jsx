@@ -9,13 +9,17 @@ import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
 import { situacaoRelato } from '../lib/consultoria.js'
+import { minhasDatas } from '../lib/ficha.js'
+import { useDieta } from './Nutricao.jsx'
+import { ContadorMacros, useDiario } from './DiarioDieta.jsx'
+import { consumoDoDia, metasDaDieta } from '../lib/diario.js'
 
 const LETRAS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const segunda = (iso) => somarDias(iso, -((new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7))
 
 // Aba "Início" da área do aluno: perfil e semana à esquerda, primeiros passos e treino do dia no meio,
 // comunidade, desafio e medalhas à direita (no celular vira uma coluna só).
-export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, academia, online, irPara, onCheckin }) {
+export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, situacaoFicha, proximaFase, academia, online, irPara, onCheckin }) {
   const [notificacoes, setNotificacoes] = useState(true)
   const [relato, setRelato] = useState(null) // aluno online: situação do relato da semana
   useEffect(() => {
@@ -27,6 +31,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   useEffect(() => { inscricaoAtual().then((s) => setNotificacoes(!!s)).catch(() => setNotificacoes(false)) }, [])
 
   const dados = comunidade.dados
+  const datas = minhasDatas({ ultimaAvaliacao: avaliacoes.at(-1)?.data, situacao: situacaoFicha, proximaFase, hoje })
   const todosDias = [...new Set([...dias, ...registros.map((r) => r.data)])]
   const seq = sequencia(todosDias, hoje)
   const lista = medalhas({ datas: dias, registros, avaliacoes: avaliacoes.length }, dados?.desafios || [])
@@ -144,6 +149,24 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
       </div>
 
       <aside className="stack inicio-dir">
+        {(datas.avaliacao || datas.troca) && (
+          <div className="panel stack" style={{ gap: 10 }}>
+            <h2 style={{ margin: 0 }}>📅 Suas datas</h2>
+            <div className="datas-aluno">
+              {datas.avaliacao && <div><span className="meta">Última avaliação</span><strong>{fmtData(datas.avaliacao.data)}</strong></div>}
+              {datas.reavaliacao && (
+                <div><span className="meta">Reavaliação</span>
+                  <strong className={datas.reavaliacao.em < 0 ? 'atrasada' : ''}>{quando(datas.reavaliacao)}</strong></div>
+              )}
+              {datas.troca && (
+                <div><span className="meta">{datas.troca.fase ? `Nova fase (${datas.troca.fase})` : 'Troca de treino'}</span>
+                  <strong className={datas.troca.em < 0 ? 'atrasada' : ''}>{datas.troca.em <= 0 && !datas.troca.fase ? 'Hora de trocar' : quando(datas.troca)}</strong></div>
+              )}
+            </div>
+            {datas.reavaliacao?.em < 0 && <p className="meta" style={{ margin: 0 }}>Sua reavaliação passou do prazo. Combine com seu personal.</p>}
+          </div>
+        )}
+        <DietaDeHoje aluno={aluno} hoje={hoje} irPara={irPara} />
         {aula && (
           <button className="panel stack cartao-link" style={{ gap: 4 }} onClick={() => irPara('aulas')}>
             <div className="meta">🗓️ Próxima aula</div>
@@ -197,5 +220,22 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         )}
       </aside>
     </div>
+  )
+}
+
+const quando = ({ data, em }) => (em === 0 ? 'Hoje' : em === 1 ? 'Amanhã' : em < 0 ? `Atrasada ${-em} ${-em === 1 ? 'dia' : 'dias'}` : `Em ${em} dias · ${fmtData(data).slice(0, 5)}`)
+
+// Cartão da dieta de hoje: contador de macros resumido; toque para abrir o diário.
+function DietaDeHoje({ aluno, hoje, irPara }) {
+  const { dieta } = useDieta(aluno.id)
+  const diario = useDiario(aluno.id, hoje)
+  if (!dieta || !diario.itens || diario.indisponivel) return null
+  const total = (dieta.refeicoes || []).filter((r) => r.itens?.length).length
+  const feitas = diario.itens.filter((d) => d.refeicao != null).length
+  return (
+    <button className="panel stack cartao-link" style={{ gap: 10 }} onClick={() => irPara('dieta')}>
+      <div className="row between"><div className="meta">🍽️ Dieta de hoje</div><span className="meta">{feitas} de {total} refeições ›</span></div>
+      <ContadorMacros metas={metasDaDieta(dieta)} consumo={consumoDoDia(dieta, diario.itens)} compacto />
+    </button>
   )
 }

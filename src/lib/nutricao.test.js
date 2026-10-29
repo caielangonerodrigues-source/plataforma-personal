@@ -44,3 +44,14 @@ test('biblioteca de exercícios', () => {
   assert.equal(junta.filter((e) => e.nome === 'Leg press 45°').length, 1)
   assert.equal(junta[0].meu, true)
 })
+
+test('modelos de dieta usam só alimentos da tabela e se ajustam à meta', async () => {
+  const { MODELOS_DIETA, aplicarModeloDieta, totalDaDieta: total, acharAlimento: achar } = await import('./nutricao.js')
+  for (const m of MODELOS_DIETA) {
+    for (const r of m.refeicoes) for (const i of r.itens) assert.ok(achar(i.alimento), `${m.nome}: ${i.alimento}`)
+    const base = total(aplicarModeloDieta(m, null))
+    assert.ok(base.kcal > 1400 && base.kcal < 2800, `${m.nome}: ${base.kcal}`)
+    const ajustada = total(aplicarModeloDieta(m, 1600))
+    assert.ok(Math.abs(ajustada.kcal - 1600) < 120, `${m.nome} 1600: ${ajustada.kcal}`)
+  }
+})

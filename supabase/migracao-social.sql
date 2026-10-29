@@ -1,4 +1,4 @@
--- Rede social e motivação: reações com emoji, card do treino, conquistas, motivação, vídeos de execução e mensagens com o personal.
+-- Rede social e motivação: reações com emoji, card do treino, conquistas, motivação, vídeos de execução, mensagens com o personal e diário da dieta.
 -- Pode rodar mais de uma vez.
 
 -- ---------------------------------------------------------------------------
@@ -232,3 +232,49 @@ begin
     alter publication supabase_realtime add table public.mensagens_privadas;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Diário da dieta: o aluno marca as refeições feitas (com foto do prato, se quiser) e o que comeu fora do plano.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.diario_dieta (
+  id uuid primary key default gen_random_uuid(),
+  aluno_id uuid not null references public.alunos (id) on delete cascade,
+  data date not null default (now() at time zone 'America/Sao_Paulo')::date,
+  refeicao int check (refeicao between 0 and 30),            -- posição da refeição no plano (quando é refeição do plano)
+  alimento text check (char_length(alimento) between 1 and 80), -- ou um extra fora do plano
+  gramas numeric(6, 1) check (gramas between 0 and 5000),
+  macros jsonb check (macros is null or (jsonb_typeof(macros) = 'object' and pg_column_size(macros) < 400)),
+  foto text check (foto ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.jpg$'),
+  created_at timestamptz not null default now(),
+  check (refeicao is not null or alimento is not null)
+);
+create unique index if not exists diario_dieta_refeicao_idx on public.diario_dieta (aluno_id, data, refeicao) where refeicao is not null;
+create index if not exists diario_dieta_aluno_idx on public.diario_dieta (aluno_id, data desc);
+
+alter table public.diario_dieta enable row level security;
+drop policy if exists "aluno cuida do seu diário" on public.diario_dieta;
+create policy "aluno cuida do seu diário" on public.diario_dieta
+  for all using (public.eh_o_aluno(aluno_id)) with check (public.eh_o_aluno(aluno_id));
+drop policy if exists "personal vê o diário" on public.diario_dieta;
+create policy "personal vê o diário" on public.diario_dieta
+  for select using (public.dono_do_aluno(aluno_id));
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('pratos', 'pratos', false, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+drop policy if exists "enviar foto do prato" on storage.objects;
+create policy "enviar foto do prato" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'pratos' and public.eh_o_aluno(((storage.foldername(name))[1])::uuid));
+drop policy if exists "ver foto do prato" on storage.objects;
+create policy "ver foto do prato" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'pratos' and (
+    public.eh_o_aluno(((storage.foldername(name))[1])::uuid) or public.dono_do_aluno(((storage.foldername(name))[1])::uuid)
+  ));
+drop policy if exists "apagar foto do prato" on storage.objects;
+create policy "apagar foto do prato" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'pratos' and public.eh_o_aluno(((storage.foldername(name))[1])::uuid));

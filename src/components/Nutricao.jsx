@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase.js'
-import { ALIMENTOS, ATIVIDADE, REFEICOES_PADRAO, macrosDoItem, somarItens, sugerirMetas, totalDaDieta } from '../lib/nutricao.js'
-import { f1, fmtData, num, porData } from '../lib/formato.js'
+import { ALIMENTOS, ATIVIDADE, MODELOS_DIETA, REFEICOES_PADRAO, aplicarModeloDieta, macrosDoItem, somarItens, sugerirMetas, totalDaDieta } from '../lib/nutricao.js'
+import { f1, fmtData, hojeISO, num, porData } from '../lib/formato.js'
+import DiarioDieta, { DiarioDoAluno } from './DiarioDieta.jsx'
 
 const VAZIA = { calorias: null, proteina: null, carboidrato: null, gordura: null, agua: null, refeicoes: REFEICOES_PADRAO, orientacoes: '' }
 const AVISO = 'Orientação nutricional geral para acompanhar o treino. Para dieta clínica (doenças, gestação, alergias), procure um nutricionista.'
@@ -66,11 +67,18 @@ export function VerDieta({ dieta }) {
 }
 
 // Aba "Dieta" da área do aluno.
-export function DietaAluno({ alunoId }) {
-  const { dieta } = useDieta(alunoId)
+export function DietaAluno({ aluno, hoje }) {
+  const { dieta } = useDieta(aluno.id)
   if (dieta === undefined) return <p className="carregando">Carregando…</p>
   if (!dieta) return <div className="panel empty">Seu personal ainda não montou seu plano alimentar.</div>
-  return <><p className="meta" style={{ marginTop: 0 }}>Atualizado em {fmtData(dieta.updated_at)}</p><VerDieta dieta={dieta} /></>
+  return (
+    <div className="stack">
+      <p className="meta" style={{ margin: 0 }}>Plano atualizado em {fmtData(dieta.updated_at)} · marque cada refeição ao comer</p>
+      <DiarioDieta aluno={aluno} dieta={dieta} hoje={hoje} />
+      {dieta.orientacoes && <div className="panel"><h3 style={{ marginTop: 0 }}>Orientações</h3><p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{dieta.orientacoes}</p></div>}
+      <p className="meta" style={{ margin: 0 }}>{AVISO}</p>
+    </div>
+  )
 }
 
 // Aba "Nutrição" do aluno, na área do personal: calcula metas e monta as refeições.
@@ -80,6 +88,7 @@ export default function Nutricao({ aluno }) {
   const [atividade, setAtividade] = useState('moderado')
   const [msg, setMsg] = useState({})
   const [salvando, setSalvando] = useState(false)
+  const [modelos, setModelos] = useState(false)
 
   useEffect(() => { if (dieta !== undefined) setD(dieta ? { ...VAZIA, ...dieta } : VAZIA) }, [dieta])
   if (!d) return <p className="carregando">Carregando…</p>
@@ -115,8 +124,39 @@ export default function Nutricao({ aluno }) {
     <div className="stack">
       <div className="row between">
         <span className="meta">{dieta ? `Última alteração em ${fmtData(dieta.updated_at)}` : 'Este aluno ainda não tem dieta.'}</span>
-        <Link className="small botao-link" to={`/assistente?aluno=${aluno.id}&tipo=dieta`}>Gerar com IA</Link>
+        <div className="row" style={{ gap: 6 }}>
+          <Link className="small botao-link" to={`/assistente?aluno=${aluno.id}&tipo=dieta`}>Gerar com IA</Link>
+          <button className="primary small" onClick={() => setModelos(!modelos)}>{modelos ? 'Fechar modelos' : 'Usar modelo pronto'}</button>
+        </div>
       </div>
+
+      {modelos && (
+        <div className="panel stack" style={{ gap: 10 }}>
+          <div>
+            <h2 style={{ margin: 0 }}>Modelos prontos</h2>
+            <p className="meta" style={{ margin: '2px 0 0' }}>As quantidades se ajustam à meta de {d.calorias || sug?.calorias || '—'} kcal{!d.calorias && sug ? ' (sugerida pela avaliação)' : ''}. Depois é só trocar o que quiser e salvar.</p>
+          </div>
+          <div className="modelos-dieta">
+            {MODELOS_DIETA.map((m) => {
+              const meta = Number(d.calorias) || sug?.calorias || null
+              const t = totalDaDieta(aplicarModeloDieta(m, meta))
+              return (
+                <button key={m.chave} className="modelo-dieta" onClick={() => {
+                  if (totalDaDieta(d.refeicoes).kcal > 0 && !window.confirm('Trocar as refeições atuais por este modelo?')) return
+                  setD({ ...d, ...(!d.calorias && sug ? { calorias: sug.calorias, proteina: sug.proteina, carboidrato: sug.carboidrato, gordura: sug.gordura, agua: sug.agua } : {}), refeicoes: aplicarModeloDieta(m, meta) })
+                  setModelos(false); setMsg({ ok: `Modelo "${m.nome}" aplicado. Confira as refeições e clique em Salvar dieta.` })
+                }}>
+                  <span className="name">{m.nome}</span>
+                  <span className="meta">{m.descricao}</span>
+                  <span className="meta mono">{t.kcal} kcal · P {Math.round(t.proteina)} · C {Math.round(t.carboidrato)} · G {Math.round(t.gordura)}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      <DiarioDoAluno aluno={aluno} dieta={dieta} hoje={hojeISO()} />
 
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Metas do dia</h2>
