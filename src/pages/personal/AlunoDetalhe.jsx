@@ -10,9 +10,10 @@ import Progressao from '../../components/Progressao.jsx'
 import Anamnese, { temAlertaParq } from '../../components/Anamnese.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
+import Nutricao from '../../components/Nutricao.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
-const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
+const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
 
 export default function AlunoDetalhe() {
   const { id } = useParams()
@@ -83,6 +84,7 @@ export default function AlunoDetalhe() {
       {aba === 'consultoria' && <Consultoria aluno={aluno} personal onAvaliacao={carregar} />}
       {aba === 'avaliacoes' && <Avaliacoes aluno={aluno} recarregar={carregar} />}
       {aba === 'progressao' && <div className="panel"><Progressao treinos={aluno.treinos} registros={registros} /></div>}
+      {aba === 'nutricao' && <Nutricao aluno={aluno} />}
       {aba === 'anamnese' && <Anamnese alunoId={aluno.id} onSalva={carregar} intro={<p className="meta" style={{ margin: 0 }}>O aluno também pode preencher pela área dele.</p>} />}
       {aba === 'fotos' && <FotosEvolucao alunoId={aluno.id} podeApagar />}
 

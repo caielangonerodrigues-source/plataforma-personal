@@ -13,6 +13,8 @@ import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
 import AulasSpinning from '../spinning/AulasSpinning.jsx'
+import { DietaAluno } from '../../components/Nutricao.jsx'
+import { buscaVideo } from '../../lib/exercicios.js'
 import { useComunidade } from '../../hooks/useComunidade.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
@@ -83,7 +85,7 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
+  const abas = [['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
 
   return (
     <div className="solo">
@@ -114,6 +116,7 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
 
+      {aba === 'dieta' && <DietaAluno alunoId={aluno.id} />}
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">
@@ -122,7 +125,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['comunidade', 'conta', 'consultoria'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['comunidade', 'conta', 'consultoria', 'dieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">
@@ -149,7 +152,7 @@ export default function AreaAluno({ aluno }) {
                             <button className="link" style={{ fontSize: 13 }} onClick={() => setAberto(aberto === e.id ? null : e.id)}>
                               {hojeReg?.series?.length ? `Cargas: ${hojeReg.series.map((s) => f1(s.carga)).join(' / ')} kg` : 'Anotar cargas'}
                             </button>
-                            {e.video_url && <a href={e.video_url} target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 600 }}>Ver execução</a>}
+                            <a href={e.video_url || buscaVideo(e.nome)} target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 600 }}>{e.video_url ? 'Ver execução' : 'Como fazer'}</a>
                           </div>
                           {anterior && <div className="meta" style={{ fontSize: 12 }}>Última vez: {anterior.series.map((s) => `${f1(s.carga)}×${s.reps}`).join(', ')}</div>}
                         </div>

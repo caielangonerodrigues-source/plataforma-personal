@@ -48,6 +48,12 @@ export default function Painel() {
           <p>Vá em <Link to="/alunos">Alunos</Link> e clique em "Novo aluno". Coloque o e-mail dele para ele conseguir entrar e ver o treino.</p>
         </div>
       )}
+      {alunos.length > 0 && (
+        <Link to="/assistente" className="panel ia-caixa row between" style={{ marginBottom: 16, textDecoration: 'none', color: 'inherit' }}>
+          <span><strong>Assistente IA</strong><br /><span className="meta">Monte treinos e dietas a partir da avaliação física e do objetivo do aluno</span></span>
+          <span className="pill pendente">Criar com IA</span>
+        </Link>
+      )}
       {novos > 0 && (
         <Link to="/vendas" className="panel row between" style={{ marginBottom: 16, borderColor: 'var(--accent)', textDecoration: 'none', color: 'inherit' }}>
           <span><strong>{novos === 1 ? '1 pessoa quer' : `${novos} pessoas querem`} fazer a consultoria online</strong><br /><span className="meta">Pediram contato pela sua página de vendas</span></span>
