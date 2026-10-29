@@ -16,6 +16,7 @@ import Nutricao from '../../components/Nutricao.jsx'
 import Relatorio from '../../components/Relatorio.jsx'
 import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
+import ComoFunciona, { AJUDA_ALUNO_DETALHE } from '../../components/ComoFunciona.jsx'
 
 const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['videos', 'Vídeos'], ['mensagens', 'Mensagens'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['relatorio', 'Relatório'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
 
@@ -90,6 +91,7 @@ export default function AlunoDetalhe() {
       <div className="tabs" role="tablist">
         {abas.map(([k, l]) => <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setParams(k === 'treinos' ? {} : { aba: k })}>{l}</button>)}
       </div>
+      {AJUDA_ALUNO_DETALHE[aba] && <ComoFunciona key={aba} chave={`personal-aluno-${aba}`} itens={AJUDA_ALUNO_DETALHE[aba]} />}
       {aba === 'treinos' && <Treinos aluno={aluno} recarregar={carregar} />}
       {aba === 'consultoria' && <Consultoria aluno={aluno} personal onAvaliacao={carregar} />}
       {aba === 'videos' && <VideosExecucao aluno={aluno} personal />}
