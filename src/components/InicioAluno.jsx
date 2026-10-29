@@ -79,7 +79,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         {faltam.length > 0 && (
           <div className="panel comecar">
             <div className="comecar-banner">
-              <Boneco cor="#fff" corte="#fc4c02" altura={120} />
+              <Boneco cor="#fff" altura={120} />
               <div>
                 <strong>Bem-vindo, {primeiroNome(aluno.nome)}!</strong>
                 <span>Alguns passos para aproveitar tudo da Corpo Atlético.</span>

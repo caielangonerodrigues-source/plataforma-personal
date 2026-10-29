@@ -10,11 +10,7 @@ function Musculacao() {
   return (
     <svg viewBox="0 0 400 300" aria-hidden="true">
       <circle cx="200" cy="160" r="120" fill="rgb(255 255 255 / .12)" />
-      <g transform="translate(330 262)">
-        <rect x="-50" y="-4" width="100" height="8" rx="4" fill={ESCURO} />
-        <rect x="-48" y="-20" width="14" height="40" rx="4" fill={ESCURO} /><rect x="34" y="-20" width="14" height="40" rx="4" fill={ESCURO} />
-      </g>
-      <g transform="translate(118 40)"><Boneco cor={B} corte={LARANJA} altura={240} /></g>
+      <g transform="translate(134 38)"><Boneco cor={B} altura={240} /></g>
     </svg>
   )
 }
