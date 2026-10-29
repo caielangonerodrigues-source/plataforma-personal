@@ -215,8 +215,8 @@ export default function AreaAluno({ aluno }) {
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   // No celular: barra flutuante (Início, Treino, Check-in no meio, Turma/Consultoria e Você); o resto fica em Você › Mais.
   const quarta = online ? 'consultoria' : aluno.comunidade ? 'comunidade' : 'novidades'
-  const principais = ['inicio', 'treino', quarta, 'voce']
-  const rotuloBarra = { comunidade: 'Turma' }
+  const principais = ['inicio', 'treino', 'dieta', quarta, 'voce']
+  const rotuloBarra = { comunidade: 'Turma', consultoria: 'Relato' }
   const textos = { aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
   const whatsapp = online ? null : academia.whatsapp
   const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) })
@@ -381,7 +381,7 @@ export default function AreaAluno({ aluno }) {
 
       <BarraApp
         itens={[
-          ...principais.slice(0, 2).map(itemBarra),
+          ...principais.slice(0, 3).map(itemBarra),
           { chave: 'checkin', rotulo: 'Check-in', icone: 'gravar', centro: true, onClick: () => setCheckinAberto(true) },
           itemBarra(quarta),
           { ...itemBarra('voce'), ativo: aba === 'voce' || !principais.includes(aba), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
