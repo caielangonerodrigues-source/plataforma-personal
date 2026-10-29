@@ -1538,7 +1538,7 @@ create policy "personal apaga fotos da entrada" on storage.objects
   using (bucket_id = 'entrada' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ===========================================================================
--- Reações com emoji nos posts da comunidade e nas mensagens do chat da turma.
+-- Rede social e motivação: reações com emoji (posts e chat) e lembretes de motivação para quem está sumido.
 -- Pode rodar mais de uma vez.
 
 -- ---------------------------------------------------------------------------
@@ -1592,3 +1592,10 @@ begin
     alter publication supabase_realtime add table public.reacoes_mensagem;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Motivação: notificação para quem está sem treinar há 3, 7, 14, 21 ou 30 dias.
+-- ---------------------------------------------------------------------------
+
+alter table public.alunos add column if not exists motivacao_avisada_em date;
+alter table public.personais add column if not exists motivacao_auto boolean not null default true;

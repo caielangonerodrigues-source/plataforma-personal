@@ -5,6 +5,7 @@ import { MESES, brl, diasDesde, f1, fmtData, hojeISO, porData, primeiroNome } fr
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 import { somarDias } from '../../lib/comunidade.js'
 import { alunosSumidos, aniversariantes, mensalidadesAtrasadas } from '../../lib/atencao.js'
+import { relatosAtrasados } from '../../lib/consultoria.js'
 import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { atendimentos } from '../../lib/agenda.js'
 import { fichasParaTrocar } from '../../lib/ficha.js'
@@ -23,6 +24,7 @@ export default function Painel() {
   const [comFase, setComFase] = useState(new Set())
   const [revisados, setRevisados] = useState({})
   const [erro, setErro] = useState('')
+  const [relatos, setRelatos] = useState([]) // data do relato de cada aluno online
   const hoje = hojeISO()
 
   useEffect(() => {
@@ -39,12 +41,15 @@ export default function Painel() {
         localStorage.setItem('aviso-fichas', hoje)
         supabase.functions.invoke('notificacoes', { body: { acao: 'fichas' } }).catch(() => {})
         supabase.functions.invoke('notificacoes', { body: { acao: 'mensalidades' } }).catch(() => {})
+        supabase.functions.invoke('notificacoes', { body: { acao: 'motivacao' } }).catch(() => {})
       }
     } catch { /* sem localStorage */ }
     supabase.from('feedbacks_treino').select('*').gte('data', somarDias(hoje, -7)).order('data', { ascending: false }).limit(30)
       .then(({ data }) => setFeedbacks(data || []))
     supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
       .then(({ data }) => setEnvios(data || []))
+    supabase.from('envios_consultoria').select('aluno_id, data').gte('data', somarDias(hoje, -120))
+      .then(({ data }) => setRelatos(data || []))
     supabase.from('interessados').select('id').eq('status', 'novo').then(({ data }) => setNovos(data?.length || 0))
     Promise.all([
       supabase.from('registros').select('aluno_id, data').gte('data', desde),
@@ -82,11 +87,14 @@ export default function Painel() {
     if (error) return alert('Rode o SQL novo (migracao-comunidade-fichas.sql) para usar este botão.')
     setRevisados({ ...revisados, [a.id]: hoje })
   }
+  const semRelato = relatosAtrasados(alunos, relatos, hoje)
   const atencao = [
     ...atrasados.map((a) => ({ a, chave: `m${a.id}`, texto: `Mensalidade de ${mes} atrasada (${brl(a.valor_mensal)}, venceu dia ${a.dia_vencimento})`, botao: 'Cobrar',
       zap: `Oi, ${primeiroNome(a.nome)}! A mensalidade de ${mes} (${brl(a.valor_mensal)}) venceu dia ${a.dia_vencimento}. O Pix está na área do aluno, em Conta. Qualquer dúvida me chama!` })),
     ...sumidos.map(({ aluno: a, ultimo, dias }) => ({ a, chave: `s${a.id}`, texto: ultimo ? `${dias} dias sem treinar · último em ${fmtData(ultimo)}` : `Não registrou nenhum treino em ${dias} dias`, botao: 'Chamar',
       zap: `Oi, ${primeiroNome(a.nome)}! Senti sua falta nos treinos 😅 Está tudo bem? Bora voltar essa semana? Me fala o melhor dia que eu te ajudo a encaixar.` })),
+    ...semRelato.map(({ aluno: a, ultimo, dias }) => ({ a, chave: `r${a.id}`, texto: `Consultoria online · ${ultimo ? `último relato há ${dias} dias (${fmtData(ultimo)})` : `nenhum relato desde o início (${dias} dias)`}`, botao: 'Pedir relato',
+      zap: `Oi, ${primeiroNome(a.nome)}! Bora mandar o relato da semana? 📲 Na área do aluno, em Consultoria: peso, medidas, fotos e como foi a semana. Com isso eu ajusto seu treino!` })),
   ]
 
   return (
@@ -107,7 +115,7 @@ export default function Painel() {
       )}
       {atencao.length > 0 && (
         <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--warn)' }}>
-          <div className="row between"><h2>Precisam de atenção</h2><span className="meta">sumidos há 7 dias ou mais e mensalidades atrasadas</span></div>
+          <div className="row between"><h2>Precisam de atenção</h2><span className="meta">sumidos, mensalidades atrasadas e relatos da consultoria pendentes</span></div>
           <div className="list">
             {atencao.map(({ a, chave, texto, botao, zap }) => {
               const link = linkWhatsApp(a.telefone, zap)

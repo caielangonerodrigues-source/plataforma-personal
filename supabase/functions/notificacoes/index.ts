@@ -6,8 +6,9 @@
 //   { acao: 'lembretes' }                              → lembrete dos atendimentos de amanhã (da agenda)
 //   { acao: 'fichas' }                                 → avisa aluno e personal quando a ficha passou do prazo de troca
 //   { acao: 'mensalidades' }                           → lembra o aluno da mensalidade (2 dias antes, no dia e 3 dias depois)
+//   { acao: 'motivacao' }                              → frase de motivação para quem está sem treinar há 3, 7, 14, 21 ou 30 dias
 // Os lembretes (e os avisos de ficha e mensalidade) podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
-// O painel do personal também chama 'fichas' e 'mensalidades' uma vez por dia.
+// O painel do personal também chama 'fichas', 'mensalidades' e 'motivacao' uma vez por dia.
 import webpush from 'npm:web-push@3.6.7'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
@@ -52,6 +53,7 @@ async function enviar(userIds: string[], msg: Mensagem) {
 }
 
 const diaSP = (deslocamento = 0) => new Date(Date.now() + deslocamento * 864e5).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
+const diasEntre = (de: string, ate: string) => Math.round((Date.parse(`${ate}T12:00:00Z`) - Date.parse(`${de}T12:00:00Z`)) / 864e5)
 const diaDaSemana = (iso: string) => new Date(`${iso}T12:00:00Z`).getUTCDay()
 
 // Lembrete de cada atendimento de amanhã (horário fixo ou remarcado; desmarcado não recebe).
@@ -148,6 +150,71 @@ async function mensalidades(personalId?: string) {
   return { avisados }
 }
 
+// Mesmas regras e frases de src/lib/motivacao.js.
+function deveMotivar(dias: number, diasDesdeAviso: number | null) {
+  const marco = [3, 7, 14, 21, 30].filter((d) => d <= dias).at(-1)
+  if (!marco || dias > 45) return null
+  if (diasDesdeAviso != null && diasDesdeAviso <= dias - marco) return null
+  return marco === 3 ? 'leve' : marco === 7 ? 'semana' : 'volta'
+}
+const FRASES_MOTIVACAO: Record<string, string[][]> = {
+  leve: [
+    ['Bora treinar hoje? 💪', '{nome}, 3 dias sem treino já dá saudade. Hoje é um ótimo dia para voltar!'],
+    ['Seu corpo está te chamando 🔥', '{nome}, um treino hoje e a semana já muda de cara. Partiu {lugar}?'],
+    ['Não deixa esfriar!', '{nome}, o difícil é começar, e você já começou. Bora manter o ritmo hoje!'],
+    ['Só 1 hora por você ⏱️', '{nome}, separa uma horinha hoje para {lugar}. Você sempre sai melhor do que entrou.'],
+  ],
+  semana: [
+    ['Sentimos sua falta! 👀', '{nome}, já faz uma semana. Que tal voltar hoje? O primeiro treino de volta é o mais importante.'],
+    ['Uma semana sem você', '{nome}, a turma sentiu sua falta. Bora voltar para {lugar} hoje, mesmo que seja um treino leve?'],
+    ['Recomeçar também é progresso 💪', '{nome}, não precisa ser perfeito, precisa ser hoje. Te espero!'],
+  ],
+  volta: [
+    ['Bora recomeçar? 🧡', '{nome}, nunca é tarde para voltar. Seu treino está te esperando no app, é só abrir e começar.'],
+    ['Seu lugar continua aqui', '{nome}, fica tranquilo: a gente ajusta o treino para você voltar no seu ritmo. Bora?'],
+    ['Um passo de cada vez 🚶', '{nome}, um treino curto hoje já é uma vitória. Me chama se quiser ajuda para recomeçar!'],
+  ],
+}
+function mensagemMotivacao(nivel: string, a: { id: string; nome: string; online: boolean }, hoje: string) {
+  const frases = FRASES_MOTIVACAO[nivel]
+  let h = 0
+  for (const c of `${a.id}${hoje}`) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  const [titulo, corpo] = frases[h % frases.length]
+  const primeiro = String(a.nome || '').trim().split(/\s+/)[0] || 'Ei'
+  return { titulo, corpo: corpo.replace('{nome}', primeiro).replace('{lugar}', a.online ? 'o treino' : 'a academia'), url: '/' }
+}
+
+// Aluno sumido (sem marcar treino nem check-in): frase de motivação ao chegar em 3, 7, 14, 21 e 30 dias,
+// uma por marco (alunos.motivacao_avisada_em). O personal desliga em Configurações (personais.motivacao_auto).
+async function motivacao(personalId?: string) {
+  const hoje = diaSP()
+  let q = admin.from('alunos').select('id, nome, user_id, modalidade, inicio, created_at, motivacao_avisada_em, treinos(id, arquivado), personais(motivacao_auto)')
+    .neq('status', 'pausado').not('user_id', 'is', null)
+  if (personalId) q = q.eq('personal_id', personalId)
+  const { data: alunos, error } = await q
+  if (error) return { erro: error.message }
+  const desde = diaSP(-40)
+  const [r, c] = await Promise.all([
+    admin.from('registros').select('aluno_id, data').gte('data', desde),
+    admin.from('checkins').select('aluno_id, data').gte('data', desde),
+  ])
+  const ultimo: Record<string, string> = {}
+  for (const x of [...(r.data || []), ...(c.data || [])]) if (!ultimo[x.aluno_id] || x.data > ultimo[x.aluno_id]) ultimo[x.aluno_id] = x.data
+  let avisados = 0
+  for (const a of alunos || []) {
+    // deno-lint-ignore no-explicit-any
+    if ((a.personais as any)?.motivacao_auto === false) continue
+    if (!(a.treinos || []).some((t) => !t.arquivado)) continue
+    const base = ultimo[a.id] || a.inicio || String(a.created_at).slice(0, 10)
+    const nivel = deveMotivar(diasEntre(base, hoje), a.motivacao_avisada_em ? diasEntre(a.motivacao_avisada_em, hoje) : null)
+    if (!nivel) continue
+    await enviar([a.user_id!], mensagemMotivacao(nivel, { id: a.id, nome: a.nome, online: a.modalidade === 'online' }, hoje))
+    await admin.from('alunos').update({ motivacao_avisada_em: hoje }).eq('id', a.id)
+    avisados++
+  }
+  return { avisados }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -157,7 +224,7 @@ Deno.serve(async (req) => {
     webpush.setVapidDetails(Deno.env.get('PUSH_CONTATO') || 'mailto:notificacoes@corpoatletico.app', k.publica, k.privada)
 
     // Agendamento diário: confere o segredo e manda os lembretes de todos.
-    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas(), mensalidades: await mensalidades() })
+    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas(), mensalidades: await mensalidades(), motivacao: await motivacao() })
 
     // Daqui para baixo só o personal, com o login dele (as regras do banco limitam aos alunos dele).
     const db = createClient(URL_SUPABASE, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } })
@@ -169,6 +236,7 @@ Deno.serve(async (req) => {
     if (corpo.acao === 'lembretes') return resposta(await lembretes(user.id))
     if (corpo.acao === 'fichas') return resposta(await fichas(user.id))
     if (corpo.acao === 'mensalidades') return resposta(await mensalidades(user.id))
+    if (corpo.acao === 'motivacao') return resposta(await motivacao(user.id))
     if (corpo.acao === 'enviar') {
       const ids = Array.isArray(corpo.aluno_ids) ? corpo.aluno_ids.slice(0, 500).map(String) : []
       if (!ids.length || !corpo.titulo || !corpo.corpo) return resposta({ erro: 'Faltou aluno, título ou texto.' }, 400)

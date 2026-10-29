@@ -486,3 +486,6 @@ aside > .botao-whatsapp { width: 100% }
 .chat-balao.reagivel { cursor: pointer; -webkit-tap-highlight-color: transparent }
 .chat-dica { font-size: 12px; text-align: center; margin: 6px 0 0 }
 .relato.pendente { border: 1.5px solid var(--accent); background: linear-gradient(120deg, #fff, #fff4ee) }
+.segmentos { display: flex; gap: 6px; margin-top: 10px; overflow-x: auto }
+.segmentos button { flex: 0 0 auto; border-radius: 999px; padding: 6px 14px; font-size: 14px }
+.segmentos button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }

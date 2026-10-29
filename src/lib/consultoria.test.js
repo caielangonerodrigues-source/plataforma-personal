@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { compararMedidas, limparMedidas, paraAvaliacao, situacaoRelato } from './consultoria.js'
+import { compararMedidas, limparMedidas, paraAvaliacao, relatosAtrasados, situacaoRelato } from './consultoria.js'
 
 test('compara com o envio anterior só o que foi medido', () => {
   const linhas = compararMedidas({ cintura: 80, quadril: 98, braco_d: 33 }, { cintura: 82.5, braco_d: 33 })
@@ -20,4 +20,16 @@ test('relato da semana: primeiro, em dia e atrasado', () => {
   assert.deepEqual(situacaoRelato(null, '2026-10-29'), { pendente: true, primeiro: true })
   assert.deepEqual(situacaoRelato({ data: '2026-10-25', resposta: null }, '2026-10-29'), { pendente: false, dias: 4, respondido: false })
   assert.deepEqual(situacaoRelato({ data: '2026-10-22', resposta: 'Boa!' }, '2026-10-29'), { pendente: true, dias: 7, respondido: true })
+})
+
+test('relatos atrasados: só online, ativos e há 7 dias ou mais', () => {
+  const alunos = [
+    { id: 'a', modalidade: 'online', status: 'ativo', inicio: '2026-09-01' },
+    { id: 'b', modalidade: 'online', status: 'ativo', inicio: '2026-09-01' },
+    { id: 'c', modalidade: 'online', status: 'pausado', inicio: '2026-09-01' },
+    { id: 'd', modalidade: 'presencial', status: 'ativo', inicio: '2026-09-01' },
+    { id: 'e', modalidade: 'online', status: 'ativo', inicio: '2026-10-27' },
+  ]
+  const envios = [{ aluno_id: 'a', data: '2026-10-10' }, { aluno_id: 'a', data: '2026-10-20' }, { aluno_id: 'b', data: '2026-10-26' }]
+  assert.deepEqual(relatosAtrasados(alunos, envios, '2026-10-29').map((r) => [r.aluno.id, r.dias, r.ultimo]), [['a', 9, '2026-10-20']])
 })

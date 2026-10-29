@@ -59,3 +59,17 @@ export function situacaoRelato(ultimo, hoje) {
   const dias = diasEntre(ultimo.data, hoje)
   return { pendente: dias >= 7, dias, respondido: !!ultimo.resposta }
 }
+
+// Alunos online (não pausados) sem mandar o relato há 7 dias ou mais. Quem nunca mandou conta a partir do início.
+export function relatosAtrasados(alunos, envios, hoje) {
+  const ultimo = {}
+  for (const e of envios) if (!ultimo[e.aluno_id] || e.data > ultimo[e.aluno_id]) ultimo[e.aluno_id] = e.data
+  return alunos
+    .filter((a) => a.modalidade === 'online' && a.status !== 'pausado')
+    .map((a) => {
+      const desde = ultimo[a.id] || a.inicio
+      return { aluno: a, ultimo: ultimo[a.id] || null, dias: desde ? diasEntre(desde, hoje) : null }
+    })
+    .filter((r) => r.dias !== null && r.dias >= 7)
+    .sort((x, y) => y.dias - x.dias)
+}
