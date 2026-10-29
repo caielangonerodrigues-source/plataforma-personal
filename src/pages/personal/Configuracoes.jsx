@@ -22,6 +22,7 @@ export default function Configuracoes() {
       nome: d.nome?.trim() || null, telefone: d.telefone?.trim() || null,
       pix_chave: d.pix_chave?.trim() || null, pix_nome: d.pix_nome?.trim() || null, pix_cidade: d.pix_cidade?.trim() || null,
       ...('desconto_indicacao' in d ? { desconto_indicacao: num(d.desconto_indicacao) } : {}),
+      ...('motivacao_auto' in d ? { motivacao_auto: !!d.motivacao_auto } : {}),
       ...('trocar_ficha_semanas' in d ? { trocar_ficha_semanas: Math.min(26, Math.max(2, Math.round(num(d.trocar_ficha_semanas)) || 6)) } : {}),
     }).eq('user_id', d.user_id)
     if (error) return setErro(`Não foi possível salvar: ${error.message}`)
@@ -51,6 +52,18 @@ export default function Configuracoes() {
           </p>
           {exemplo && <textarea id="config-pix-teste" className="full" readOnly rows={3} value={exemplo} onFocus={(e) => e.target.select()} style={{ fontFamily: 'var(--mono)', fontSize: 12 }} />}
         </div>
+        {'motivacao_auto' in d && (
+          <div className="panel form">
+            <div className="secao" style={{ marginTop: 0 }}>Motivação automática</div>
+            <label className="full row" style={{ gap: 8, flexWrap: 'nowrap', alignItems: 'flex-start' }}>
+              <input type="checkbox" checked={!!d.motivacao_auto} onChange={(e) => { setAviso(''); setD({ ...d, motivacao_auto: e.target.checked }) }} style={{ width: 'auto', marginTop: 4 }} />
+              <span>Mandar uma frase de motivação para o aluno que está sem treinar</span>
+            </label>
+            <p className="meta full" style={{ margin: 0 }}>
+              Vai no celular do aluno (se ele ativou as notificações) quando chega a 3, 7, 14, 21 e 30 dias sem marcar treino nem check-in. Exemplo: "Mariana, 3 dias sem treino já dá saudade. Hoje é um ótimo dia para voltar!"
+            </p>
+          </div>
+        )}
         {'trocar_ficha_semanas' in d && (
           <div className="panel form">
             <div className="secao" style={{ marginTop: 0 }}>Troca de ficha</div>

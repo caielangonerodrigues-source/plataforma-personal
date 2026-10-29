@@ -9,13 +9,18 @@ export default function Alunos() {
   const [alunos, setAlunos] = useState(null)
   const [busca, setBusca] = useState('')
   const [novo, setNovo] = useState(false)
+  const [tipo, setTipo] = useState('todos') // todos | presencial | online
 
   useEffect(() => {
     supabase.from('alunos').select('id, nome, objetivo, plano, status, modalidade, user_id, treinos(id)').order('nome').then(({ data }) => setAlunos(data || []))
   }, [])
 
   if (!alunos) return <p className="carregando">Carregando…</p>
-  const lista = alunos.filter((a) => a.nome.toLowerCase().includes(busca.toLowerCase()))
+  const ehOnline = (a) => a.modalidade === 'online'
+  const qtdOnline = alunos.filter(ehOnline).length
+  const lista = alunos
+    .filter((a) => tipo === 'todos' || (tipo === 'online') === ehOnline(a))
+    .filter((a) => a.nome.toLowerCase().includes(busca.toLowerCase()))
 
   return (
     <>
@@ -25,6 +30,11 @@ export default function Alunos() {
       </div>
       <div className="panel">
         <input id="busca" placeholder="Buscar pelo nome" aria-label="Buscar aluno" value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <div className="segmentos" role="group" aria-label="Tipo de aluno">
+          {[['todos', `Todos (${alunos.length})`], ['presencial', `Academia (${alunos.length - qtdOnline})`], ['online', `Online (${qtdOnline})`]].map(([k, l]) => (
+            <button key={k} type="button" aria-pressed={tipo === k} onClick={() => setTipo(k)}>{l}</button>
+          ))}
+        </div>
         <div className="list" style={{ marginTop: 8 }}>
           {lista.map((a) => (
             <Link className="item" key={a.id} to={`/alunos/${a.id}`}>
@@ -35,7 +45,7 @@ export default function Alunos() {
               <Status status={a.status} />
             </Link>
           ))}
-          {!lista.length && <p className="empty">{alunos.length ? 'Nenhum aluno com esse nome.' : 'Nenhum aluno ainda. Clique em "Novo aluno".'}</p>}
+          {!lista.length && <p className="empty">{alunos.length ? (busca ? 'Nenhum aluno com esse nome.' : tipo === 'online' ? 'Nenhum aluno da consultoria online ainda.' : 'Nenhum aluno da academia ainda.') : 'Nenhum aluno ainda. Clique em "Novo aluno".'}</p>}
         </div>
       </div>
       {novo && <FormAluno onFechar={() => setNovo(false)} onSalvo={(a) => navigate(`/alunos/${a.id}`)} />}

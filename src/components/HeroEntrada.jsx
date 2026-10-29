@@ -69,8 +69,8 @@ function ComunidadeIlustracao() {
         <circle r="46" fill={LARANJA} />
         <path d="M0 -26 L8 -8 L28 -6 L13 7 L17 27 L0 17 L-17 27 L-13 7 L-28 -6 L-8 -8 Z" fill={B} />
       </g>
-      <g transform="translate(40 200)"><rect width="120" height="44" rx="22" fill={ESCURO} /><text x="60" y="29" textAnchor="middle" fill={B} fontSize="18" fontWeight="700" fontFamily="Figtree, sans-serif">🔥 12 dias</text></g>
-      <g transform="translate(250 54)"><rect width="118" height="44" rx="22" fill={B} /><text x="59" y="29" textAnchor="middle" fill={LARANJA} fontSize="18" fontWeight="700" fontFamily="Figtree, sans-serif">❤ 8 curtidas</text></g>
+      <g transform="translate(40 200)"><rect width="120" height="44" rx="22" fill={ESCURO} /><text x="60" y="29" textAnchor="middle" fill={B} fontSize="18" fontWeight="700" fontFamily="Inter, sans-serif">🔥 12 dias</text></g>
+      <g transform="translate(250 54)"><rect width="118" height="44" rx="22" fill={B} /><text x="59" y="29" textAnchor="middle" fill={LARANJA} fontSize="18" fontWeight="700" fontFamily="Inter, sans-serif">❤ 8 curtidas</text></g>
     </svg>
   )
 }
@@ -100,7 +100,8 @@ function useFotosDoPersonal() {
   return fotos
 }
 
-export default function HeroEntrada({ intervalo = 5000 }) {
+// Faixa de fotos no topo da tela de entrada, como no site do Strava: a foto ocupa a largura toda e o título fica por cima.
+export default function HeroEntrada({ intervalo = 5000, onComecar, onEntrar }) {
   const doPersonal = useFotosDoPersonal()
   const slides = doPersonal.length ? doPersonal : SLIDES
   const [i, setI] = useState(0)
@@ -121,13 +122,16 @@ export default function HeroEntrada({ intervalo = 5000 }) {
             {comFoto
               ? <img className="hero-foto" src={foto} alt="" loading={k === 0 ? 'eager' : 'lazy'} onError={() => setFalhou((f) => ({ ...f, [foto]: true }))} />
               : <div className="hero-desenho"><Desenho /></div>}
-            <div className="hero-texto">
-              <strong>{titulo}</strong>
-              <span>{texto}</span>
-            </div>
+            <span className="hero-legenda">{titulo} · {texto}</span>
           </div>
         )
       })}
+      <div className="hero-chamada">
+        <h1>Motivação garantida pela turma.</h1>
+        <p>Treino, evolução e comunidade da Corpo Atlético, tudo no seu celular.</p>
+        <button className="hero-cta" onClick={onComecar}>Junte-se a nós agora</button>
+        <button className="hero-link" onClick={onEntrar}>Já tenho conta</button>
+      </div>
       <div className="hero-pontos" role="tablist" aria-label="Imagens">
         {slides.map((s, k) => <button key={s.chave || s.titulo} role="tab" aria-selected={k === atual} aria-label={s.titulo} onClick={() => setI(k)} />)}
       </div>

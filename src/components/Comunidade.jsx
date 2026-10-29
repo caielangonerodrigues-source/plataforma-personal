@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
+import Reacoes from './Reacoes.jsx'
+import CardTreino from './CardTreino.jsx'
+import PerfilAluno from './PerfilAluno.jsx'
+import { montarFeed } from '../lib/social.js'
 import Desafios from './Desafios.jsx'
 import ChatTurma from './ChatTurma.jsx'
 import BotaoWhatsApp from './BotaoWhatsApp.jsx'
@@ -12,8 +16,9 @@ const nomeDoMes = () => new Date().toLocaleDateString('pt-BR', { month: 'long' }
 // Feed de check-ins (foto em destaque, curtidas e comentários), grade de fotos e ranking do mês.
 // `meuAlunoId` destaca o aluno logado; `podeApagarTudo` é o personal.
 export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeApagarTudo, whatsapp }) {
-  const { dados, erro, curtir, apagar, carregar } = comunidade
+  const { dados, erro, reagir, apagar, carregar } = comunidade
   const [visao, setVisao] = useState('feed') // feed | fotos | chat
+  const [perfilDe, setPerfilDe] = useState(null) // aluno com o perfil aberto
   if (erro) return <p className="erro">{erro}</p>
   if (!dados) return <p className="carregando">Carregando…</p>
 
@@ -24,8 +29,11 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   const equipes = placarEquipes(dados.equipes || [], dados.membros, dados.mes)
   const maxPontos = Math.max(1, ...equipes.map((e) => e.pontos))
   const minhaEquipe = dados.membros.find((m) => m.id === meuAlunoId)?.equipe_id
+  const itens = montarFeed(feed, (dados.conquistas || []).filter((q) => membro[q.aluno_id]))
+  const abrirPerfil = (id) => membro[id] && setPerfilDe(membro[id])
 
   function abrirPost(id) {
+    setPerfilDe(null)
     setVisao('feed')
     setTimeout(() => document.getElementById(`post-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
   }
@@ -53,9 +61,10 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
           ) : <div className="panel empty">Nenhum check-in com foto ainda. Tire uma foto no próximo treino!</div>
         )}
 
-        {visao === 'feed' && feed.map((c) => (
-          <Post key={c.id} c={c} dados={dados} membro={membro} comunidade={comunidade}
-            meu={c.aluno_id === meuAlunoId} podeApagarTudo={podeApagarTudo} curtir={curtir} apagar={apagar} />
+        {visao === 'feed' && itens.map((c) => (c.tipoItem === 'conquista'
+          ? <Conquista key={`q${c.id}`} q={c} dados={dados} autor={membro[c.aluno_id]} reagir={comunidade.reagirConquista} abrirPerfil={abrirPerfil} />
+          : <Post key={c.id} c={c} dados={dados} membro={membro} comunidade={comunidade} abrirPerfil={abrirPerfil}
+            meu={c.aluno_id === meuAlunoId} podeApagarTudo={podeApagarTudo} reagir={reagir} apagar={apagar} />
         ))}
         {visao === 'feed' && !feed.length && <div className="panel empty">Nenhum check-in ainda. O primeiro a treinar abre o feed!</div>}
       </div>
@@ -86,7 +95,8 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
         <p className="meta" style={{ margin: '2px 0 8px' }}>Dias com check-in neste mês</p>
         <div>
           {tabela.map((r, i) => (
-            <div key={r.id} className={`rank${i < 3 && r.dias > 0 ? ' top' : ''}${r.id === meuAlunoId ? ' eu' : ''}`}>
+            <div key={r.id} className={`rank${i < 3 && r.dias > 0 ? ' top' : ''}${r.id === meuAlunoId ? ' eu' : ''}`} role="button" tabIndex={0} style={{ cursor: 'pointer' }}
+              onClick={() => abrirPerfil(r.id)} onKeyDown={(e) => e.key === 'Enter' && abrirPerfil(r.id)} aria-label={`Ver perfil de ${nomeCurto(r.nome)}`}>
               <span className="pos">{i + 1}</span>
               <Avatar nome={r.nome} avatar={r.avatar} fotos={dados.fotos} />
               <span className="name" style={{ minWidth: 0 }}>{nomeCurto(r.nome)}{r.id === meuAlunoId && <span className="meta"> (você)</span>}</span>
@@ -97,14 +107,38 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
         </div>
       </div>
       </aside>
+      {perfilDe && <PerfilAluno membro={perfilDe} dados={dados} equipe={(dados.equipes || []).find((e) => e.id === perfilDe.equipe_id)} onFechar={() => setPerfilDe(null)} onAbrirPost={abrirPost} />}
     </div>
   )
 }
 
-function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, curtir, apagar }) {
+// Medalha ganha ou recorde de carga, publicado sozinho no feed.
+function Conquista({ q, dados, autor, reagir, abrirPerfil }) {
+  return (
+    <article className="post conquista">
+      <div className="post-head">
+        <button className="abre-perfil" onClick={() => abrirPerfil(q.aluno_id)}>
+          <Avatar nome={autor.nome} avatar={autor.avatar} fotos={dados.fotos} />
+          <span style={{ minWidth: 0 }}>
+            <span className="name" style={{ display: 'block' }}>{nomeCurto(autor.nome)}</span>
+            <span className="meta">{q.tipo === 'recorde' ? 'bateu um recorde' : 'ganhou uma medalha'} · {quandoFoi(q.created_at)}</span>
+          </span>
+        </button>
+      </div>
+      <div className="conquista-corpo">
+        <span className="conquista-icone" aria-hidden="true">{q.icone || '🏅'}</span>
+        <div style={{ minWidth: 0 }}><strong>{q.titulo}</strong>{q.texto && q.texto !== q.titulo && <span className="meta">{q.texto}</span>}</div>
+      </div>
+      <div className="kudos">
+        <Reacoes reacoes={dados.reacoesConquistas.filter((k) => k.conquista_id === q.id)} eu={dados.eu} onReagir={(e) => reagir(q.id, e)} />
+      </div>
+    </article>
+  )
+}
+
+function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, reagir, apagar, abrirPerfil }) {
   const autor = membro[c.aluno_id]
   const curtidas = dados.curtidas.filter((k) => k.checkin_id === c.id)
-  const curti = curtidas.some((k) => k.user_id === dados.eu)
   const foto = c.foto && dados.fotos[c.foto]
   const comentarios = dados.comentarios ? dados.comentarios.filter((k) => k.checkin_id === c.id) : null
   const [abrirTodos, setAbrirTodos] = useState(false)
@@ -127,36 +161,37 @@ function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, curtir, apaga
   return (
     <article className="post" id={`post-${c.id}`}>
       <div className="post-head">
-        <Avatar nome={autor.nome} avatar={autor.avatar} fotos={dados.fotos} />
-        <div style={{ minWidth: 0 }}>
-          <div className="name">{nomeCurto(autor.nome)}</div>
-          <div className="meta">{quandoFoi(c.created_at)}{c.data !== hojeISO() && c.data !== c.created_at.slice(0, 10) ? ` · treino de ${c.data.slice(8)}/${c.data.slice(5, 7)}` : ''}</div>
-        </div>
+        <button className="abre-perfil" onClick={() => abrirPerfil(c.aluno_id)} aria-label={`Ver perfil de ${nomeCurto(autor.nome)}`}>
+          <Avatar nome={autor.nome} avatar={autor.avatar} fotos={dados.fotos} />
+          <span style={{ minWidth: 0 }}>
+            <span className="name" style={{ display: 'block' }}>{nomeCurto(autor.nome)}</span>
+            <span className="meta">{quandoFoi(c.created_at)}{c.data !== hojeISO() && c.data !== c.created_at.slice(0, 10) ? ` · treino de ${c.data.slice(8)}/${c.data.slice(5, 7)}` : ''}</span>
+          </span>
+        </button>
       </div>
+      {c.resumo && !foto && c.titulo && <div className="post-body" style={{ paddingTop: 0 }}><span className="post-tag">{c.titulo}</span></div>}
+      <CardTreino resumo={c.resumo} />
       {foto && (
-        <div className="post-foto-caixa" onDoubleClick={() => !curti && curtir(c.id, false)}>
+        <div className="post-foto-caixa" onDoubleClick={() => !curtidas.some((k) => k.user_id === dados.eu) && reagir(c.id, '❤️')}>
           <img className="post-foto" src={foto} alt={`Foto do check-in de ${nomeCurto(autor.nome)}`} loading="lazy" />
           {c.titulo && <span className="post-tag sobre-foto">{c.titulo}</span>}
         </div>
       )}
-      {(c.comentario || (c.titulo && !foto)) && (
+      {(c.comentario || (c.titulo && !foto && !c.resumo)) && (
         <div className="post-body">
-          {c.titulo && !foto && <span className="post-tag">{c.titulo}</span>}
+          {c.titulo && !foto && !c.resumo && <span className="post-tag">{c.titulo}</span>}
           {c.comentario && <p style={{ display: 'inline' }}>{c.comentario}</p>}
         </div>
       )}
       <div className="kudos">
-        <button aria-pressed={curti} onClick={() => curtir(c.id, curti)}>
-          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.5.8-1.3 2.3-2.5 4.4-2.5 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z" /></svg>
-          {curti ? 'Curtido' : 'Curtir'}
-        </button>
+        <Reacoes reacoes={curtidas} eu={dados.eu} onReagir={(e) => reagir(c.id, e)} opcoes={dados.reacoesSimples ? ['❤️'] : undefined} />
         {comentarios && (
           <button aria-expanded={escrevendo} onClick={() => setEscrevendo(!escrevendo)}>
             <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /></svg>
             Comentar
           </button>
         )}
-        <span className="meta">{[curtidas.length && `${curtidas.length} curtida${curtidas.length > 1 ? 's' : ''}`, comentarios?.length && `${comentarios.length} comentário${comentarios.length > 1 ? 's' : ''}`].filter(Boolean).join(' · ')}</span>
+        {comentarios?.length > 0 && <span className="meta">{comentarios.length} comentário{comentarios.length > 1 ? 's' : ''}</span>}
         {(podeApagarTudo || meu) && <button className="ghost small" style={{ marginLeft: 'auto' }} onClick={() => apagar(c)}>Apagar</button>}
       </div>
       {comentarios && (comentarios.length > 0 || escrevendo) && (

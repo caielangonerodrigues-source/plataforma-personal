@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { supabase } from '../supabase.js'
 import Avatar from './Avatar.jsx'
 import Boneco from './Boneco.jsx'
 import BotaoWhatsApp from './BotaoWhatsApp.jsx'
@@ -7,14 +8,21 @@ import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
+import { situacaoRelato } from '../lib/consultoria.js'
 
 const LETRAS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D']
 const segunda = (iso) => somarDias(iso, -((new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7))
 
 // Aba "Início" da área do aluno: perfil e semana à esquerda, primeiros passos e treino do dia no meio,
 // comunidade, desafio e medalhas à direita (no celular vira uma coluna só).
-export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, academia, irPara, onCheckin }) {
+export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, academia, online, irPara, onCheckin }) {
   const [notificacoes, setNotificacoes] = useState(true)
+  const [relato, setRelato] = useState(null) // aluno online: situação do relato da semana
+  useEffect(() => {
+    if (!online) return
+    supabase.from('envios_consultoria').select('data, resposta').eq('aluno_id', aluno.id).order('data', { ascending: false }).limit(1)
+      .then(({ data, error }) => !error && setRelato(situacaoRelato(data?.[0], hoje)))
+  }, [online, aluno.id, hoje])
   const [comoInstalar, setComoInstalar] = useState(false)
   useEffect(() => { inscricaoAtual().then((s) => setNotificacoes(!!s)).catch(() => setNotificacoes(false)) }, [])
 
@@ -46,7 +54,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const membros = dados?.membros || []
   const tabela = dados ? ranking(dados.mes, membros).slice(0, 3) : []
   const desafio = (dados?.desafios || []).find((d) => d.inicio <= hoje && d.fim >= hoje)
-  const aula = academia?.aulas && proximaAula(academia.aulas)
+  const aula = !online && academia?.aulas && proximaAula(academia.aulas)
   const aviso = academia && ordenarAvisos(academia.avisos)[0]
   const feitosHoje = ficha ? ficha.exercicios.filter((e) => registros.some((r) => r.exercicio_id === e.id && r.data === hoje)).length : 0
 
@@ -108,6 +116,19 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           </div>
         )}
 
+        {online && relato && (
+          <div className={`panel stack relato${relato.pendente ? ' pendente' : ''}`} style={{ gap: 8 }}>
+            <div className="meta">📲 Consultoria online</div>
+            <h2 style={{ margin: 0 }}>{relato.pendente ? 'Hora do relato da semana' : 'Relato da semana enviado'}</h2>
+            <div className="meta">
+              {relato.primeiro ? 'Mande seu peso, medidas, fotos e como foi a semana. Seu personal ajusta o treino a partir daí.'
+                : relato.pendente ? `Seu último relato foi há ${relato.dias} dias. Mande o desta semana para seu personal acompanhar sua evolução.`
+                  : `Enviado ${relato.dias === 0 ? 'hoje' : relato.dias === 1 ? 'ontem' : `há ${relato.dias} dias`} · ${relato.respondido ? 'seu personal já respondeu' : 'aguardando a resposta do personal'}.`}
+            </div>
+            <div><button className={relato.pendente ? 'primary' : ''} onClick={() => irPara('consultoria')}>{relato.pendente ? 'Enviar relato' : relato.respondido ? 'Ver resposta' : 'Ver consultoria'}</button></div>
+          </div>
+        )}
+
         <div className="panel stack" style={{ gap: 10 }}>
           <div className="row between"><h2 style={{ margin: 0 }}>Treino de hoje</h2>{agenda && <span className="meta">Com o personal: {agenda.data === hoje ? 'hoje' : fmtData(agenda.data).slice(0, 5)} às {agenda.hora}</span>}</div>
           {fichaVencida && <div className="aviso-ficha" style={{ margin: 0 }}><strong>Hora de trocar a ficha 💪</strong><span className="meta" style={{ color: 'inherit' }}>{fichaVencida.semanas} semanas na mesma ficha. Seu personal já foi avisado.</span></div>}
@@ -137,7 +158,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             {aviso.texto && <div className="meta" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{aviso.texto}</div>}
           </button>
         )}
-        {academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
+        {!online && academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
         {aluno.comunidade && dados && (
           <div className="panel stack" style={{ gap: 10 }}>
             <div className="row between"><h2 style={{ margin: 0 }}>Comunidade</h2><button className="link" onClick={() => irPara('comunidade')}>Ver feed ›</button></div>
@@ -161,7 +182,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           </div>
         )}
         {proxima && (
-          <button className="panel stack cartao-link" style={{ gap: 6 }} onClick={() => irPara('evolucao')}>
+          <button className="panel stack cartao-link" style={{ gap: 6 }} onClick={() => irPara('voce')}>
             <div className="meta">{proxima.icone} Próxima medalha</div>
             <div className="name">{proxima.titulo}</div>
             <div className="meta">{proxima.descricao} · faltam {proxima.meta - proxima.valor}</div>

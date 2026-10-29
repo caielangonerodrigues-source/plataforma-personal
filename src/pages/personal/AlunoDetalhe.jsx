@@ -1,3 +1,5 @@
+import VideosExecucao from '../../components/VideosExecucao.jsx'
+import ConversaPrivada from '../../components/ConversaPrivada.jsx'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
@@ -15,7 +17,7 @@ import Relatorio from '../../components/Relatorio.jsx'
 import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
-const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['relatorio', 'Relatório'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
+const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['videos', 'Vídeos'], ['mensagens', 'Mensagens'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['relatorio', 'Relatório'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
 
 export default function AlunoDetalhe() {
   const { id } = useParams()
@@ -90,6 +92,8 @@ export default function AlunoDetalhe() {
       </div>
       {aba === 'treinos' && <Treinos aluno={aluno} recarregar={carregar} />}
       {aba === 'consultoria' && <Consultoria aluno={aluno} personal onAvaliacao={carregar} />}
+      {aba === 'videos' && <VideosExecucao aluno={aluno} personal />}
+      {aba === 'mensagens' && <ConversaComAluno aluno={aluno} />}
       {aba === 'avaliacoes' && <Avaliacoes aluno={aluno} recarregar={carregar} />}
       {aba === 'progressao' && (
         <div className="stack">
@@ -138,4 +142,13 @@ function TrocasDoAluno({ treinos, registros }) {
       </div>
     </div>
   )
+}
+
+function ConversaComAluno({ aluno }) {
+  const [eu, setEu] = useState(null)
+  useEffect(() => { supabase.auth.getSession().then(({ data }) => setEu(data.session?.user.id)) }, [])
+  if (!eu) return <p className="carregando">Carregando…</p>
+  return aluno.user_id
+    ? <ConversaPrivada alunoId={aluno.id} eu={eu} com={primeiroNome(aluno.nome)} />
+    : <div className="panel empty">{primeiroNome(aluno.nome)} ainda não criou o acesso. Você pode mandar mensagem, e ele vê quando entrar.<div style={{ marginTop: 10 }}><ConversaPrivada alunoId={aluno.id} eu={eu} com={primeiroNome(aluno.nome)} /></div></div>
 }
