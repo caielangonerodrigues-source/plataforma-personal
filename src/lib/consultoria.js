@@ -1,4 +1,5 @@
 // Consultoria online: medidas que o aluno envia e comparação com o envio anterior.
+import { diasEntre } from './atencao.js'
 
 export const MEDIDAS = [
   ['pescoco', 'Pescoço'], ['ombros', 'Ombros'], ['peitoral', 'Peitoral'], ['cintura', 'Cintura'], ['abdomen', 'Abdômen'],
@@ -50,4 +51,11 @@ export function limparMedidas(form) {
     if (v !== '' && !Number.isNaN(Number(v))) out[k] = Number(v)
   }
   return out
+}
+
+// Relato da semana no Início do aluno online: pede um novo a cada 7 dias.
+export function situacaoRelato(ultimo, hoje) {
+  if (!ultimo) return { pendente: true, primeiro: true }
+  const dias = diasEntre(ultimo.data, hoje)
+  return { pendente: dias >= 7, dias, respondido: !!ultimo.resposta }
 }

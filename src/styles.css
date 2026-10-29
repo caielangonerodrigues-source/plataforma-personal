@@ -485,3 +485,4 @@ aside > .botao-whatsapp { width: 100% }
 .kudos .reacao { padding: 3px 9px; font-size: 14px }
 .chat-balao.reagivel { cursor: pointer; -webkit-tap-highlight-color: transparent }
 .chat-dica { font-size: 12px; text-align: center; margin: 6px 0 0 }
+.relato.pendente { border: 1.5px solid var(--accent); background: linear-gradient(120deg, #fff, #fff4ee) }

@@ -60,6 +60,7 @@ export default function AreaAluno({ aluno }) {
   const [prazoFicha, setPrazoFicha] = useState(null) // semanas para trocar a ficha (do personal)
   const comunidade = useComunidade()
   const academia = useAcademia()
+  const online = aluno.modalidade === 'online' // consultoria online: sem grade, QR, Spinning e grupo da academia
   const [qr, setQr] = useState(null) // resultado do check-in pelo QR code da recepção
   const hoje = hojeISO()
 
@@ -96,6 +97,7 @@ export default function AreaAluno({ aluno }) {
     let codigo = codigoDoLink(window.location.search)
     try { codigo ||= sessionStorage.getItem('checkin-qr'); sessionStorage.removeItem('checkin-qr') } catch { /* sem armazenamento */ }
     if (!codigo) return
+    if (online) return window.history.replaceState(null, '', window.location.pathname)
     window.history.replaceState(null, '', window.location.pathname)
     supabase.rpc('checkin_qr', { p_codigo: codigo }).then(({ data, error }) => {
       setQr(error ? { erro: error.message.includes('QR') ? error.message : 'Não foi possível fazer o check-in pelo QR code. Tente de novo.' } : { feito: data === 'feito' })
@@ -159,16 +161,16 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ['aulas', 'Aulas'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria']] : [['aulas', 'Aulas']]), ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   // No celular: barra de app embaixo com as abas principais; o resto fica em "Mais".
-  const principais = ['inicio', 'treino', 'aulas', aluno.comunidade ? 'comunidade' : 'novidades']
-  const ICONE_ABA = { inicio: 'inicio', treino: 'treino', aulas: 'aulas', comunidade: 'comunidade', novidades: 'novidades' }
+  const principais = ['inicio', 'treino', online ? 'consultoria' : 'aulas', aluno.comunidade ? 'comunidade' : 'novidades']
+  const whatsapp = online ? null : academia.whatsapp
   const badgeAba = (k) => (k === 'novidades' && aba !== k ? academia.novos : 0)
 
   return (
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
-      <Cabecalho aluno={aluno} whatsapp={academia.whatsapp} />
+      <Cabecalho aluno={aluno} whatsapp={whatsapp} />
       <InstalarApp />
       {qr && (
         <div className={`panel qr-resultado${qr.erro ? ' erro' : ''}`} role="status">
@@ -210,13 +212,13 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'inicio' && (
         <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos}
-          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} academia={academia}
+          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} academia={academia} online={online}
           irPara={irPara} onCheckin={() => setCheckinAberto(true)} />
       )}
 
-      {aba === 'aulas' && (academia.aulas ? <GradeAulas aulas={academia.aulas} /> : <p className="carregando">Carregando…</p>)}
+      {aba === 'aulas' && !online && (academia.aulas ? <GradeAulas aulas={academia.aulas} /> : <p className="carregando">Carregando…</p>)}
       {aba === 'novidades' && <NovidadesAcademia academia={academia} />}
-      {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} whatsapp={academia.whatsapp} />}
+      {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} whatsapp={whatsapp} />}
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
 
@@ -317,7 +319,7 @@ export default function AreaAluno({ aluno }) {
         <span aria-hidden="true">📸</span> {fezHoje ? 'Novo check-in' : 'Check-in'}
       </button>
       <BarraApp
-        itens={principais.map((k) => ({ chave: k, rotulo: abas.find(([c]) => c === k)[1], icone: ICONE_ABA[k], ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
+        itens={principais.map((k) => ({ chave: k, rotulo: abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
         mais={abas.filter(([k]) => !principais.includes(k)).map(([k, l]) => ({ chave: k, rotulo: l, icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
       />
 
