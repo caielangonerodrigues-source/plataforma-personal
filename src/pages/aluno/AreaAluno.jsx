@@ -14,6 +14,8 @@ import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
+import VideosExecucao from '../../components/VideosExecucao.jsx'
+import ConversaPrivada from '../../components/ConversaPrivada.jsx'
 import AulasSpinning from '../spinning/AulasSpinning.jsx'
 import { DietaAluno } from '../../components/Nutricao.jsx'
 import Cronometro, { prepararSom } from '../../components/Cronometro.jsx'
@@ -63,6 +65,7 @@ export default function AreaAluno({ aluno }) {
   const comunidade = useComunidade()
   const academia = useAcademia()
   const online = aluno.modalidade === 'online' // consultoria online: sem grade, QR, Spinning e grupo da academia
+  const [naoLidas, setNaoLidas] = useState(0) // mensagens do personal ainda não lidas
   const [qr, setQr] = useState(null) // resultado do check-in pelo QR code da recepção
   const hoje = hojeISO()
 
@@ -93,6 +96,16 @@ export default function AreaAluno({ aluno }) {
       .then(({ data }) => setProximaFase(data?.[0] || null))
     supabase.rpc('prazo_troca_ficha').then(({ data, error }) => !error && setPrazoFicha(data || 6))
   }, [aluno.id, hoje])
+
+  const contarNaoLidas = useCallback(() => {
+    supabase.from('mensagens_privadas').select('id', { count: 'exact', head: true }).eq('aluno_id', aluno.id).eq('do_personal', true).is('lida_em', null)
+      .then(({ count, error }) => !error && setNaoLidas(count || 0))
+  }, [aluno.id])
+  useEffect(() => {
+    contarNaoLidas()
+    const t = setInterval(contarNaoLidas, 60000)
+    return () => clearInterval(t)
+  }, [contarNaoLidas])
 
   // Abriu pelo QR code da recepção (o código fica guardado se precisou entrar na conta antes).
   useEffect(() => {
@@ -181,12 +194,12 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria']] : [['aulas', 'Aulas']]), ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   // No celular: barra de app embaixo com as abas principais; o resto fica em "Mais".
   const principais = ['inicio', 'treino', online ? 'consultoria' : 'aulas', aluno.comunidade ? 'comunidade' : 'novidades']
   const whatsapp = online ? null : academia.whatsapp
-  const badgeAba = (k) => (k === 'novidades' && aba !== k ? academia.novos : 0)
+  const badgeAba = (k) => (aba === k ? 0 : k === 'novidades' ? academia.novos : k === 'mensagens' ? naoLidas : 0)
 
   return (
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
@@ -225,7 +238,7 @@ export default function AreaAluno({ aluno }) {
       <div className="tabs so-computador" role="tablist">
         {abas.map(([k, l]) => (
           <button key={k} className="tab" role="tab" aria-selected={aba === k} onClick={() => setAba(k)}>
-            {l}{k === 'novidades' && academia.novos > 0 && aba !== k && <span className="tab-badge" aria-label={`${academia.novos} novas`}>{academia.novos}</span>}
+            {l}{badgeAba(k) > 0 && <span className="tab-badge" aria-label={`${badgeAba(k)} novas`}>{badgeAba(k)}</span>}
           </button>
         ))}
       </div>
@@ -241,6 +254,13 @@ export default function AreaAluno({ aluno }) {
       {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} whatsapp={whatsapp} />}
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
+      {aba === 'videos' && <VideosExecucao aluno={aluno} exercicios={(treinos || []).flatMap((t) => t.exercicios.map((e) => e.nome))} />}
+      {aba === 'mensagens' && (
+        <div className="stack">
+          <p className="meta" style={{ margin: 0 }}>Conversa particular com seu personal: dúvidas, dores, ajustes no treino. Só vocês dois veem.</p>
+          <ConversaPrivada alunoId={aluno.id} eu={aluno.user_id} com="seu personal" onLidas={() => setNaoLidas(0)} />
+        </div>
+      )}
 
       {aba === 'dieta' && <DietaAluno alunoId={aluno.id} />}
       {aba === 'spinning' && <AulasSpinning embutido />}
@@ -254,7 +274,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['inicio', 'comunidade', 'conta', 'consultoria', 'dieta', 'aulas', 'novidades'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['inicio', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">

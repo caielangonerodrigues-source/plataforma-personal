@@ -8,6 +8,7 @@ import LayoutPersonal from './pages/personal/LayoutPersonal.jsx'
 import Painel from './pages/personal/Painel.jsx'
 import Alunos from './pages/personal/Alunos.jsx'
 import AlunoDetalhe from './pages/personal/AlunoDetalhe.jsx'
+import Mensagens from './pages/personal/Mensagens.jsx'
 import ComunidadePersonal from './pages/personal/ComunidadePersonal.jsx'
 import Financeiro from './pages/personal/Financeiro.jsx'
 import Configuracoes from './pages/personal/Configuracoes.jsx'
@@ -100,6 +101,7 @@ export default function App() {
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
+          <Route path="/mensagens" element={<Mensagens />} />
           <Route path="/academia" element={<Academia />} />
           <Route path="/modelos" element={<Modelos />} />
           <Route path="/exercicios" element={<Exercicios />} />

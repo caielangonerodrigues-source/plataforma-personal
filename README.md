@@ -170,11 +170,17 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 2. Publique de novo a função `notificacoes` (Edge Functions › notificacoes › cole o `supabase/functions/notificacoes/index.ts` › Deploy). Ela passa a mandar o lembrete da mensalidade (2 dias antes, no dia e 3 dias depois do vencimento, se não estiver paga).
 3. No site, entre em **Academia** para publicar novidades, editar a grade, imprimir o QR code da recepção, montar as equipes e subir as fotos da tela de entrada.
 
-### 11. Reações com emoji e motivação de quem está sumido
+### 11. Rede social, mensagens, vídeos de execução e motivação
 
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-social.sql` e toque em **Run** (pode rodar mais de uma vez). As curtidas antigas viram ❤️.
 2. Publique de novo a função `notificacoes` (Edge Functions › notificacoes › cole o `supabase/functions/notificacoes/index.ts` › Deploy).
-3. Pronto: nos posts da comunidade aparece o botão de reagir (❤️ 🔥 💪 👏 😂 😮), e no chat da turma é só tocar numa mensagem. O aluno que fica 3, 7, 14, 21 ou 30 dias sem treinar recebe uma frase de motivação no celular (se ativou as notificações). Dá para desligar em **Configurações**.
+3. O que passa a funcionar:
+   - Reações com emoji (❤️ 🔥 💪 👏 😂 😮) nos posts, nas conquistas e no chat da turma (no chat, é só tocar na mensagem).
+   - Card do treino no post (exercícios, séries, volume e recordes) e check-in de corrida, pedal e caminhada com km, tempo e ritmo.
+   - Medalhas e recordes de carga viram post sozinhos no feed; tocando no nome do aluno, abre o perfil dele.
+   - **Mensagens**: conversa particular de cada aluno com você (menu Mensagens).
+   - **Vídeos**: o aluno da consultoria online manda o vídeo do exercício e você responde com a correção (aba Vídeos do aluno e card no Painel). Vídeos de até 50 MB.
+   - Motivação: quem fica 3, 7, 14, 21 ou 30 dias sem treinar recebe uma frase no celular (se ativou as notificações). Dá para desligar em **Configurações**.
 
 ## Desenvolvimento
 

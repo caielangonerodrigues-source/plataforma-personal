@@ -521,3 +521,17 @@ aside > .botao-whatsapp { width: 100% }
 .perfil-medalhas span { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; background: var(--accent-soft); border-radius: 999px; padding: 3px 10px 3px 4px }
 .perfil-medalhas i { font-style: normal; width: 22px; height: 22px; display: grid; place-items: center; background: #fff; border-radius: 50% }
 .perfil-aluno .grade-fotos { margin-top: 4px }
+
+/* Vídeos de execução */
+.video-execucao video { width: 100%; max-height: 70vh; border-radius: 12px; background: #000 }
+.resposta-personal { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-size: 14px }
+.resposta-personal strong { display: block; color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px }
+
+/* Mensagens com o personal */
+.conversas { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start }
+.conversas-lista .item { cursor: pointer; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; display: flex; gap: 10px; align-items: center; padding: 10px 4px }
+.conversas-lista .item.ativa { background: var(--accent-soft); border-radius: 10px }
+.conversas-lista .previa { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+@media (max-width: 720px) { .conversas { grid-template-columns: 1fr } .conversas.aberta .conversas-lista { display: none } .conversas:not(.aberta) .conversa-aberta { display: none } }
+.so-celular { display: none }
+@media (max-width: 720px) { .so-celular { display: inline-flex } }

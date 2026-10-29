@@ -14,6 +14,7 @@ export default function Painel() {
   const [alunos, setAlunos] = useState(null)
   const [treinaramHoje, setTreinaramHoje] = useState(0)
   const [envios, setEnvios] = useState([])
+  const [videos, setVideos] = useState([]) // vídeos de execução sem correção
   const [novos, setNovos] = useState(0)
   const [atividades, setAtividades] = useState([])
   const [pagamentos, setPagamentos] = useState([])
@@ -48,6 +49,8 @@ export default function Painel() {
       .then(({ data }) => setFeedbacks(data || []))
     supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
       .then(({ data }) => setEnvios(data || []))
+    supabase.from('videos_execucao').select('id, aluno_id, exercicio, created_at, alunos(nome)').is('resposta', null).order('created_at')
+      .then(({ data }) => setVideos(data || []))
     supabase.from('envios_consultoria').select('aluno_id, data').gte('data', somarDias(hoje, -120))
       .then(({ data }) => setRelatos(data || []))
     supabase.from('interessados').select('id').eq('status', 'novo').then(({ data }) => setNovos(data?.length || 0))
@@ -191,6 +194,19 @@ export default function Painel() {
           <span><strong>{novos === 1 ? '1 pessoa quer' : `${novos} pessoas querem`} fazer a consultoria online</strong><br /><span className="meta">Pediram contato pela sua página de vendas</span></span>
           <span className="pill pendente">Chamar no WhatsApp</span>
         </Link>
+      )}
+      {videos.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
+          <div className="row between"><h2>Vídeos para avaliar</h2><span className="meta">{videos.length} {videos.length === 1 ? 'vídeo esperando' : 'vídeos esperando'} sua correção</span></div>
+          <div className="list">
+            {videos.map((v) => (
+              <Link className="item" key={v.id} to={`/alunos/${v.aluno_id}?aba=videos`}>
+                <div style={{ minWidth: 0 }}><div className="name">{v.alunos?.nome}</div><div className="meta">🎬 {v.exercicio} · {fmtData(v.created_at.slice(0, 10))}</div></div>
+                <span className="pill pendente">Avaliar</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
       {envios.length > 0 && (
         <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
