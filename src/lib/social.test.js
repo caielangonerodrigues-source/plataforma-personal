@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { conquistasAtuais, conquistasParaPublicar, fmtTempo, lerTempo, montarFeed, recordesDoDia, resumoCardio, resumoTreino, ritmo } from './social.js'
+import { conquistasAtuais, conquistasParaPublicar, fmtTempo, lerTempo, montarFeed, recordesDoDia, resumoCardio, resumoMusculacao, resumoTreino, ritmo, tituloMusculacao } from './social.js'
 
 const s = (c, r, n = 3) => Array.from({ length: n }, () => ({ carga: c, reps: r }))
 const ficha = { nome: 'A', exercicios: [{ id: 'e1', nome: 'Agachamento' }, { id: 'e2', nome: 'Leg press' }, { id: 'e3', nome: 'Extensora' }] }
@@ -42,4 +42,11 @@ test('conquistas: primeira vez fica escondida, depois só as novas aparecem', ()
 test('feed mistura check-ins e conquistas por data', () => {
   const f = montarFeed([{ id: 'c1', created_at: '2026-10-29T10:00' }], [{ id: 'q1', created_at: '2026-10-29T11:00' }])
   assert.deepEqual(f.map((x) => [x.id, x.tipoItem]), [['q1', 'conquista'], ['c1', 'checkin']])
+})
+
+test('check-in de musculação guarda grupos e duração', () => {
+  assert.deepEqual(resumoMusculacao(['pernas', 'gluteos', 'pernas', 'xx'], '55'), { tipo: 'musculacao', grupos: ['pernas', 'gluteos'], minutos: 55 })
+  assert.equal(resumoMusculacao([], '').minutos, null)
+  assert.equal(tituloMusculacao(['peito', 'bracos']), 'Musculação · Peito, Braços')
+  assert.equal(tituloMusculacao([]), 'Musculação')
 })

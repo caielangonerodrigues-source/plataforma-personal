@@ -3,14 +3,18 @@ import Modal from './Modal.jsx'
 import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { reduzirFoto } from '../lib/foto.js'
-import { ESPORTES, fmtTempo, resumoCardio, resumoTreino, ritmo } from '../lib/social.js'
+import { ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, resumoCardio, resumoMusculacao, resumoTreino, ritmo, tituloMusculacao } from '../lib/social.js'
 
 const OUTRO = 'outro'
+const MUSCULACAO = 'musculacao'
 
-// O post ganha um card sozinho: do treino da ficha (exercícios, volume, recordes) ou de corrida, pedal e caminhada (km, tempo, ritmo).
+// O post ganha um card sozinho: do treino da ficha (exercícios, volume, recordes), de musculação livre (grupos e duração)
+// ou de corrida, pedal e caminhada (km, tempo, ritmo).
 export default function FormCheckin({ aluno, treinos, registros = [], treinoInicial, onFechar, onFeito }) {
-  const [treinoId, setTreinoId] = useState(treinoInicial || treinos[0]?.id || OUTRO)
+  const [treinoId, setTreinoId] = useState(treinoInicial || treinos[0]?.id || MUSCULACAO)
   const [atividade, setAtividade] = useState('')
+  const [grupos, setGrupos] = useState([])
+  const [minutos, setMinutos] = useState('')
   const [km, setKm] = useState('')
   const [tempo, setTempo] = useState('')
   const [comentario, setComentario] = useState('')
@@ -32,11 +36,13 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
   const treino = treinos.find((t) => t.id === treinoId)
   const esporte = ESPORTES[treinoId] ? treinoId : null
   const cardio = esporte && resumoCardio(esporte, km, tempo)
-  const resumo = treino ? resumoTreino(treino, registros, hoje) : cardio || null
+  const musculacao = treinoId === MUSCULACAO && resumoMusculacao(grupos, minutos)
+  const resumo = treino ? resumoTreino(treino, registros, hoje) : musculacao || cardio || null
+  const alternar = (g) => setGrupos((l) => (l.includes(g) ? l.filter((x) => x !== g) : [...l, g]))
 
   async function salvar() {
     if (esporte && !cardio) return setErro('Coloque a distância (ex.: 5,2) e o tempo (ex.: 28:30).')
-    if (!treino && !esporte && !atividade.trim()) return setErro('Diga o que você treinou (ex.: aula de spinning, funcional).')
+    if (treinoId === OUTRO && !atividade.trim()) return setErro('Diga o que você treinou (ex.: aula de spinning, funcional).')
     setSalvando(true); setErro('')
     let caminho = null
     try {
@@ -47,7 +53,7 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
       }
       const post = {
         aluno_id: aluno.id, data: hoje, treino_id: treino?.id || null,
-        titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : esporte ? `${ESPORTES[esporte][0]} · ${String(cardio.km).replace('.', ',')} km` : atividade.trim(),
+        titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : musculacao ? tituloMusculacao(musculacao.grupos) : esporte ? `${ESPORTES[esporte][0]} · ${String(cardio.km).replace('.', ',')} km` : atividade.trim(),
         comentario: comentario.trim() || null, foto: caminho,
       }
       let { error } = await supabase.from('checkins').insert(resumo ? { ...post, resumo } : post)
@@ -66,11 +72,23 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
       <label className="full">O que você treinou?
         <select id="checkin-treino" value={treinoId} onChange={(e) => setTreinoId(e.target.value)}>
           {treinos.map((t) => <option key={t.id} value={t.id}>Treino {t.nome}{t.foco ? ` · ${t.foco}` : ''}</option>)}
+          <option value={MUSCULACAO}>🏋️ Musculação</option>
           {Object.entries(ESPORTES).map(([k, [nome, icone]]) => <option key={k} value={k}>{icone} {nome}</option>)}
           <option value={OUTRO}>Outra atividade</option>
         </select>
       </label>
       {treinoId === OUTRO && <label className="full">Atividade<input id="checkin-atividade" maxLength={80} placeholder="Ex.: Aula de funcional" value={atividade} onChange={(e) => setAtividade(e.target.value)} /></label>}
+      {musculacao && <>
+        <div className="full stack" style={{ gap: 6 }}>
+          <span className="meta" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>Grupos musculares</span>
+          <div className="chips" role="group" aria-label="Grupos treinados">
+            {Object.entries(GRUPOS_MUSCULACAO).map(([g, [nome]]) => (
+              <button key={g} type="button" className={`chip${grupos.includes(g) ? ' on' : ''}`} aria-pressed={grupos.includes(g)} onClick={() => alternar(g)}>{nome}</button>
+            ))}
+          </div>
+        </div>
+        <label>Duração (min)<input id="checkin-minutos" inputMode="numeric" placeholder="60" value={minutos} onChange={(e) => setMinutos(e.target.value)} /></label>
+      </>}
       {esporte && <>
         <label>Distância (km)<input id="checkin-km" inputMode="decimal" placeholder="5,2" value={km} onChange={(e) => setKm(e.target.value)} /></label>
         <label>Tempo<input id="checkin-tempo" inputMode="numeric" placeholder="28:30" value={tempo} onChange={(e) => setTempo(e.target.value)} /></label>

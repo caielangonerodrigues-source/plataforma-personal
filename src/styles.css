@@ -538,6 +538,11 @@ aside > .botao-whatsapp { width: 100% }
 .card-treino-nums span { font-size: 12px; color: var(--muted) }
 .card-treino-nums strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 18px; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .card-treino-recorde { margin-top: 8px; font-size: 13px; background: var(--accent-soft); color: #8a2a00; border-radius: 8px; padding: 5px 10px }
+.card-musculacao { display: flex; gap: 14px; align-items: center }
+.card-musculacao .corpo { flex: none }
+.card-musculacao .corpo-vista figcaption { display: none }
+.card-musculacao .card-treino-nums { grid-template-columns: 1fr; gap: 6px; flex: 1; min-width: 0 }
+.card-musculacao .card-treino-nums strong { white-space: normal; font-size: 16px }
 .card-treino-esporte { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--accent) }
 
 /* Conquista no feed */

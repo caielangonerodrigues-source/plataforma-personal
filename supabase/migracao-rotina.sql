@@ -89,3 +89,11 @@ begin
 end;
 $$;
 grant execute on function public.horarios_experimental(uuid), public.marcar_experimental(uuid, text, text, text, date, text, text) to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Check-in de musculação (sem ficha): o card do post guarda os grupos treinados e a duração.
+-- ---------------------------------------------------------------------------
+
+alter table public.checkins drop constraint if exists checkins_resumo_check;
+alter table public.checkins add constraint checkins_resumo_check
+  check (resumo is null or (jsonb_typeof(resumo) = 'object' and resumo->>'tipo' in ('treino', 'cardio', 'musculacao') and pg_column_size(resumo) < 2000));
