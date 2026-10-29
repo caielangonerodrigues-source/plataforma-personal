@@ -32,6 +32,18 @@ export default function AulaSpinning() {
     setBike((b) => (o.data || []).includes(b) ? null : b)
   }, [aulaId])
 
+  // Aluno logado: já preenche nome e WhatsApp com o cadastro dele.
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      const { data } = await supabase.from('alunos').select('nome, telefone').eq('user_id', session.user.id).maybeSingle()
+      if (!data) return
+      setNome((n) => n || data.nome || '')
+      setTelefone((t) => t || data.telefone || '')
+    })()
+  }, [])
+
   useEffect(() => {
     carregar()
     const t = setInterval(carregar, 20000) // mantém o mapa atualizado enquanto a pessoa escolhe

@@ -12,6 +12,7 @@ import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
+import AulasSpinning from '../spinning/AulasSpinning.jsx'
 import { useComunidade } from '../../hooks/useComunidade.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
 import { ultimaSessao } from '../../lib/progressao.js'
@@ -82,7 +83,7 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['evolucao', 'Evolução'], ['conta', 'Conta']]
+  const abas = [['treino', 'Treino'], ...(aluno.modalidade === 'online' ? [['consultoria', 'Consultoria']] : []), ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['evolucao', 'Evolução'], ['spinning', 'Spinning'], ['conta', 'Conta']]
 
   return (
     <div className="solo">
@@ -113,6 +114,7 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
 
+      {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">
           <Mensalidade aluno={aluno} />
