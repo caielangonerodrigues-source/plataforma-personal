@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase.js'
 import { pixCopiaECola } from '../../lib/pix.js'
 import { num } from '../../lib/formato.js'
+import AtivarNotificacoes from '../../components/AtivarNotificacoes.jsx'
 
 export default function Configuracoes() {
   const [d, setD] = useState(null)
@@ -21,6 +22,7 @@ export default function Configuracoes() {
       nome: d.nome?.trim() || null, telefone: d.telefone?.trim() || null,
       pix_chave: d.pix_chave?.trim() || null, pix_nome: d.pix_nome?.trim() || null, pix_cidade: d.pix_cidade?.trim() || null,
       ...('desconto_indicacao' in d ? { desconto_indicacao: num(d.desconto_indicacao) } : {}),
+      ...('trocar_ficha_semanas' in d ? { trocar_ficha_semanas: Math.min(26, Math.max(2, Math.round(num(d.trocar_ficha_semanas)) || 6)) } : {}),
     }).eq('user_id', d.user_id)
     if (error) return setErro(`Não foi possível salvar: ${error.message}`)
     setErro(''); setAviso('Configurações salvas.')
@@ -49,6 +51,15 @@ export default function Configuracoes() {
           </p>
           {exemplo && <textarea id="config-pix-teste" className="full" readOnly rows={3} value={exemplo} onFocus={(e) => e.target.select()} style={{ fontFamily: 'var(--mono)', fontSize: 12 }} />}
         </div>
+        {'trocar_ficha_semanas' in d && (
+          <div className="panel form">
+            <div className="secao" style={{ marginTop: 0 }}>Troca de ficha</div>
+            <label>Trocar a ficha a cada (semanas)<input type="number" min="2" max="26" {...campo('trocar_ficha_semanas')} /></label>
+            <p className="meta full" style={{ margin: 0 }}>
+              Quando a ficha de um aluno passa desse prazo, ela aparece no Painel em "Fichas para trocar", o aluno vê o aviso na área dele e os dois recebem uma notificação no celular (se ativaram). Criar uma ficha nova, programar uma fase ou tocar em "Já revisei" zera a contagem.
+            </p>
+          </div>
+        )}
         {'desconto_indicacao' in d && (
           <div className="panel form">
             <div className="secao" style={{ marginTop: 0 }}>Indique um amigo</div>
@@ -62,6 +73,9 @@ export default function Configuracoes() {
         {aviso && <p className="ok">{aviso}</p>}
         <div><button className="primary">Salvar</button></div>
       </form>
+      <div style={{ maxWidth: 640, marginTop: 16 }}>
+        <AtivarNotificacoes texto="Aviso de ficha para trocar e outros avisos dos seus alunos, neste celular." />
+      </div>
     </>
   )
 }

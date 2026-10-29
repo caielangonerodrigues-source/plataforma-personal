@@ -1,31 +1,112 @@
-import { sequencia } from './comunidade.js'
+import { somarDias } from './comunidade.js'
+import { cargaMaxima } from './progressao.js'
 
 // Dias distintos com check-in dentro do período do desafio.
 export function progressoDesafio(desafio, datas) {
   return new Set(datas.filter((d) => d >= desafio.inicio && d <= desafio.fim)).size
 }
 
-const MARCOS = [
-  { id: 'primeiro', titulo: 'Primeiro check-in', teste: (s) => s.total >= 1 },
-  { id: 'dez', titulo: '10 treinos', teste: (s) => s.total >= 10 },
-  { id: 'cinquenta', titulo: '50 treinos', teste: (s) => s.total >= 50 },
-  { id: 'cem', titulo: '100 treinos', teste: (s) => s.total >= 100 },
-  { id: 'semana', titulo: '7 dias seguidos', teste: (s) => s.maiorSequencia >= 7 },
-  { id: 'mes', titulo: '30 dias seguidos', teste: (s) => s.maiorSequencia >= 30 },
-]
-
 export function maiorSequencia(datas) {
   const dias = [...new Set(datas)].sort()
   let maior = 0
-  for (const d of dias) maior = Math.max(maior, sequencia(dias.filter((x) => x <= d), d))
+  let atual = 0
+  dias.forEach((d, i) => {
+    atual = i > 0 && somarDias(dias[i - 1], 1) === d ? atual + 1 : 1
+    maior = Math.max(maior, atual)
+  })
   return maior
 }
 
-// Medalhas de marcos automáticos + desafios concluídos.
-export function medalhas(datas, desafios = []) {
-  const s = { total: new Set(datas).size, maiorSequencia: maiorSequencia(datas) }
+// Segunda-feira da semana do dia.
+const semanaDe = (iso) => somarDias(iso, -((new Date(`${iso}T12:00:00Z`).getUTCDay() + 6) % 7))
+
+// Maior número de semanas seguidas com pelo menos `minimo` dias de treino.
+export function semanasSeguidas(datas, minimo = 3) {
+  const porSemana = {}
+  for (const d of new Set(datas)) porSemana[semanaDe(d)] = (porSemana[semanaDe(d)] || 0) + 1
+  const boas = Object.keys(porSemana).filter((s) => porSemana[s] >= minimo).sort()
+  let maior = 0
+  let atual = 0
+  boas.forEach((s, i) => {
+    atual = i > 0 && somarDias(boas[i - 1], 7) === s ? atual + 1 : 1
+    maior = Math.max(maior, atual)
+  })
+  return maior
+}
+
+// Vezes em que a carga máxima de um exercício passou a melhor anterior.
+export function recordes(registros = []) {
+  const melhor = {}
+  let n = 0
+  for (const r of [...registros].filter((r) => !r.troca).sort((a, b) => (a.data < b.data ? -1 : 1))) {
+    const max = cargaMaxima(r.series)
+    if (max == null) continue
+    if (melhor[r.exercicio_id] != null && max > melhor[r.exercicio_id]) n += 1
+    melhor[r.exercicio_id] = Math.max(melhor[r.exercicio_id] ?? 0, max)
+  }
+  return n
+}
+
+export function estatisticas({ datas = [], registros = [], avaliacoes = 0 }) {
+  const dias = [...new Set([...datas, ...registros.map((r) => r.data)])]
+  const porMes = {}
+  for (const d of dias) porMes[d.slice(0, 7)] = (porMes[d.slice(0, 7)] || 0) + 1
+  return {
+    total: dias.length,
+    maiorSequencia: maiorSequencia(dias),
+    semanas: semanasSeguidas(dias, 3),
+    melhorMes: Math.max(0, ...Object.values(porMes)),
+    fimDeSemana: dias.filter((d) => [0, 6].includes(new Date(`${d}T12:00:00Z`).getUTCDay())).length,
+    recordes: recordes(registros),
+    avaliacoes,
+  }
+}
+
+// [grupo, ícone, estatística, [id, título, meta, descrição]...]
+const GRUPOS = [
+  ['Treinos', '🏋️', 'total', [
+    ['primeiro', 'Primeiro treino', 1], ['dez', '10 treinos', 10], ['vinte-cinco', '25 treinos', 25], ['cinquenta', '50 treinos', 50],
+    ['cem', '100 treinos', 100], ['duzentos', '200 treinos', 200], ['ano', '365 treinos', 365, 'Um ano inteiro de treinos'],
+  ]],
+  ['Dias seguidos', '🔥', 'maiorSequencia', [
+    ['tres', '3 dias seguidos', 3], ['semana', '7 dias seguidos', 7], ['quinze', '14 dias seguidos', 14], ['mes', '30 dias seguidos', 30],
+  ]],
+  ['Semanas firmes', '📅', 'semanas', [
+    ['semanas-4', '1 mês firme', 4, '4 semanas seguidas treinando 3 vezes ou mais'],
+    ['semanas-12', 'Trimestre de ferro', 12, '12 semanas seguidas treinando 3 vezes ou mais'],
+    ['semanas-26', 'Meio ano sem falhar', 26, '26 semanas seguidas treinando 3 vezes ou mais'],
+  ]],
+  ['Mês forte', '🗓️', 'melhorMes', [
+    ['mes-12', 'Mês focado', 12, '12 treinos no mesmo mês'], ['mes-20', 'Mês monstro', 20, '20 treinos no mesmo mês'],
+  ]],
+  ['Fim de semana', '☀️', 'fimDeSemana', [
+    ['fds-10', 'Sem folga no sábado', 10, '10 treinos em sábados ou domingos'],
+  ]],
+  ['Força', '💪', 'recordes', [
+    ['recorde-1', 'Primeiro recorde', 1, 'Bateu sua melhor carga em um exercício'],
+    ['recorde-10', '10 recordes', 10, 'Bateu sua melhor carga 10 vezes'], ['recorde-50', '50 recordes', 50, 'Bateu sua melhor carga 50 vezes'],
+  ]],
+  ['Avaliação', '📏', 'avaliacoes', [
+    ['avaliacao-2', 'Medindo a evolução', 2, '2 avaliações físicas'], ['avaliacao-4', 'Evolução de verdade', 4, '4 avaliações físicas'],
+  ]],
+]
+
+// Medalhas de marcos automáticos + desafios concluídos. `dados` pode ser só a lista de datas.
+export function medalhas(dados, desafios = []) {
+  const s = estatisticas(Array.isArray(dados) ? { datas: dados } : dados)
+  const datas = Array.isArray(dados) ? dados : dados.datas || []
   return [
-    ...MARCOS.map((m) => ({ id: m.id, titulo: m.titulo, ganhou: m.teste(s) })),
-    ...desafios.map((d) => ({ id: d.id, titulo: d.titulo, ganhou: progressoDesafio(d, datas) >= d.meta_dias, desafio: true })),
+    ...GRUPOS.flatMap(([grupo, icone, chave, lista]) => lista.map(([id, titulo, meta, descricao]) => ({
+      id, titulo, grupo, icone, meta, descricao: descricao || titulo, valor: Math.min(s[chave], meta), ganhou: s[chave] >= meta,
+    }))),
+    ...desafios.map((d) => {
+      const valor = progressoDesafio(d, datas)
+      return { id: d.id, titulo: d.titulo, grupo: 'Desafios', icone: '🏆', meta: d.meta_dias, descricao: `${d.meta_dias} dias de check-in no desafio`, valor: Math.min(valor, d.meta_dias), ganhou: valor >= d.meta_dias, desafio: true }
+    }),
   ]
+}
+
+// A medalha que está mais perto de sair (maior porcentagem já feita).
+export function proximaMedalha(lista) {
+  return lista.filter((m) => !m.ganhou && m.valor > 0).sort((a, b) => b.valor / b.meta - a.valor / a.meta)[0] || lista.find((m) => !m.ganhou)
 }

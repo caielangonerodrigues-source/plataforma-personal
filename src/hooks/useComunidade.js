@@ -3,7 +3,7 @@ import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { inicioDoMes } from '../lib/comunidade.js'
 
-// Feed (últimos 30 check-ins), check-ins do mês para o ranking, curtidas e fotos.
+// Feed (últimos 30 check-ins), check-ins do mês para o ranking, curtidas, comentários, fotos e avatares.
 export function useComunidade() {
   const [dados, setDados] = useState(null)
   const [erro, setErro] = useState('')
@@ -23,9 +23,13 @@ export function useComunidade() {
     if (falha) return setErro(`Não foi possível carregar a comunidade: ${falha.message}`)
     const ids = feed.data.map((c) => c.id)
     const caminhos = feed.data.map((c) => c.foto).filter(Boolean)
-    const [curtidas, fotos] = await Promise.all([
+    const avatares = membros.data.map((m) => m.avatar).filter((a) => a && !a.startsWith('p:'))
+    // Comentários e avatares são do SQL novo: se ainda não rodou, só não aparecem.
+    const [curtidas, fotos, comentarios, fotosAvatar] = await Promise.all([
       ids.length ? supabase.from('curtidas').select('checkin_id, user_id').in('checkin_id', ids) : { data: [] },
       caminhos.length ? supabase.storage.from('checkins').createSignedUrls(caminhos, 3600) : { data: [] },
+      ids.length ? supabase.from('comentarios_checkin').select('*').in('checkin_id', ids).order('created_at') : { data: [] },
+      avatares.length ? supabase.storage.from('avatares').createSignedUrls(avatares, 3600) : { data: [] },
     ])
     setErro('')
     setDados({
@@ -36,7 +40,8 @@ export function useComunidade() {
       periodo: periodo.data,
       desafios: desafios.data,
       curtidas: curtidas.data || [],
-      fotos: Object.fromEntries((fotos.data || []).filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])),
+      comentarios: comentarios.error ? null : comentarios.data || [],
+      fotos: Object.fromEntries([...(fotos.data || []), ...(fotosAvatar.data || [])].filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])),
     })
   }, [])
 
@@ -57,5 +62,18 @@ export function useComunidade() {
     carregar()
   }
 
-  return { dados, erro, carregar, curtir, apagar }
+  async function comentar(checkinId, texto) {
+    const { error } = await supabase.from('comentarios_checkin').insert({ checkin_id: checkinId, texto })
+    if (error) return 'Não foi possível comentar agora. Tente de novo.'
+    await carregar()
+    return ''
+  }
+
+  async function apagarComentario(id) {
+    const { error } = await supabase.from('comentarios_checkin').delete().eq('id', id)
+    if (error) setErro(`Não foi possível apagar: ${error.message}`)
+    carregar()
+  }
+
+  return { dados, erro, carregar, curtir, apagar, comentar, apagarComentario }
 }

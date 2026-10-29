@@ -7,6 +7,7 @@ import { somarDias } from '../../lib/comunidade.js'
 import { alunosSumidos, aniversariantes, mensalidadesAtrasadas } from '../../lib/atencao.js'
 import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { atendimentos } from '../../lib/agenda.js'
+import { fichasParaTrocar } from '../../lib/ficha.js'
 
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
@@ -18,6 +19,9 @@ export default function Painel() {
   const [trocas, setTrocas] = useState([])
   const [amanha, setAmanha] = useState(0)
   const [feedbacks, setFeedbacks] = useState([])
+  const [prazoFicha, setPrazoFicha] = useState(6)
+  const [comFase, setComFase] = useState(new Set())
+  const [revisados, setRevisados] = useState({})
   const [erro, setErro] = useState('')
   const hoje = hojeISO()
 
@@ -26,6 +30,16 @@ export default function Painel() {
     // Começa as fases de treino programadas para hoje antes de contar as fichas.
     supabase.rpc('aplicar_fases').then(() => supabase.from('alunos').select('*, avaliacoes(data, peso, gordura), treinos(*)').order('nome'))
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data.map((a) => ({ ...a, treinos: a.treinos.filter((t) => !t.arquivado) })))))
+    // Prazo de troca de ficha e quem já tem fase programada (sem o SQL novo, fica o padrão de 6 semanas).
+    supabase.from('personais').select('*').maybeSingle().then(({ data }) => data?.trocar_ficha_semanas && setPrazoFicha(data.trocar_ficha_semanas))
+    supabase.from('fases').select('aluno_id').is('aplicada_em', null).then(({ data }) => setComFase(new Set((data || []).map((f) => f.aluno_id))))
+    // Uma vez por dia, manda a notificação das fichas vencidas (aluno e personal).
+    try {
+      if (localStorage.getItem('aviso-fichas') !== hoje) {
+        localStorage.setItem('aviso-fichas', hoje)
+        supabase.functions.invoke('notificacoes', { body: { acao: 'fichas' } }).catch(() => {})
+      }
+    } catch { /* sem localStorage */ }
     supabase.from('feedbacks_treino').select('*').gte('data', somarDias(hoje, -7)).order('data', { ascending: false }).limit(30)
       .then(({ data }) => setFeedbacks(data || []))
     supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
@@ -61,6 +75,12 @@ export default function Painel() {
   const mes = MESES[Number(hoje.slice(5, 7)) - 1]
   const aniversarios = aniversariantes(alunos, hoje)
   const feedbacksComDor = feedbacks.filter((f) => f.dor || f.esforco >= 9)
+  const fichas = fichasParaTrocar(alunos.map((a) => (revisados[a.id] ? { ...a, ficha_renovada_em: revisados[a.id] } : a)), hoje, prazoFicha, comFase)
+  async function jaRevisei(a) {
+    const { error } = await supabase.from('alunos').update({ ficha_renovada_em: hoje }).eq('id', a.id)
+    if (error) return alert('Rode o SQL novo (migracao-comunidade-fichas.sql) para usar este botão.')
+    setRevisados({ ...revisados, [a.id]: hoje })
+  }
   const atencao = [
     ...atrasados.map((a) => ({ a, chave: `m${a.id}`, texto: `Mensalidade de ${mes} atrasada (${brl(a.valor_mensal)}, venceu dia ${a.dia_vencimento})`, botao: 'Cobrar',
       zap: `Oi, ${primeiroNome(a.nome)}! A mensalidade de ${mes} (${brl(a.valor_mensal)}) venceu dia ${a.dia_vencimento}. O Pix está na área do aluno, em Conta. Qualquer dúvida me chama!` })),
@@ -99,6 +119,25 @@ export default function Painel() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+      {fichas.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16 }}>
+          <div className="row between"><h2>Fichas para trocar</h2><span className="meta">prazo de {prazoFicha} semanas · muda em Configurações</span></div>
+          <div className="list">
+            {fichas.map(({ aluno: a, semanas, faltam, vencida }) => (
+              <div className="item" key={a.id} style={{ cursor: 'default' }}>
+                <Link to={`/alunos/${a.id}`} style={{ color: 'inherit', textDecoration: 'none', minWidth: 0 }}>
+                  <div className="name">{a.nome}</div>
+                  <div className="meta">{semanas} semanas na mesma ficha · {faltam === 0 ? 'vence hoje' : vencida ? `venceu há ${-faltam} ${-faltam === 1 ? 'dia' : 'dias'}` : `vence em ${faltam} ${faltam === 1 ? 'dia' : 'dias'}`}</div>
+                </Link>
+                <div className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
+                  <button className="ghost small" onClick={() => jaRevisei(a)}>Já revisei</button>
+                  <Link className={`pill ${vencida ? 'pendente' : 'ativo'}`} style={{ textDecoration: 'none' }} to={`/alunos/${a.id}`}>Montar nova</Link>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

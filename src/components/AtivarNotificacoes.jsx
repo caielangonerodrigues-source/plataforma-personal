@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ativarNotificacoes, desativarNotificacoes, ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 
 // Área do aluno: liga as notificações no celular (lembrete de treino, relatório novo, avisos do personal).
-export default function AtivarNotificacoes() {
+export default function AtivarNotificacoes({ texto = 'Lembrete do treino com o personal, relatório do mês e avisos.' }) {
   const [ativo, setAtivo] = useState(null)
   const [erro, setErro] = useState('')
   const [ocupado, setOcupado] = useState(false)
@@ -24,7 +24,7 @@ export default function AtivarNotificacoes() {
       <div className="row between">
         <div style={{ minWidth: 0, flex: 1 }}>
           <h2 style={{ margin: 0 }}>Notificações no celular</h2>
-          <p className="meta" style={{ margin: '2px 0 0' }}>Lembrete do treino com o personal, relatório do mês e avisos.</p>
+          <p className="meta" style={{ margin: '2px 0 0' }}>{texto}</p>
         </div>
         {!iphoneSemApp && ativo !== null && (
           <button className={ativo ? '' : 'primary'} disabled={ocupado} onClick={alternar}>{ocupado ? 'Aguarde…' : ativo ? 'Desativar' : 'Ativar'}</button>
