@@ -10,15 +10,7 @@
   --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121214; --surface: #1c1c20; --ink: #ececf0; --muted: #a0a0ab; --line: #2e2e34;
-    --accent: #ff6a2b; --accent-ink: #160800; --accent-soft: #3a1d10;
-    --warn: #ff8a65; --warn-soft: #3b2019; --ok: #5cc982; --ok-soft: #173322; --pause: #a9adc4; --pause-soft: #2a2c36;
-    --chart2: #8fb3e0;
-    color-scheme: dark;
-  }
-}
+/* O site é sempre claro (decisão da academia), mesmo com o celular no modo escuro. */
 
 * { box-sizing: border-box }
 html, body, #root { height: 100% }
