@@ -1,13 +1,14 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import { primeiroNome } from '../../lib/formato.js'
+import Logo from '../../components/Logo.jsx'
 
 export default function LayoutPersonal({ nome }) {
   const cls = ({ isActive }) => `navbtn${isActive ? ' active' : ''}`
   return (
     <div className="app">
       <nav className="side" aria-label="Seções">
-        <div className="brand">Personal<small>{nome ? `Olá, ${primeiroNome(nome)}` : 'Área do treinador'}</small></div>
+        <Logo sub={nome ? `Olá, ${primeiroNome(nome)}` : 'Área do treinador'} />
         <NavLink to="/painel" className={cls}>Painel</NavLink>
         <NavLink to="/alunos" className={cls}>Alunos</NavLink>
         <NavLink to="/modelos" className={cls}>Modelos</NavLink>
