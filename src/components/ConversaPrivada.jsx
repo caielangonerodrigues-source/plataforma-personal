@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import { quandoFoi } from '../lib/comunidade.js'
+import { avisarInteracao } from '../lib/push.js'
 
 // Conversa particular entre o aluno e o personal. Mensagens novas chegam na hora (Realtime)
 // e, a cada 20 segundos, o chat confere de novo. Ao abrir, marca como lidas as mensagens da outra pessoa.
@@ -39,6 +40,7 @@ export default function ConversaPrivada({ alunoId, eu, com, onLidas }) {
     setEnviando(false)
     if (error) return setErro('Não foi possível enviar agora. Tente de novo.')
     setErro(''); setTexto(''); carregar()
+    avisarInteracao('mensagem', { aluno_id: alunoId }, 60000) // no máximo um aviso por minuto
   }
 
   if (indisponivel) return <div className="panel empty">As mensagens aparecem aqui assim que o personal atualizar o sistema.</div>

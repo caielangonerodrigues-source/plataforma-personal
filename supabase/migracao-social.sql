@@ -1,13 +1,13 @@
--- Rede social e motivação: reações com emoji, card do treino, conquistas, motivação, vídeos de execução e mensagens com o personal.
+-- Rede social e motivação: reações com emoji, card do treino, conquistas, motivação, vídeos de execução, mensagens com o personal e diário da dieta.
 -- Pode rodar mais de uma vez.
 
 -- ---------------------------------------------------------------------------
--- Reações nos posts: cada pessoa escolhe um emoji por post (as curtidas antigas viram ❤️).
+-- Reações nos posts: cada pessoa escolhe um emoji por post (as curtidas antigas viram ❤️). Qualquer emoji da lista do app.
 -- ---------------------------------------------------------------------------
 
 alter table public.curtidas add column if not exists emoji text not null default '❤️';
 alter table public.curtidas drop constraint if exists curtidas_emoji_check;
-alter table public.curtidas add constraint curtidas_emoji_check check (emoji in ('❤️', '🔥', '💪', '👏', '😂', '😮'));
+alter table public.curtidas add constraint curtidas_emoji_check check (char_length(emoji) between 1 and 16);
 
 drop policy if exists "trocar reação" on public.curtidas;
 create policy "trocar reação" on public.curtidas
@@ -20,10 +20,12 @@ create policy "trocar reação" on public.curtidas
 create table if not exists public.reacoes_mensagem (
   mensagem_id uuid not null references public.mensagens_turma (id) on delete cascade,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  emoji text not null check (emoji in ('❤️', '🔥', '💪', '👏', '😂', '😮')),
+  emoji text not null check (char_length(emoji) between 1 and 16),
   created_at timestamptz not null default now(),
   primary key (mensagem_id, user_id)
 );
+alter table public.reacoes_mensagem drop constraint if exists reacoes_mensagem_emoji_check;
+alter table public.reacoes_mensagem add constraint reacoes_mensagem_emoji_check check (char_length(emoji) between 1 and 16);
 
 create or replace function public.turma_da_mensagem(m uuid) returns uuid
 language sql stable security definer set search_path = public as $$
@@ -102,10 +104,12 @@ create policy "apagar conquista" on public.conquistas
 create table if not exists public.reacoes_conquista (
   conquista_id uuid not null references public.conquistas (id) on delete cascade,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  emoji text not null check (emoji in ('❤️', '🔥', '💪', '👏', '😂', '😮')),
+  emoji text not null check (char_length(emoji) between 1 and 16),
   created_at timestamptz not null default now(),
   primary key (conquista_id, user_id)
 );
+alter table public.reacoes_conquista drop constraint if exists reacoes_conquista_emoji_check;
+alter table public.reacoes_conquista add constraint reacoes_conquista_emoji_check check (char_length(emoji) between 1 and 16);
 
 create or replace function public.aluno_da_conquista(c uuid) returns uuid
 language sql stable security definer set search_path = public as $$
@@ -228,3 +232,60 @@ begin
     alter publication supabase_realtime add table public.mensagens_privadas;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Diário da dieta: o aluno marca as refeições feitas (com foto do prato, se quiser) e o que comeu fora do plano.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.diario_dieta (
+  id uuid primary key default gen_random_uuid(),
+  aluno_id uuid not null references public.alunos (id) on delete cascade,
+  data date not null default (now() at time zone 'America/Sao_Paulo')::date,
+  refeicao int check (refeicao between 0 and 30),            -- posição da refeição no plano (quando é refeição do plano)
+  alimento text check (char_length(alimento) between 1 and 80), -- ou um extra fora do plano
+  gramas numeric(6, 1) check (gramas between 0 and 5000),
+  macros jsonb check (macros is null or (jsonb_typeof(macros) = 'object' and pg_column_size(macros) < 400)),
+  foto text check (foto ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.jpg$'),
+  created_at timestamptz not null default now(),
+  check (refeicao is not null or alimento is not null)
+);
+create unique index if not exists diario_dieta_refeicao_idx on public.diario_dieta (aluno_id, data, refeicao) where refeicao is not null;
+create index if not exists diario_dieta_aluno_idx on public.diario_dieta (aluno_id, data desc);
+
+alter table public.diario_dieta enable row level security;
+drop policy if exists "aluno cuida do seu diário" on public.diario_dieta;
+create policy "aluno cuida do seu diário" on public.diario_dieta
+  for all using (public.eh_o_aluno(aluno_id)) with check (public.eh_o_aluno(aluno_id));
+drop policy if exists "personal vê o diário" on public.diario_dieta;
+create policy "personal vê o diário" on public.diario_dieta
+  for select using (public.dono_do_aluno(aluno_id));
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('pratos', 'pratos', false, 5242880, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+drop policy if exists "enviar foto do prato" on storage.objects;
+create policy "enviar foto do prato" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'pratos' and public.eh_o_aluno(((storage.foldername(name))[1])::uuid));
+drop policy if exists "ver foto do prato" on storage.objects;
+create policy "ver foto do prato" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'pratos' and (
+    public.eh_o_aluno(((storage.foldername(name))[1])::uuid) or public.dono_do_aluno(((storage.foldername(name))[1])::uuid)
+  ));
+drop policy if exists "apagar foto do prato" on storage.objects;
+create policy "apagar foto do prato" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'pratos' and public.eh_o_aluno(((storage.foldername(name))[1])::uuid));
+
+-- Ranking separado: a lista da turma passa a dizer se o aluno é da academia ou da consultoria online.
+drop function if exists public.comunidade_membros();
+create function public.comunidade_membros() returns table (id uuid, nome text, avatar text, equipe_id uuid, modalidade text)
+language sql stable security definer set search_path = public as $$
+  select a.id, a.nome, a.avatar, a.equipe_id, a.modalidade from alunos a
+   where a.personal_id = auth.uid()
+      or (a.comunidade and a.status <> 'pausado' and a.personal_id = public.meu_grupo())
+      or a.user_id = auth.uid()
+$$;
+grant execute on function public.comunidade_membros() to authenticated;

@@ -88,3 +88,58 @@ export function sugerirMetas({ peso, altura, idade, sexo, gordura, objetivo, ati
 export const REFEICOES_PADRAO = [
   ['Café da manhã', '07:00'], ['Lanche da manhã', '10:00'], ['Almoço', '12:30'], ['Lanche da tarde', '16:00'], ['Jantar', '19:30'], ['Ceia', '22:00'],
 ].map(([nome, horario]) => ({ nome, horario, itens: [] }))
+
+// Modelos prontos de dieta (base entre 1500 e 2600 kcal). Ao aplicar, os gramas são ajustados para a meta de calorias do aluno.
+const it = (alimento, gramas, quantidade = '') => ({ alimento, gramas, quantidade })
+export const MODELOS_DIETA = [
+  { chave: 'emagrecer', nome: 'Emagrecimento', descricao: 'Mais proteína e saciedade, carboidrato moderado.', refeicoes: [
+    { nome: 'Café da manhã', horario: '07:00', itens: [it('Ovo cozido', 100, '2 ovos'), it('Pão de forma integral', 50, '2 fatias'), it('Mamão papaia', 150, '1 fatia')] },
+    { nome: 'Lanche da manhã', horario: '10:00', itens: [it('Iogurte grego natural desnatado', 170, '1 pote'), it('Morango', 100, '1 xícara')] },
+    { nome: 'Almoço', horario: '12:30', itens: [it('Arroz integral cozido', 120, '4 colheres'), it('Feijão carioca cozido', 100, '1 concha'), it('Peito de frango grelhado', 150, '1 filé'), it('Alface', 50, 'à vontade'), it('Azeite de oliva', 5, '1 colher de chá')] },
+    { nome: 'Lanche da tarde', horario: '16:00', itens: [it('Whey protein concentrado', 30, '1 scoop'), it('Banana prata', 100, '1 banana')] },
+    { nome: 'Jantar', horario: '19:30', itens: [it('Tilápia grelhada', 150, '1 filé'), it('Batata doce cozida', 120, '1 pequena'), it('Brócolis cozido', 100, '1 xícara')] },
+    { nome: 'Ceia', horario: '22:00', itens: [it('Queijo cottage', 100, '4 colheres')] },
+  ] },
+  { chave: 'hipertrofia', nome: 'Hipertrofia', descricao: 'Mais carboidrato para treinar pesado e proteína em todas as refeições.', refeicoes: [
+    { nome: 'Café da manhã', horario: '07:00', itens: [it('Ovo cozido', 150, '3 ovos'), it('Pão francês', 50, '1 pão'), it('Aveia em flocos', 40, '4 colheres'), it('Banana prata', 100, '1 banana')] },
+    { nome: 'Lanche da manhã', horario: '10:00', itens: [it('Iogurte natural integral', 170, '1 pote'), it('Granola', 30, '3 colheres')] },
+    { nome: 'Almoço', horario: '12:30', itens: [it('Arroz branco cozido', 200, '6 colheres'), it('Feijão carioca cozido', 140, '1 concha cheia'), it('Patinho grelhado', 150, '1 bife'), it('Tomate', 80, 'salada'), it('Azeite de oliva', 10, '1 colher')] },
+    { nome: 'Pré-treino', horario: '16:00', itens: [it('Tapioca (goma hidratada)', 60, '1 tapioca'), it('Queijo minas frescal', 30, '1 fatia'), it('Mel', 15, '1 colher')] },
+    { nome: 'Pós-treino', horario: '18:30', itens: [it('Whey protein concentrado', 30, '1 scoop'), it('Banana prata', 100, '1 banana')] },
+    { nome: 'Jantar', horario: '20:00', itens: [it('Macarrão cozido', 150, '1 prato raso'), it('Carne moída refogada', 120, '4 colheres'), it('Abobrinha cozida', 100, '1 xícara')] },
+  ] },
+  { chave: 'manter', nome: 'Equilibrada', descricao: 'Para manter o peso com comida do dia a dia.', refeicoes: [
+    { nome: 'Café da manhã', horario: '07:00', itens: [it('Pão francês', 50, '1 pão'), it('Ovo cozido', 50, '1 ovo'), it('Leite integral', 200, '1 copo'), it('Maçã', 130, '1 maçã')] },
+    { nome: 'Almoço', horario: '12:30', itens: [it('Arroz branco cozido', 150, '5 colheres'), it('Feijão preto cozido', 100, '1 concha'), it('Coxa de frango assada', 120, '1 coxa'), it('Cenoura crua', 50, 'salada'), it('Azeite de oliva', 5, '1 colher de chá')] },
+    { nome: 'Lanche da tarde', horario: '16:00', itens: [it('Iogurte natural integral', 170, '1 pote'), it('Aveia em flocos', 20, '2 colheres'), it('Banana prata', 100, '1 banana')] },
+    { nome: 'Jantar', horario: '19:30', itens: [it('Batata inglesa cozida', 150, '1 média'), it('Alcatra grelhada', 120, '1 bife'), it('Chuchu cozido', 100, '1 xícara')] },
+    { nome: 'Ceia', horario: '22:00', itens: [it('Castanha-do-pará', 10, '2 castanhas')] },
+  ] },
+  { chave: 'lowcarb', nome: 'Low carb', descricao: 'Pouco carboidrato, mais gordura boa e proteína.', refeicoes: [
+    { nome: 'Café da manhã', horario: '07:00', itens: [it('Ovo cozido', 150, '3 ovos'), it('Queijo minas frescal', 30, '1 fatia'), it('Abacate', 100, '½ abacate')] },
+    { nome: 'Almoço', horario: '12:30', itens: [it('Salmão grelhado', 150, '1 posta'), it('Brócolis cozido', 150, '1 xícara e meia'), it('Alface', 50, 'à vontade'), it('Azeite de oliva', 10, '1 colher')] },
+    { nome: 'Lanche da tarde', horario: '16:00', itens: [it('Iogurte grego natural desnatado', 170, '1 pote'), it('Amendoim torrado', 20, '1 punhado')] },
+    { nome: 'Jantar', horario: '19:30', itens: [it('Peito de frango grelhado', 150, '1 filé'), it('Abobrinha cozida', 150, '1 xícara e meia'), it('Azeite de oliva', 10, '1 colher')] },
+    { nome: 'Ceia', horario: '22:00', itens: [it('Pasta de amendoim', 15, '1 colher')] },
+  ] },
+  { chave: 'vegetariana', nome: 'Vegetariana', descricao: 'Sem carne, com ovos, laticínios e leguminosas.', refeicoes: [
+    { nome: 'Café da manhã', horario: '07:00', itens: [it('Ovo cozido', 100, '2 ovos'), it('Pão de forma integral', 50, '2 fatias'), it('Leite integral', 200, '1 copo')] },
+    { nome: 'Almoço', horario: '12:30', itens: [it('Arroz integral cozido', 150, '5 colheres'), it('Lentilha cozida', 150, '1 concha cheia'), it('Tofu', 100, '4 cubos grandes'), it('Tomate', 80, 'salada'), it('Azeite de oliva', 5, '1 colher de chá')] },
+    { nome: 'Lanche da tarde', horario: '16:00', itens: [it('Iogurte grego natural desnatado', 170, '1 pote'), it('Granola', 30, '3 colheres')] },
+    { nome: 'Jantar', horario: '19:30', itens: [it('Grão-de-bico cozido', 120, '4 colheres'), it('Queijo cottage', 100, '4 colheres'), it('Batata doce cozida', 120, '1 pequena'), it('Brócolis cozido', 100, '1 xícara')] },
+    { nome: 'Ceia', horario: '22:00', itens: [it('Castanha-do-pará', 10, '2 castanhas')] },
+  ] },
+]
+
+// Monta as refeições de um modelo para a meta de calorias (gramas de 5 em 5, com os macros de cada item).
+export function aplicarModeloDieta(modelo, calorias) {
+  const base = totalDaDieta(modelo.refeicoes.map((r) => ({ itens: r.itens.map((i) => macrosDoItem(i.alimento, i.gramas)) })))
+  const fator = calorias && base.kcal ? Math.min(1.8, Math.max(0.6, calorias / base.kcal)) : 1
+  return modelo.refeicoes.map((r) => ({
+    nome: r.nome, horario: r.horario,
+    itens: r.itens.map((i) => {
+      const gramas = Math.max(5, Math.round((i.gramas * fator) / 5) * 5)
+      return { alimento: i.alimento, quantidade: fator === 1 ? i.quantidade : '', gramas, ...macrosDoItem(i.alimento, gramas) }
+    }),
+  }))
+}

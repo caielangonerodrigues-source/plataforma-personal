@@ -7,6 +7,8 @@
 //   { acao: 'fichas' }                                 → avisa aluno e personal quando a ficha passou do prazo de troca
 //   { acao: 'mensalidades' }                           → lembra o aluno da mensalidade (2 dias antes, no dia e 3 dias depois)
 //   { acao: 'motivacao' }                              → frase de motivação para quem está sem treinar há 3, 7, 14, 21 ou 30 dias
+//   { acao: 'interacao', tipo, checkin_id | aluno_id } → qualquer um logado: avisa o dono do post (comentário/reação)
+//                                                        ou o outro lado da conversa particular (mensagem). O texto vem do banco.
 // Os lembretes (e os avisos de ficha e mensalidade) podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
 // O painel do personal também chama 'fichas', 'mensalidades' e 'motivacao' uma vez por dia.
 import webpush from 'npm:web-push@3.6.7'
@@ -215,6 +217,46 @@ async function motivacao(personalId?: string) {
   return { avisados }
 }
 
+// Comentário, reação ou mensagem particular: avisa quem recebeu. Só manda o que a pessoa acabou de fazer
+// (lido com o login dela, então as regras do banco valem) e nunca para ela mesma.
+const curto = (t: string, n = 110) => (t.length > n ? t.slice(0, n - 1) + '…' : t)
+async function nomeDe(userId: string) {
+  const { data: p } = await admin.from('personais').select('nome').eq('user_id', userId).maybeSingle()
+  if (p) return { nome: p.nome || 'Seu personal', personal: true }
+  const { data: a } = await admin.from('alunos').select('nome').eq('user_id', userId).limit(1).maybeSingle()
+  return { nome: (a?.nome || 'Alguém').split(' ')[0], personal: false }
+}
+// deno-lint-ignore no-explicit-any
+async function interacao(db: any, eu: string, corpo: any) {
+  const desde = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+  const quem = await nomeDe(eu)
+  if (corpo.tipo === 'comentario' || corpo.tipo === 'reacao') {
+    // O post é lido com o login de quem interagiu (prova que ele vê o post); o dono, com a chave de serviço.
+    const { data: c } = await db.from('checkins').select('id, aluno_id').eq('id', String(corpo.checkin_id || '')).maybeSingle()
+    if (!c) return { enviadas: 0 }
+    const { data: aluno } = await admin.from('alunos').select('user_id').eq('id', c.aluno_id).maybeSingle()
+    const dono = aluno?.user_id
+    if (!dono || dono === eu) return { enviadas: 0 }
+    if (corpo.tipo === 'comentario') {
+      const { data: k } = await db.from('comentarios_checkin').select('texto').eq('checkin_id', c.id).eq('user_id', eu).gte('created_at', desde).order('created_at', { ascending: false }).limit(1).maybeSingle()
+      if (!k) return { enviadas: 0 }
+      return enviar([dono], { titulo: `${quem.nome} comentou no seu treino 💬`, corpo: curto(k.texto), url: '/' })
+    }
+    const { data: r } = await db.from('curtidas').select('emoji, created_at').eq('checkin_id', c.id).eq('user_id', eu).gte('created_at', desde).maybeSingle()
+    if (!r) return { enviadas: 0 }
+    return enviar([dono], { titulo: `${quem.nome} reagiu ${r.emoji || '❤️'} ao seu treino`, corpo: quem.personal ? 'Seu personal viu seu treino. Bora manter o ritmo!' : 'A turma está de olho. Continue assim!', url: '/' })
+  }
+  if (corpo.tipo === 'mensagem') {
+    const { data: m } = await db.from('mensagens_privadas').select('aluno_id, texto, do_personal').eq('aluno_id', String(corpo.aluno_id || '')).eq('user_id', eu).gte('created_at', desde).order('created_at', { ascending: false }).limit(1).maybeSingle()
+    if (!m) return { enviadas: 0 }
+    const { data: aluno } = await admin.from('alunos').select('user_id, personal_id').eq('id', m.aluno_id).maybeSingle()
+    const para = m.do_personal ? aluno?.user_id : aluno?.personal_id
+    if (!para || para === eu) return { enviadas: 0 }
+    return enviar([para], { titulo: m.do_personal ? 'Mensagem do seu personal 💬' : `Mensagem de ${quem.nome} 💬`, corpo: curto(m.texto), url: m.do_personal ? '/' : '/mensagens' })
+  }
+  return { erro: 'Tipo desconhecido.' }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -226,10 +268,11 @@ Deno.serve(async (req) => {
     // Agendamento diário: confere o segredo e manda os lembretes de todos.
     if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas(), mensalidades: await mensalidades(), motivacao: await motivacao() })
 
-    // Daqui para baixo só o personal, com o login dele (as regras do banco limitam aos alunos dele).
+    // Daqui para baixo precisa estar logado. 'interacao' vale para todos; o resto só para o personal (as regras do banco limitam aos alunos dele).
     const db = createClient(URL_SUPABASE, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } })
     const { data: { user } } = await db.auth.getUser()
     if (!user) return resposta({ erro: 'Entre na sua conta.' }, 401)
+    if (corpo.acao === 'interacao') return resposta(await interacao(db, user.id, corpo))
     const { data: personal } = await db.from('personais').select('user_id').eq('user_id', user.id).maybeSingle()
     if (!personal) return resposta({ erro: 'Só o personal envia notificações.' }, 403)
 

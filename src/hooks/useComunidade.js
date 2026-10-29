@@ -3,6 +3,7 @@ import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { inicioDoMes } from '../lib/comunidade.js'
 import { EMOJIS, acaoReacao } from '../lib/reacoes.js'
+import { avisarInteracao } from '../lib/push.js'
 
 // Curtidas com o emoji de cada reação; sem o SQL das reações, lê só as curtidas (viram ❤️).
 async function lerCurtidas(ids) {
@@ -74,6 +75,7 @@ export function useComunidade() {
         ? await tabela.update({ emoji }).eq('checkin_id', checkinId).eq('user_id', dados.eu)
         : await tabela.insert(dados.reacoesSimples ? { checkin_id: checkinId } : { checkin_id: checkinId, emoji })
     if (error && error.code !== '23505') setErro('Não foi possível reagir agora. Tente de novo.')
+    else if (!error && acao === 'colocar') avisarInteracao('reacao', { checkin_id: checkinId })
     carregar()
   }
 
@@ -100,6 +102,7 @@ export function useComunidade() {
   async function comentar(checkinId, texto) {
     const { error } = await supabase.from('comentarios_checkin').insert({ checkin_id: checkinId, texto })
     if (error) return 'Não foi possível comentar agora. Tente de novo.'
+    avisarInteracao('comentario', { checkin_id: checkinId })
     await carregar()
     return ''
   }

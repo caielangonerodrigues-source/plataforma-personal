@@ -30,6 +30,7 @@ import CompartilharStory from '../../components/CompartilharStory.jsx'
 import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
 import BarraApp, { Icone } from '../../components/BarraApp.jsx'
 import Voce from '../../components/Voce.jsx'
+import ComoFunciona, { AJUDA_ALUNO } from '../../components/ComoFunciona.jsx'
 import Avatar from '../../components/Avatar.jsx'
 import { SimboloCA } from '../../components/Logo.jsx'
 import { buscaVideo } from '../../lib/exercicios.js'
@@ -263,9 +264,11 @@ export default function AreaAluno({ aluno }) {
         ))}
       </div>
 
+      {AJUDA_ALUNO[aba] && <ComoFunciona key={aba} chave={aba} itens={AJUDA_ALUNO[aba]} />}
+
       {aba === 'inicio' && (
         <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos}
-          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} academia={academia} online={online}
+          temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} situacaoFicha={situacao} proximaFase={proximaFase} academia={academia} online={online}
           irPara={irPara} onCheckin={() => setCheckinAberto(true)} />
       )}
 
@@ -276,13 +279,10 @@ export default function AreaAluno({ aluno }) {
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
       {aba === 'videos' && <VideosExecucao aluno={aluno} exercicios={(treinos || []).flatMap((t) => t.exercicios.map((e) => e.nome))} />}
       {aba === 'mensagens' && (
-        <div className="stack">
-          <p className="meta" style={{ margin: 0 }}>Conversa particular com seu personal: dúvidas, dores, ajustes no treino. Só vocês dois veem.</p>
-          <ConversaPrivada alunoId={aluno.id} eu={aluno.user_id} com="seu personal" onLidas={() => setNaoLidas(0)} />
-        </div>
+        <ConversaPrivada alunoId={aluno.id} eu={aluno.user_id} com="seu personal" onLidas={() => setNaoLidas(0)} />
       )}
 
-      {aba === 'dieta' && <DietaAluno alunoId={aluno.id} />}
+      {aba === 'dieta' && <DietaAluno aluno={aluno} hoje={hoje} />}
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">
