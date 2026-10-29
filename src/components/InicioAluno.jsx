@@ -7,6 +7,8 @@ import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, ordenarAvisos, proximaAula } from '.
 import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { ofensiva } from '../lib/semana.js'
+import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
+import Corpo from './Corpo.jsx'
 import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
 import { situacaoRelato } from '../lib/consultoria.js'
@@ -20,7 +22,7 @@ const segunda = (iso) => somarDias(iso, -((new Date(`${iso}T12:00:00Z`).getUTCDa
 
 // Aba "Início" da área do aluno: perfil e semana à esquerda, primeiros passos e treino do dia no meio,
 // comunidade, desafio e medalhas à direita (no celular vira uma coluna só).
-export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, temAnamnese, comunidade, agenda, ficha, fichaVencida, situacaoFicha, proximaFase, academia, online, irPara, onCheckin }) {
+export default function InicioAluno({ aluno, avatar, hoje, dias, registros, avaliacoes, treinos, todosTreinos = [], temAnamnese, comunidade, agenda, ficha, fichaVencida, situacaoFicha, proximaFase, academia, online, irPara, onCheckin }) {
   const [notificacoes, setNotificacoes] = useState(true)
   const [relato, setRelato] = useState(null) // aluno online: situação do relato da semana
   useEffect(() => {
@@ -103,6 +105,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           </div>
           <div className="meta">Últimas 8 semanas · {noMes} {noMes === 1 ? 'treino' : 'treinos'} neste mês</div>
         </div>
+        <MusculosDaSemana registros={registros} treinos={todosTreinos.length ? todosTreinos : treinos || []} desde={semana} />
       </aside>
 
       <div className="stack inicio-meio">
@@ -250,5 +253,25 @@ function DietaDeHoje({ aluno, hoje, irPara }) {
       <div className="row between"><div className="meta">🍽️ Dieta de hoje</div><span className="meta">{feitas} de {total} refeições ›</span></div>
       <ContadorMacros metas={metasDaDieta(dieta)} consumo={consumoDoDia(dieta, diario.itens)} compacto />
     </button>
+  )
+}
+
+// Bonequinho com os músculos treinados desde segunda: quanto mais forte o laranja, mais vezes trabalhou.
+function MusculosDaSemana({ registros, treinos, desde }) {
+  const nomes = Object.fromEntries(treinos.flatMap((t) => t.exercicios || []).map((e) => [e.id, e.nome]))
+  const feitos = registros.filter((r) => r.data >= desde).map((r) => r.troca || nomes[r.exercicio_id]).filter(Boolean)
+  const conta = cargaPorMusculo(feitos)
+  const intensidade = Object.fromEntries(Object.entries(conta).map(([m, n]) => [m, Math.min(1, n / 2)]))
+  const faltou = faltouNaSemana(conta)
+  return (
+    <div className="panel musculos-semana">
+      <h3>Músculos da semana</h3>
+      <Corpo intensidade={intensidade} tamanho={80} />
+      <p className="meta" style={{ margin: 0 }}>
+        {!feitos.length ? 'Marque os exercícios no treino e o bonequinho vai acendendo.'
+          : faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.`
+            : 'Corpo todo treinado nesta semana 💪'}
+      </p>
+    </div>
   )
 }
