@@ -7,6 +7,7 @@
 //   { acao: 'fichas' }                                 → avisa aluno e personal quando a ficha passou do prazo de troca
 //   { acao: 'mensalidades' }                           → lembra o aluno da mensalidade (2 dias antes, no dia e 3 dias depois)
 //   { acao: 'motivacao' }                              → frase de motivação para quem está sem treinar há 3, 7, 14, 21 ou 30 dias
+//   { acao: 'semana' }                                 → resumo da semana (seg a qua) e aviso de ofensiva semanal em risco
 //   { acao: 'interacao', tipo, checkin_id | aluno_id } → qualquer um logado: avisa o dono do post (comentário/reação)
 //                                                        ou o outro lado da conversa particular (mensagem). O texto vem do banco.
 // Os lembretes (e os avisos de ficha e mensalidade) podem rodar sozinhos todo dia com o agendamento do README (segredo CRON_SECRET).
@@ -217,6 +218,70 @@ async function motivacao(personalId?: string) {
   return { avisados }
 }
 
+// Ofensiva semanal e resumo da semana: mesmas regras de src/lib/semana.js (meta de 2 treinos por semana).
+const META_SEMANAL = 2
+const somar = (iso: string, n: number) => { const d = new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10) }
+const segundaDe = (iso: string) => somar(iso, -((diaDaSemana(iso) + 6) % 7))
+const contarSemana = (dias: Set<string>, ini: string) => { let n = 0; for (let i = 0; i < 7; i++) if (dias.has(somar(ini, i))) n++; return n }
+function ofensiva(dias: Set<string>, hoje: string) {
+  const seg = segundaDe(hoje)
+  const naSemana = contarSemana(dias, seg)
+  let semanas = 0
+  for (let ini = somar(seg, -7); semanas < 520 && contarSemana(dias, ini) >= META_SEMANAL; ini = somar(ini, -7)) semanas++
+  const falta = Math.max(0, META_SEMANAL - naSemana), restantes = 7 - diasEntre(seg, hoje)
+  return { semanas, falta, restantes, emRisco: naSemana < META_SEMANAL && semanas > 0 && falta <= restantes && restantes <= falta + 1 }
+}
+const vezes = (n: number) => `${n} ${n === 1 ? 'treino' : 'treinos'}`
+function resumoSemana(dias: Set<string>, hoje: string, nome: string) {
+  const passada = somar(segundaDe(hoje), -7)
+  const n = contarSemana(dias, passada)
+  if (!n) return null
+  const antes = [1, 2, 3, 4].map((k) => contarSemana(dias, somar(passada, -7 * k)))
+  const o = ofensiva(dias, somar(segundaDe(hoje), -1))
+  const seguidas = o.semanas + (n >= META_SEMANAL ? 1 : 0)
+  let corpo = n >= 2 && n > Math.max(...antes) ? 'Sua melhor semana do mês! 🏆'
+    : n > antes[0] ? `${n - antes[0]} a mais que a semana anterior. Bora manter!`
+      : n === antes[0] ? 'Mesmo ritmo da semana anterior. Constância é o que dá resultado.' : 'Nesta semana dá para fazer mais. Bora?'
+  if (seguidas >= 2) corpo += ` 🔥 ${seguidas} semanas seguidas.`
+  return { titulo: `Sua semana: ${vezes(n)} 💪`, corpo: `${nome ? `${nome}, você` : 'Você'} treinou ${n}x na semana passada. ${corpo}`, url: '/' }
+}
+
+// Resumo da semana passada (de segunda a quarta, uma vez por semana) e aviso de ofensiva em risco
+// (fim da semana sem bater a meta, uma vez por semana). Precisa do supabase/migracao-rotina.sql.
+async function semana(personalId?: string) {
+  const hoje = diaSP(), seg = segundaDe(hoje)
+  let q = admin.from('alunos').select('id, nome, user_id, resumo_semana_em, ofensiva_avisada_em').neq('status', 'pausado').not('user_id', 'is', null)
+  if (personalId) q = q.eq('personal_id', personalId)
+  const { data: alunos, error } = await q
+  if (error) return { erro: error.message }
+  const dias: Record<string, Set<string>> = {}
+  for (let de = 0; ; de += 1000) {
+    const { data, error: e } = await admin.rpc('dias_treinados', { p_desde: somar(seg, -7 * 30) }).range(de, de + 999)
+    if (e) return { erro: e.message }
+    for (const x of data || []) (dias[x.aluno_id] ||= new Set()).add(String(x.data))
+    if (!data || data.length < 1000) break
+  }
+  let resumos = 0, ofensivas = 0
+  for (const a of alunos || []) {
+    const d = dias[a.id] || new Set<string>()
+    if (diaDaSemana(hoje) >= 1 && diaDaSemana(hoje) <= 3 && !(a.resumo_semana_em && a.resumo_semana_em >= seg)) {
+      const msg = resumoSemana(d, hoje, String(a.nome || '').trim().split(/\s+/)[0])
+      if (msg) { await enviar([a.user_id!], msg); resumos++ }
+      await admin.from('alunos').update({ resumo_semana_em: hoje }).eq('id', a.id)
+    }
+    const o = ofensiva(d, hoje)
+    if (o.emRisco && !(a.ofensiva_avisada_em && a.ofensiva_avisada_em >= seg)) {
+      await enviar([a.user_id!], {
+        titulo: `Não perca sua ofensiva de ${o.semanas} ${o.semanas === 1 ? 'semana' : 'semanas'} 🔥`,
+        corpo: `Falta${o.falta > 1 ? 'm' : ''} ${vezes(o.falta)} ${o.restantes === 1 ? 'hoje' : 'até domingo'} para manter a sequência. Bora?`, url: '/',
+      })
+      await admin.from('alunos').update({ ofensiva_avisada_em: hoje }).eq('id', a.id)
+      ofensivas++
+    }
+  }
+  return { resumos, ofensivas }
+}
+
 // Comentário, reação ou mensagem particular: avisa quem recebeu. Só manda o que a pessoa acabou de fazer
 // (lido com o login dela, então as regras do banco valem) e nunca para ela mesma.
 const curto = (t: string, n = 110) => (t.length > n ? t.slice(0, n - 1) + '…' : t)
@@ -266,7 +331,7 @@ Deno.serve(async (req) => {
     webpush.setVapidDetails(Deno.env.get('PUSH_CONTATO') || 'mailto:notificacoes@corpoatletico.app', k.publica, k.privada)
 
     // Agendamento diário: confere o segredo e manda os lembretes de todos.
-    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas(), mensalidades: await mensalidades(), motivacao: await motivacao() })
+    if (corpo.acao === 'lembretes' && CRON && req.headers.get('x-cron-secret') === CRON) return resposta({ ...(await lembretes()), fichas: await fichas(), mensalidades: await mensalidades(), motivacao: await motivacao(), semana: await semana() })
 
     // Daqui para baixo precisa estar logado. 'interacao' vale para todos; o resto só para o personal (as regras do banco limitam aos alunos dele).
     const db = createClient(URL_SUPABASE, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } } })
@@ -280,6 +345,7 @@ Deno.serve(async (req) => {
     if (corpo.acao === 'fichas') return resposta(await fichas(user.id))
     if (corpo.acao === 'mensalidades') return resposta(await mensalidades(user.id))
     if (corpo.acao === 'motivacao') return resposta(await motivacao(user.id))
+    if (corpo.acao === 'semana') return resposta(await semana(user.id))
     if (corpo.acao === 'enviar') {
       const ids = Array.isArray(corpo.aluno_ids) ? corpo.aluno_ids.slice(0, 500).map(String) : []
       if (!ids.length || !corpo.titulo || !corpo.corpo) return resposta({ erro: 'Faltou aluno, título ou texto.' }, 400)

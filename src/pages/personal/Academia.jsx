@@ -4,7 +4,7 @@ import { supabase } from '../../supabase.js'
 import GradeAulas from '../../components/GradeAulas.jsx'
 import { avisarNoApp } from '../../lib/push.js'
 import { reduzirFoto } from '../../lib/foto.js'
-import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, limparLinkGrupo, linkCheckinQR, ordenarAvisos, placarEquipes } from '../../lib/academia.js'
+import { DIAS_LONGOS, dividirEquipes, TIPOS_AVISO, fmtHora, limparLinkGrupo, linkCheckinQR, ordenarAvisos, placarEquipes } from '../../lib/academia.js'
 import { quandoFoi } from '../../lib/comunidade.js'
 import { hojeISO } from '../../lib/formato.js'
 
@@ -236,6 +236,14 @@ function Equipes({ equipes, alunos, mes, recarregar }) {
     if (!confirm(`Apagar a equipe ${eq.nome}? Os alunos ficam sem equipe.`)) return
     await supabase.from('equipes').delete().eq('id', eq.id); recarregar()
   }
+  const semEquipe = dividirEquipes(equipes, alunos)
+  async function dividir() {
+    for (const x of semEquipe) {
+      const { error } = await supabase.from('alunos').update({ equipe_id: x.equipe_id }).eq('id', x.aluno_id)
+      if (error) { setErro(`Não foi possível dividir: ${error.message}`); break }
+    }
+    recarregar()
+  }
   async function mover(aluno, equipeId) {
     const { error } = await supabase.from('alunos').update({ equipe_id: equipeId || null }).eq('id', aluno.id)
     if (error) setErro(`Não foi possível mudar: ${error.message}`)
@@ -244,7 +252,7 @@ function Equipes({ equipes, alunos, mes, recarregar }) {
   return (
     <div className="panel">
       <h2>Equipes e pontos</h2>
-      <p className="meta" style={{ margin: '2px 0 12px' }}>Cada dia de treino de um aluno vale 1 ponto para a equipe dele. O placar do mês aparece na Comunidade.</p>
+      <p className="meta" style={{ margin: '2px 0 12px' }}>Cada dia de treino de um aluno vale 1 ponto para a equipe dele. O placar do mês aparece na Comunidade. Aluno novo entra sozinho na equipe com menos gente, então os cadastros vão se alternando entre as equipes.</p>
       <form className="row" style={{ gap: 8, flexWrap: 'nowrap' }} onSubmit={criar}>
         <input id="equipe-nome" aria-label="Nome da equipe" maxLength={30} placeholder="Ex.: Equipe Laranja" value={nome} onChange={(e) => setNome(e.target.value)} style={{ flex: 1, minWidth: 0 }} />
         <button className="primary small">Criar equipe</button>
@@ -258,6 +266,12 @@ function Equipes({ equipes, alunos, mes, recarregar }) {
           <button className="ghost small" aria-label={`Apagar ${eq.nome}`} onClick={() => apagar(eq)}>✕</button>
         </div>
       ))}
+      {semEquipe.length > 0 && (
+        <div className="row between" style={{ marginTop: 12, gap: 8 }}>
+          <span className="meta">{semEquipe.length} {semEquipe.length === 1 ? 'aluno está' : 'alunos estão'} sem equipe.</span>
+          <button className="primary small" onClick={dividir}>Dividir entre as equipes</button>
+        </div>
+      )}
       {equipes.length > 0 && (
         <details style={{ marginTop: 12 }}>
           <summary className="link">Escolher a equipe de cada aluno</summary>

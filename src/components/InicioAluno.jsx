@@ -6,6 +6,7 @@ import BotaoWhatsApp from './BotaoWhatsApp.jsx'
 import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, ordenarAvisos, proximaAula } from '../lib/academia.js'
 import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
+import { ofensiva } from '../lib/semana.js'
 import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
 import { situacaoRelato } from '../lib/consultoria.js'
@@ -34,6 +35,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const datas = minhasDatas({ ultimaAvaliacao: avaliacoes.at(-1)?.data, situacao: situacaoFicha, proximaFase, hoje })
   const todosDias = [...new Set([...dias, ...registros.map((r) => r.data)])]
   const seq = sequencia(todosDias, hoje)
+  const of = ofensiva(todosDias, hoje)
   const lista = medalhas({ datas: dias, registros, avaliacoes: avaliacoes.length }, dados?.desafios || [])
   const ganhas = lista.filter((m) => m.ganhou).length
   const proxima = proximaMedalha(lista)
@@ -80,6 +82,17 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         <div className="panel">
           <div className="secao" style={{ marginTop: 0 }}>Esta semana</div>
           <div className="semana-num"><strong>{naSemana}</strong> {naSemana === 1 ? 'treino' : 'treinos'}</div>
+          <div className={`ofensiva${of.emRisco ? ' risco' : of.garantida ? ' ok' : ''}`}>
+            <span aria-hidden="true">🔥</span>
+            <div>
+              <strong>{of.semanas} {of.semanas === 1 ? 'semana seguida' : 'semanas seguidas'}</strong>
+              <span className="meta">
+                {of.garantida ? `Meta da semana batida (${of.meta} treinos) ✓`
+                  : of.perdeu ? `Treine ${of.meta}x nesta semana para começar de novo.`
+                    : `Falta${of.falta > 1 ? 'm' : ''} ${of.falta} ${of.falta === 1 ? 'treino' : 'treinos'} ${of.restantes === 1 ? 'hoje' : 'até domingo'}${of.semanas ? ' para manter' : ' para começar'}.`}
+              </span>
+            </div>
+          </div>
           <div className="semana-dias">
             {diasSemana.map((d) => (
               <span key={d.data} className={`${todosDias.includes(d.data) ? 'on' : ''}${d.data === hoje ? ' hoje' : ''}`} title={fmtData(d.data)}>{d.l}</span>

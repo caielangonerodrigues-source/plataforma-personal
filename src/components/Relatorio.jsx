@@ -4,6 +4,7 @@ import { f1, hojeISO, primeiroNome } from '../lib/formato.js'
 import { linkWhatsApp } from '../lib/whatsapp.js'
 import { pedirIA } from '../lib/ia.js'
 import { avisarNoApp } from '../lib/push.js'
+import BotaoPDF from './RelatorioPDF.jsx'
 import { somarDias } from '../lib/comunidade.js'
 import { fimDoMes, linhasDosNumeros, mensagemPadrao, mesesRecentes, nomeDoMes, numerosDoMes } from '../lib/relatorio.js'
 
@@ -44,7 +45,7 @@ export function VerRelatorio({ conteudo, numeros, paraAluno }) {
 }
 
 // Área do aluno: o relatório mais recente que o personal publicou.
-export function RelatoriosAluno({ alunoId }) {
+export function RelatoriosAluno({ alunoId, nome = '' }) {
   const [lista, setLista] = useState([])
   const [i, setI] = useState(0)
   useEffect(() => {
@@ -57,6 +58,7 @@ export function RelatoriosAluno({ alunoId }) {
     <div className="panel stack" style={{ borderColor: 'var(--accent)' }}>
       <div className="row between">
         <span className="meta">Relatório do seu personal · {nomeDoMes(r.mes)}</span>
+        <BotaoPDF alunoId={alunoId} nome={nome} mes={r.mes} numeros={r.conteudo.numeros} conteudo={r.conteudo} />
         {lista.length > 1 && (
           <select aria-label="Mês do relatório" value={i} onChange={(e) => setI(Number(e.target.value))} style={{ width: 'auto' }}>
             {lista.map((x, j) => <option key={x.mes} value={j}>{nomeDoMes(x.mes)}</option>)}
@@ -148,6 +150,7 @@ export default function Relatorio({ aluno }) {
             </label>
             <div className="row between">
               <span className="meta">{salvo ? (salvo.publicado ? 'Publicado na área do aluno' : 'Rascunho salvo') : 'Ainda não salvo'}</span>
+              <BotaoPDF alunoId={aluno.id} nome={aluno.nome} mes={mes} numeros={numeros} conteudo={{ ...texto, destaques: texto.destaques.filter(Boolean), atencao: texto.atencao.filter(Boolean) }} />
               <button className="primary" disabled={estado.carregando} onClick={escreverComIA}>{estado.carregando ? 'A IA está escrevendo…' : texto.resumo ? 'Reescrever com IA' : 'Escrever com IA'}</button>
             </div>
           </>

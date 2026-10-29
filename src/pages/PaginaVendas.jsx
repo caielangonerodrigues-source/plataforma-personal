@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { brl, primeiroNome } from '../lib/formato.js'
 import { linkWhatsApp } from '../lib/whatsapp.js'
+import { DIAS_SEMANA, diaDaSemana } from '../lib/agenda.js'
 
 const PASSOS = [
   ['Conversa inicial', 'Você conta seu objetivo, sua rotina e seu histórico de saúde (anamnese e PAR-Q pelo app).'],
@@ -22,6 +23,7 @@ export default function PaginaVendas() {
   // Link de indicação de um aluno: /consultoria?indicacao=ABC123
   const [indicacao] = useState(() => new URLSearchParams(window.location.search).get('indicacao')?.slice(0, 12) || '')
   const [quemIndicou, setQuemIndicou] = useState('')
+  const [vagas, setVagas] = useState([]) // horários livres de aula experimental [{ data, hora }]
 
   useEffect(() => {
     (async () => {
@@ -32,6 +34,8 @@ export default function PaginaVendas() {
       if (pessoal) {
         const { data: pl } = await supabase.from('planos_consultoria').select('*').eq('personal_id', pessoal.personal_id).order('ordem').order('preco')
         setPlanos(pl || [])
+        const { data: hs } = await supabase.rpc('horarios_experimental', { p_personal: pessoal.personal_id })
+        setVagas(hs || [])
       }
     })()
   }, [])
@@ -67,6 +71,7 @@ export default function PaginaVendas() {
           {p.texto && <p className="vendas-texto">{p.texto}</p>}
           <div className="row" style={{ marginTop: 20 }}>
             <a className="botao-claro" href="#quero">Quero começar</a>
+            {vagas.length > 0 && <a className="botao-claro" href="#experimental">Agendar aula experimental</a>}
             {zap && <a href={zap} target="_blank" rel="noreferrer" style={{ color: 'inherit', fontWeight: 600 }}>Falar no WhatsApp</a>}
           </div>
         </div>
@@ -79,6 +84,8 @@ export default function PaginaVendas() {
             <div key={t} className="panel"><div className="letter" style={{ display: 'block', marginBottom: 6 }}>{i + 1}</div><h3>{t}</h3><p className="meta" style={{ margin: '4px 0 0' }}>{x}</p></div>
           ))}
         </div>
+
+        {vagas.length > 0 && <AulaExperimental personalId={p.personal_id} vagas={vagas} indicacao={indicacao} zap={zap} />}
 
         {planos.length > 0 && (
           <>
@@ -123,5 +130,54 @@ export default function PaginaVendas() {
         <p className="meta" style={{ marginTop: 24 }}>Já é aluno? <Link to="/">Entrar na área do aluno</Link></p>
       </div>
     </div>
+  )
+}
+
+// Aula experimental: escolhe o dia e a hora entre os horários livres do personal e deixa nome e WhatsApp.
+function AulaExperimental({ personalId, vagas, indicacao, zap }) {
+  const dias = [...new Set(vagas.map((v) => v.data))]
+  const [dia, setDia] = useState(dias[0])
+  const [hora, setHora] = useState('')
+  const [d, setD] = useState({ nome: '', telefone: '', objetivo: '' })
+  const [estado, setEstado] = useState({})
+  const campo = (k) => ({ id: `exp-${k}`, value: d[k], onChange: (e) => setD({ ...d, [k]: e.target.value }) })
+  const rotulo = (iso) => `${DIAS_SEMANA[diaDaSemana(iso)].slice(0, 3)} ${iso.slice(8, 10)}/${iso.slice(5, 7)}`
+  async function marcar(e) {
+    e.preventDefault()
+    if (!hora) return setEstado({ erro: 'Escolha um horário.' })
+    setEstado({ enviando: true })
+    const { error } = await supabase.rpc('marcar_experimental', {
+      p_personal: personalId, p_nome: d.nome, p_telefone: d.telefone, p_objetivo: d.objetivo, p_data: dia, p_hora: hora, p_indicacao: indicacao || null,
+    })
+    setEstado(error ? { erro: error.message } : { ok: true })
+  }
+  return (
+    <form id="experimental" className="panel stack" style={{ marginTop: 36, maxWidth: 560 }} onSubmit={marcar}>
+      {estado.ok ? (
+        <>
+          <h2>Aula marcada! 💪</h2>
+          <p style={{ margin: 0 }}>Te espero {rotulo(dia).toLowerCase()} às {hora}. Vou te chamar no WhatsApp para confirmar.</p>
+          {zap && <a href={zap} target="_blank" rel="noreferrer">Falar agora no WhatsApp</a>}
+        </>
+      ) : (
+        <>
+          <h2>Agende uma aula experimental</h2>
+          <p className="meta" style={{ margin: 0 }}>Escolha o dia e o horário. Vou te chamar no WhatsApp para confirmar.</p>
+          <div className="segmentos" style={{ flexWrap: 'wrap', marginTop: 0 }}>
+            {dias.map((x) => <button type="button" key={x} aria-pressed={x === dia} onClick={() => { setDia(x); setHora('') }}>{rotulo(x)}</button>)}
+          </div>
+          <div className="segmentos" style={{ flexWrap: 'wrap', marginTop: 0 }}>
+            {vagas.filter((v) => v.data === dia).map((v) => <button type="button" key={v.hora} aria-pressed={v.hora === hora} onClick={() => setHora(v.hora)}>{v.hora}</button>)}
+          </div>
+          <div className="form">
+            <label>Nome<input required minLength={2} maxLength={80} autoComplete="name" {...campo('nome')} /></label>
+            <label>WhatsApp com DDD<input required type="tel" autoComplete="tel" placeholder="(11) 98765-4321" {...campo('telefone')} /></label>
+            <label className="full">Objetivo<select {...campo('objetivo')}><option value="">Escolha</option>{['Emagrecer', 'Ganhar massa', 'Condicionamento', 'Saúde e qualidade de vida', 'Performance esportiva'].map((o) => <option key={o}>{o}</option>)}</select></label>
+          </div>
+          {estado.erro && <p className="erro">{estado.erro}</p>}
+          <button className="primary" disabled={estado.enviando}>{estado.enviando ? 'Marcando…' : hora ? `Marcar ${rotulo(dia).toLowerCase()} às ${hora}` : 'Marcar aula'}</button>
+        </>
+      )}
+    </form>
   )
 }
