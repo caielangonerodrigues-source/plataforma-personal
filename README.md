@@ -67,6 +67,18 @@ Site para o personal gerenciar alunos, fichas de treino e avaliações físicas,
 **Assistente IA**
 - Em **Assistente IA** (ou no botão **Gerar com IA** das abas Treinos e Nutrição) você escolhe o aluno e a IA monta um rascunho de fichas ou dieta usando a avaliação física, a anamnese/PAR-Q e o objetivo. Nada é salvo até você clicar em **Aplicar**. Precisa do passo 7 abaixo.
 
+**Rotina do dia a dia**
+- **Painel > Precisam de atenção**: quem está há 7 dias ou mais sem treinar e quem está com a mensalidade do mês atrasada, com mensagem pronta no WhatsApp.
+- **Cronômetro de descanso**: quando o aluno marca o exercício (ou toca em **Descansar**), o celular conta o descanso da ficha ("60s", "1 min", "1'30"...) e vibra/apita no fim.
+- **Trocar exercício**: com o aparelho ocupado, o aluno toca em **Trocar** e escolhe outro do mesmo grupo muscular, só naquele dia. Você vê no Painel e na aba **Cargas**; as cargas desse dia não entram na evolução.
+- **Agenda**: horários fixos de cada aluno presencial, semana a semana. Remarque ou desmarque um dia sem mexer no horário fixo, e mande o lembrete de amanhã pelo WhatsApp. O aluno vê o próximo treino na área dele.
+- **Relatório do mês** (aba **Relatório** do aluno ou no Assistente IA): os números saem sozinhos (dias de treino, cargas que subiram, avaliação). O texto você escreve ou pede para a IA; depois manda no WhatsApp e/ou mostra na aba Evolução do aluno.
+- **Aniversários**: o Painel mostra quem faz aniversário nos próximos 7 dias (precisa da data de nascimento no cadastro), com parabéns pronto no WhatsApp.
+- **Como foi o treino**: depois de marcar exercícios, o aluno dá uma nota de esforço de 1 a 10 e diz se sentiu dor. Dor ou esforço no limite aparecem no Painel; o histórico fica na aba **Cargas**.
+- **Indique um amigo**: cada aluno tem um link na aba **Conta** que leva para a sua página de vendas com "Fulana te indicou". Em **Vendas** aparece "Indicado por"; quando fecha, um botão dá o desconto (valor em **Configurações**) na mensalidade do mês seguinte de quem indicou. O Financeiro e o Pix já descontam.
+- **Periodização**: na aba **Treinos** do aluno, **Programar fase** escolhe as fichas (cópia das atuais, seus modelos ou os prontos) e a data de início. No dia, as fichas antigas saem da tela do aluno (o histórico de cargas continua) e as novas entram sozinhas.
+- **Notificações no celular**: o aluno ativa em **Conta** (no iPhone, com o app instalado na tela de início). Ele recebe o lembrete dos treinos de amanhã (botão **Lembrar todos pelo app** na Agenda) e o aviso de relatório novo.
+
 Aluno pausado não consegue ver treinos. Cada personal só vê os próprios alunos, e cada aluno só vê os próprios dados. Isso é garantido pelo banco (Row Level Security), não só pela tela.
 
 ## Como colocar no ar (gratuito)
@@ -128,6 +140,21 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 3. No Supabase, em **Edge Functions > Secrets**, adicione `ANTHROPIC_API_KEY` com a chave.
 4. Em **Edge Functions > Deploy a new function > Via Editor**, dê o nome `ia-assistente`, cole o conteúdo de [`supabase/functions/ia-assistente/index.ts`](supabase/functions/ia-assistente/index.ts) e clique em **Deploy**. Deixe **Enforce JWT verification** ligado.
 5. Teste em **Assistente IA**. Cada sugestão custa cerca de US$ 0,10 a US$ 0,30 na conta da Anthropic.
+
+### 8. Agenda, relatório, indicação, periodização e notificações
+1. No Supabase, abra **SQL Editor > New query**, cole o conteúdo de [`supabase/migracao-melhorias.sql`](supabase/migracao-melhorias.sql) e clique em **Run** (pode rodar mais de uma vez).
+2. Se a função `ia-assistente` já estiver publicada, abra-a em **Edge Functions**, cole de novo o conteúdo de [`supabase/functions/ia-assistente/index.ts`](supabase/functions/ia-assistente/index.ts) e clique em **Deploy** para a IA escrever o relatório.
+3. Notificações no celular: em **Edge Functions > Deploy a new function > Via Editor**, dê o nome `notificacoes`, cole o conteúdo de [`supabase/functions/notificacoes/index.ts`](supabase/functions/notificacoes/index.ts) e clique em **Deploy** (deixe **Enforce JWT verification** ligado). Não precisa de chave: a função cria as chaves de envio sozinha na primeira vez.
+4. (Opcional) Lembrete automático todo dia às 19h, sem precisar clicar na Agenda: em **Edge Functions > Secrets** crie `CRON_SECRET` com uma senha qualquer; em **Database > Extensions** ligue `pg_cron` e `pg_net`; no **SQL Editor** rode (troque `SUA-SENHA` e `SUA-CHAVE-ANON`, que fica em **Project Settings > API**):
+   ```sql
+   select cron.schedule('lembretes-treino', '0 22 * * *', $$
+     select net.http_post(
+       url := 'https://eguirjrzpnedzontfycy.supabase.co/functions/v1/notificacoes',
+       headers := '{"Content-Type": "application/json", "Authorization": "Bearer SUA-CHAVE-ANON", "x-cron-secret": "SUA-SENHA"}'::jsonb,
+       body := '{"acao": "lembretes"}'::jsonb)
+   $$);
+   ```
+   (22h no horário do servidor = 19h de Brasília.)
 
 ## Desenvolvimento
 

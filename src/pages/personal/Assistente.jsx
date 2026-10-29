@@ -8,6 +8,7 @@ import { f1, fmtData, porData, porOrdem, primeiroNome } from '../../lib/formato.
 import { fichasDaIA, pedirIA } from '../../lib/ia.js'
 import { resumoModelo } from '../../lib/modelos.js'
 import { FormModelo, aplicarModelo } from './Modelos.jsx'
+import Relatorio from '../../components/Relatorio.jsx'
 
 const DIAS = ['2', '3', '4', '5', '6']
 
@@ -16,7 +17,7 @@ export default function Assistente() {
   const [alunos, setAlunos] = useState(null)
   const [aluno, setAluno] = useState(null)
   const [parq, setParq] = useState(false)
-  const tipo = params.get('tipo') === 'dieta' ? 'dieta' : 'treino'
+  const tipo = ['dieta', 'relatorio'].includes(params.get('tipo')) ? params.get('tipo') : 'treino'
   const alunoId = params.get('aluno') || ''
   const [opcoes, setOpcoes] = useState({ dias: '3', tempo: '60 min', local: 'Academia completa', refeicoes: '5', restricoes: '', extra: '' })
   const [estado, setEstado] = useState({}) // { carregando } | { erro } | { resultado } | { aplicado }
@@ -32,7 +33,7 @@ export default function Assistente() {
       supabase.from('alunos').select('*, treinos(*, exercicios(*)), avaliacoes(*)').eq('id', id).maybeSingle(),
       supabase.from('anamneses').select('parq').eq('aluno_id', id).maybeSingle(),
     ])
-    if (data) { data.treinos.sort(porOrdem); data.avaliacoes.sort(porData) }
+    if (data) { data.treinos.sort(porOrdem); data.todosTreinos = data.treinos; data.treinos = data.treinos.filter((t) => !t.arquivado); data.avaliacoes.sort(porData) }
     setAluno(data); setParq(temAlertaParq(an))
   }
   useEffect(() => { carregarAluno(alunoId); setEstado({}) }, [alunoId])
@@ -68,7 +69,7 @@ export default function Assistente() {
   return (
     <>
       <h1>Assistente IA</h1>
-      <p className="sub">A IA monta um rascunho de treino ou dieta com base na avaliação física, na anamnese e no objetivo do aluno. Você revisa e decide se aplica.</p>
+      <p className="sub">A IA monta um rascunho de treino, dieta ou do relatório mensal com base na avaliação física, na anamnese, nas cargas e no objetivo do aluno. Você revisa e decide se aplica.</p>
 
       <div className="panel ia-caixa stack">
         <div className="form">
@@ -82,6 +83,7 @@ export default function Assistente() {
             <select id="ia-tipo" value={tipo} onChange={(e) => escolher('tipo', e.target.value)}>
               <option value="treino">Fichas de treino</option>
               <option value="dieta">Dieta (plano alimentar)</option>
+              <option value="relatorio">Relatório do mês (evolução)</option>
             </select>
           </label>
         </div>
@@ -100,7 +102,7 @@ export default function Assistente() {
           </div>
         )}
 
-        {tipo === 'treino' ? (
+        {tipo === 'relatorio' ? null : tipo === 'treino' ? (
           <div className="form">
             <label>Treinos por semana<select {...campo('dias')}>{DIAS.map((d) => <option key={d} value={d}>{d}x</option>)}</select></label>
             <label>Tempo por treino<input {...campo('tempo')} /></label>
@@ -113,13 +115,16 @@ export default function Assistente() {
             <label className="full">Restrições e preferências<input placeholder="Ex.: sem lactose, não come peixe, treina às 18h, orçamento simples" {...campo('restricoes')} /></label>
           </div>
         )}
+        {tipo !== 'relatorio' && <>
         <label>Algo mais para a IA saber?<textarea rows={2} maxLength={1000} placeholder="Opcional" {...campo('extra')} /></label>
         <div className="row between">
           <span className="meta">Leva de 20 segundos a 1 minuto.</span>
           <button className="primary" disabled={!aluno || estado.carregando} onClick={gerar}>{estado.carregando ? 'A IA está montando…' : r ? 'Gerar de novo' : 'Gerar sugestão'}</button>
         </div>
         {estado.erro && <p className="erro">{estado.erro}</p>}
+        </>}
       </div>
+      {tipo === 'relatorio' && aluno && <div style={{ marginTop: 16 }}><Relatorio aluno={aluno} /></div>}
 
       {estado.aplicado && (
         <div className="panel" style={{ marginTop: 16 }}>
@@ -128,7 +133,7 @@ export default function Assistente() {
         </div>
       )}
 
-      {r && (
+      {r && tipo !== 'relatorio' && (
         <div className="stack" style={{ marginTop: 16 }}>
           <div className="panel">
             <h2 style={{ marginTop: 0 }}>Sugestão da IA</h2>

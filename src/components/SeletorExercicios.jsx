@@ -14,9 +14,9 @@ export function useBiblioteca() {
 }
 
 // Busca + filtro por grupo muscular. Com onAlternar, cada linha tem caixa de seleção.
-export function ListaExercicios({ lista, selecionados, onAlternar, acoes }) {
+export function ListaExercicios({ lista, selecionados, onAlternar, acoes, grupoInicial = '' }) {
   const [busca, setBusca] = useState('')
-  const [grupo, setGrupo] = useState('')
+  const [grupo, setGrupo] = useState(grupoInicial)
   const achados = filtrarExercicios(lista, { busca, grupo })
   return (
     <div className="stack" style={{ gap: 10 }}>

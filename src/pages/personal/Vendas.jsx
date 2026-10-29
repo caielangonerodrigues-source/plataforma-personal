@@ -28,11 +28,34 @@ function Interessados() {
   const navigate = useNavigate()
   const [lista, setLista] = useState(null)
   const [virando, setVirando] = useState(null)
+  const [indicacao, setIndicacao] = useState({ nomes: {}, dados: {}, desconto: null }) // quem indicou e descontos já dados
+  const [erro, setErro] = useState('')
 
   const carregar = useCallback(async () => {
     const { data } = await supabase.from('interessados').select('*, planos_consultoria(nome, preco)').order('created_at', { ascending: false }).limit(200)
     setLista(data || [])
+    const ids = [...new Set((data || []).map((i) => i.indicado_por).filter(Boolean))]
+    if (!ids.length) return
+    const [a, d, me] = await Promise.all([
+      supabase.from('alunos').select('id, nome').in('id', ids),
+      supabase.from('descontos').select('interessado_id, competencia').not('interessado_id', 'is', null),
+      supabase.from('personais').select('*').maybeSingle(),
+    ])
+    setIndicacao({
+      nomes: Object.fromEntries((a.data || []).map((x) => [x.id, x.nome])),
+      dados: Object.fromEntries((d.data || []).map((x) => [x.interessado_id, x.competencia])),
+      desconto: me.data?.desconto_indicacao ?? null,
+    })
   }, [])
+
+  // Desconto na mensalidade do mês que vem de quem indicou.
+  async function darDesconto(i) {
+    const hoje = new Date(), prox = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1)
+    const competencia = `${prox.getFullYear()}-${String(prox.getMonth() + 1).padStart(2, '0')}`
+    const { error } = await supabase.from('descontos').insert({ aluno_id: i.indicado_por, competencia, valor: indicacao.desconto, motivo: `Indicou ${i.nome}`, interessado_id: i.id })
+    setErro(error ? `Não foi possível dar o desconto: ${error.message}` : '')
+    carregar()
+  }
   useEffect(() => { carregar() }, [carregar])
 
   async function mudar(i, status) {
@@ -44,7 +67,10 @@ function Interessados() {
   if (!lista.length) return <div className="panel empty">Ninguém pediu contato ainda. Ative e divulgue sua página na aba "Página e planos".</div>
   return (
     <div className="stack">
+      {erro && <p className="erro">{erro}</p>}
       {lista.map((i) => {
+        const indicou = i.indicado_por && (indicacao.nomes[i.indicado_por] || 'um aluno')
+        const descontoDado = indicacao.dados[i.id]
         const zap = linkWhatsApp(i.telefone, `Oi, ${primeiroNome(i.nome)}! Aqui é da consultoria online, recebi seu contato pela página. Vamos conversar sobre seu objetivo${i.objetivo ? ` (${i.objetivo.toLowerCase()})` : ''}?`)
         return (
           <div className="panel" key={i.id}>
@@ -55,6 +81,7 @@ function Interessados() {
               </div>
               <span className={`pill ${COR[i.status]}`}>{STATUS.find(([k]) => k === i.status)[1]}</span>
             </div>
+            {indicou && <p className="meta" style={{ margin: '6px 0 0', color: 'var(--accent)', fontWeight: 600 }}>Indicado por {indicou}{descontoDado ? ` · desconto dado na mensalidade de ${descontoDado.slice(5)}/${descontoDado.slice(0, 4)}` : ''}</p>}
             {i.mensagem && <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>“{i.mensagem}”</p>}
             <div className="row" style={{ marginTop: 10 }}>
               {zap && <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer" onClick={() => i.status === 'novo' && mudar(i, 'conversando')}>Chamar no WhatsApp</a>}
@@ -62,6 +89,9 @@ function Interessados() {
                 {STATUS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
               </select>
               {i.status !== 'fechou' && <button className="primary small" onClick={() => setVirando(i)}>Cadastrar como aluno</button>}
+              {i.status === 'fechou' && indicou && !descontoDado && (indicacao.desconto
+                ? <button className="small" onClick={() => darDesconto(i)}>Dar {brl(indicacao.desconto)} de desconto para {primeiroNome(indicou)}</button>
+                : <span className="meta">Defina o desconto por indicação em Configurações</span>)}
             </div>
           </div>
         )

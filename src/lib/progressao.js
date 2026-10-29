@@ -11,6 +11,7 @@ export const volume = (series) => (series || []).reduce((t, s) => t + (Number(s.
 export function historicoPorExercicio(registros) {
   const mapa = {}
   for (const r of registros) {
+    if (r.troca) continue // dia em que o aluno fez outro exercício no lugar
     const max = cargaMaxima(r.series)
     if (max == null) continue
     ;(mapa[r.exercicio_id] ||= []).push({ data: r.data, max, volume: volume(r.series), series: r.series })
@@ -22,6 +23,6 @@ export function historicoPorExercicio(registros) {
 // Última sessão anterior a hoje, para pré-preencher as séries.
 export function ultimaSessao(registros, exercicioId, hoje) {
   return registros
-    .filter((r) => r.exercicio_id === exercicioId && r.data < hoje && r.series?.length)
+    .filter((r) => r.exercicio_id === exercicioId && r.data < hoje && r.series?.length && !r.troca)
     .sort((a, b) => (a.data < b.data ? 1 : -1))[0]
 }

@@ -19,11 +19,15 @@ export default function PaginaVendas() {
   const [erro, setErro] = useState('')
   const [enviado, setEnviado] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  // Link de indicação de um aluno: /consultoria?indicacao=ABC123
+  const [indicacao] = useState(() => new URLSearchParams(window.location.search).get('indicacao')?.slice(0, 12) || '')
+  const [quemIndicou, setQuemIndicou] = useState('')
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase.rpc('pagina_vendas')
       const pessoal = data?.[0] || null
+      if (indicacao) supabase.rpc('quem_indicou', { p_codigo: indicacao }).then(({ data: nome }) => setQuemIndicou(nome || ''))
       setP(pessoal)
       if (pessoal) {
         const { data: pl } = await supabase.from('planos_consultoria').select('*').eq('personal_id', pessoal.personal_id).order('ordem').order('preco')
@@ -38,6 +42,7 @@ export default function PaginaVendas() {
     setErro(''); setEnviando(true)
     const { error } = await supabase.rpc('quero_contratar', {
       p_personal: p.personal_id, p_plano: d.plano || null, p_nome: d.nome, p_telefone: d.telefone, p_email: d.email, p_objetivo: d.objetivo, p_mensagem: d.mensagem,
+      ...(indicacao ? { p_indicacao: indicacao } : {}),
     })
     setEnviando(false)
     if (error) return setErro(error.message)
@@ -57,7 +62,8 @@ export default function PaginaVendas() {
       <header className="vendas-hero">
         <div className="solo" style={{ paddingBlock: '40px 48px' }}>
           <div className="brand" style={{ color: 'inherit' }}>{p.nome}<small style={{ color: 'inherit', opacity: .8 }}>{[p.cref && `CREF ${p.cref}`, p.instagram && `@${p.instagram.replace(/^@/, '')}`].filter(Boolean).join(' · ') || 'Personal trainer'}</small></div>
-          <h1 style={{ fontSize: 46, marginTop: 24 }}>{p.titulo || 'Consultoria online'}</h1>
+          {quemIndicou && <p className="indicado-por">{quemIndicou} te indicou 💪</p>}
+          <h1 style={{ fontSize: 46, marginTop: quemIndicou ? 8 : 24 }}>{p.titulo || 'Consultoria online'}</h1>
           {p.texto && <p className="vendas-texto">{p.texto}</p>}
           <div className="row" style={{ marginTop: 20 }}>
             <a className="botao-claro" href="#quero">Quero começar</a>

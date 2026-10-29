@@ -11,6 +11,7 @@ export default function LayoutPersonal({ nome }) {
         <Logo sub={nome ? `Olá, ${primeiroNome(nome)}` : 'Área do treinador'} />
         <NavLink to="/painel" className={cls}>Painel</NavLink>
         <NavLink to="/alunos" className={cls}>Alunos</NavLink>
+        <NavLink to="/agenda" className={cls}>Agenda</NavLink>
         <NavLink to="/modelos" className={cls}>Modelos</NavLink>
         <NavLink to="/comunidade" className={cls}>Comunidade</NavLink>
         <NavLink to="/exercicios" className={cls}>Exercícios</NavLink>
