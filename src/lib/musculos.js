@@ -97,14 +97,45 @@ const REGRAS = [
   [['remo ergometro'], ['dorsais', 'quadriceps'], ['biceps', 'posterior', 'gluteos']],
 ]
 
+// Músculo mais ativo, com o nome anatômico (a primeira regra que bate vale). Sem regra: o grupo principal.
+const FOCO = [
+  [['supino inclinado'], 'Peitoral (parte de cima)'], [['supino declinado'], 'Peitoral (parte de baixo)'],
+  [['supino fechado'], 'Tríceps braquial'], [['flexao', 'fechada'], 'Tríceps braquial'],
+  [['crucifixo inverso'], 'Deltoide posterior'], [['face pull'], 'Deltoide posterior'],
+  [['pullover'], 'Grande dorsal e peitoral'], [['supino'], 'Peitoral maior'], [['crucifixo'], 'Peitoral maior'],
+  [['crossover'], 'Peitoral maior'], [['peck'], 'Peitoral maior'], [['flexao de braco'], 'Peitoral maior'],
+  [['remada alta'], 'Deltoide lateral e trapézio'], [['remada'], 'Grande dorsal e romboides'],
+  [['puxada'], 'Grande dorsal'], [['barra fixa'], 'Grande dorsal'], [['pulldown'], 'Grande dorsal'],
+  [['terra romeno'], 'Isquiotibiais'], [['terra sumo'], 'Glúteo máximo e adutores'], [['levantamento terra'], 'Glúteo máximo e isquiotibiais'],
+  [['encolhimento'], 'Trapézio superior'], [['desenvolvimento'], 'Deltoide anterior'],
+  [['elevacao lateral'], 'Deltoide lateral'], [['elevacao frontal'], 'Deltoide anterior'], [['rotacao externa'], 'Manguito rotador'],
+  [['rosca punho'], 'Flexores do punho'], [['rosca inversa'], 'Braquiorradial'], [['rosca martelo'], 'Braquial e braquiorradial'],
+  [['rosca concentrada'], 'Bíceps (pico)'], [['rosca scott'], 'Bíceps (parte de baixo)'], [['rosca'], 'Bíceps braquial'],
+  [['triceps testa'], 'Tríceps (cabeça longa)'], [['triceps frances'], 'Tríceps (cabeça longa)'], [['triceps'], 'Tríceps (cabeça lateral)'],
+  [['mergulho'], 'Tríceps e peitoral de baixo'],
+  [['cadeira extensora'], 'Reto femoral e vastos'], [['agachamento sumo'], 'Adutores e glúteo máximo'], [['bulgaro'], 'Glúteo máximo e quadríceps'],
+  [['agachamento'], 'Quadríceps (vastos)'], [['leg press'], 'Quadríceps (vastos)'], [['hack'], 'Quadríceps (vastos)'],
+  [['afundo'], 'Glúteo máximo e quadríceps'], [['avanco'], 'Glúteo máximo e quadríceps'], [['passada'], 'Glúteo máximo e quadríceps'],
+  [['flexora'], 'Bíceps femoral'], [['stiff'], 'Isquiotibiais'], [['good morning'], 'Isquiotibiais e eretores'],
+  [['adutora'], 'Adutores da coxa'], [['abdutora'], 'Glúteo médio'], [['abducao'], 'Glúteo médio'], [['mini band'], 'Glúteo médio'],
+  [['elevacao pelvica'], 'Glúteo máximo'], [['ponte'], 'Glúteo máximo'], [['coice'], 'Glúteo máximo'],
+  [['panturrilha sentad'], 'Sóleo'], [['panturrilha'], 'Gastrocnêmio'],
+  [['lombar'], 'Eretores da espinha'], [['superman'], 'Eretores da espinha'],
+  [['obliquo'], 'Oblíquos'], [['russian'], 'Oblíquos'], [['prancha lateral'], 'Oblíquos'], [['pallof'], 'Oblíquos'],
+  [['elevacao de pernas'], 'Reto abdominal (parte de baixo)'], [['prancha'], 'Transverso do abdômen'], [['abdominal'], 'Reto abdominal'],
+]
+
 const unicos = (l) => [...new Set(l)]
 
-// { principais: ['peito'], secundarios: ['triceps', 'ombro'] } (ids de MUSCULOS).
+// { principais: ['peito'], secundarios: ['triceps', 'ombro'], ativo: 'peito', foco: 'Peitoral maior' }.
+// `ativo` é o grupo mais ativo (o primeiro principal) e `foco`, o nome do músculo que mais trabalha.
 export function musculosDoExercicio(nome, lista) {
   const texto = semAcento(nome)
   const regra = REGRAS.find(([palavras]) => palavras.every((p) => texto.includes(p)))
   const [principais, secundarios] = regra ? [regra[1], regra[2]] : DO_GRUPO[grupoDoExercicio(nome, lista)] || [[], []]
-  return { principais: unicos(principais), secundarios: unicos(secundarios).filter((m) => !principais.includes(m)) }
+  const ativo = principais[0] || null
+  const foco = FOCO.find(([palavras]) => palavras.every((p) => texto.includes(p)))?.[1] || (ativo && MUSCULOS[ativo])
+  return { principais: unicos(principais), secundarios: unicos(secundarios).filter((m) => !principais.includes(m)), ativo, foco }
 }
 
 // Mapa da semana: quantas vezes cada músculo foi trabalhado como principal (secundário conta meio).

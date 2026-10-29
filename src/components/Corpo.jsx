@@ -1,7 +1,8 @@
 // Bonequinho de frente e de costas com os músculos acesos em laranja.
 // Base: ilustração 3D em cinza (public/corpo/<vista>.webp). Cada músculo aceso é a versão laranja
 // da mesma ilustração recortada pela máscara do músculo (public/corpo/<vista>-<músculo>.png).
-// `principais`/`secundarios`: ids de MUSCULOS; ou `intensidade`: { id: 0..1 } para o mapa da semana.
+// `principais`/`secundarios`: ids de MUSCULOS, com `ativo` (o mais ativo) aceso mais forte e brilhando;
+// ou `intensidade`: { id: 0..1 } para o mapa da semana.
 import { MUSCULOS } from '../lib/musculos.js'
 
 const VISTAS = {
@@ -10,7 +11,7 @@ const VISTAS = {
 }
 const ALTURA = 2.1 // altura da figura em relação ao `tamanho`
 
-function Vista({ lado, titulo, nivel, tamanho }) {
+function Vista({ lado, titulo, nivel, ativo, tamanho }) {
   const v = VISTAS[lado]
   const altura = Math.round(tamanho * ALTURA)
   const largura = Math.round((altura * v.largura) / v.altura)
@@ -22,7 +23,7 @@ function Vista({ lado, titulo, nivel, tamanho }) {
           const n = nivel(m)
           if (!n) return null
           const mascara = `url(/corpo/${lado}-${m}.png)`
-          return <img key={m} src={`/corpo/${lado}-laranja.webp`} alt="" draggable="false" style={{ opacity: 0.3 + 0.7 * n, WebkitMaskImage: mascara, maskImage: mascara }} />
+          return <img key={m} className={m === ativo ? 'ativo' : undefined} src={`/corpo/${lado}-laranja.webp`} alt="" draggable="false" style={{ opacity: 0.3 + 0.7 * n, WebkitMaskImage: mascara, maskImage: mascara }} />
         })}
       </div>
       {titulo && <figcaption>{titulo}</figcaption>}
@@ -30,20 +31,26 @@ function Vista({ lado, titulo, nivel, tamanho }) {
   )
 }
 
-export default function Corpo({ principais = [], secundarios = [], intensidade, tamanho = 70, legenda = true }) {
-  const nivel = (id) => (intensidade ? Math.min(1, intensidade[id] || 0) : principais.includes(id) ? 1 : secundarios.includes(id) ? 0.45 : 0)
+// Mais ativo: 1; outros principais: 0,6; secundários: 0,3. Sem `ativo`, todos os principais ficam fortes.
+const nivelDe = (principais, secundarios, ativo) => (id) =>
+  id === ativo ? 1 : principais.includes(id) ? (ativo ? 0.6 : 1) : secundarios.includes(id) ? 0.3 : 0
+
+export default function Corpo({ principais = [], secundarios = [], ativo, foco, intensidade, tamanho = 70, legenda = true }) {
+  const nivel = intensidade ? (id) => Math.min(1, intensidade[id] || 0) : nivelDe(principais, secundarios, ativo)
+  const outros = principais.filter((m) => m !== ativo)
   const nomes = (l) => l.map((m) => MUSCULOS[m]).join(', ')
-  const rotulo = intensidade ? 'Músculos treinados' : `Trabalha: ${nomes(principais)}${secundarios.length ? `. Ajuda: ${nomes(secundarios)}` : ''}`
+  const rotulo = intensidade ? 'Músculos treinados' : `${foco ? `Mais ativo: ${foco}. ` : ''}Trabalha: ${nomes(principais)}${secundarios.length ? `. Ajuda: ${nomes(secundarios)}` : ''}`
   return (
     <div className="corpo" role="img" aria-label={rotulo}>
       <div className="corpo-vistas">
-        <Vista lado="frente" titulo="Frente" nivel={nivel} tamanho={tamanho} />
-        <Vista lado="costas" titulo="Costas" nivel={nivel} tamanho={tamanho} />
+        <Vista lado="frente" titulo="Frente" nivel={nivel} ativo={ativo} tamanho={tamanho} />
+        <Vista lado="costas" titulo="Costas" nivel={nivel} ativo={ativo} tamanho={tamanho} />
       </div>
       {legenda && !intensidade && (principais.length > 0 || secundarios.length > 0) && (
         <div className="corpo-legenda">
-          {principais.length > 0 && <span><i className="forte" />{nomes(principais)}</span>}
-          {secundarios.length > 0 && <span><i className="fraco" />{nomes(secundarios)}</span>}
+          {ativo && <span className="corpo-foco"><i className="forte" />Mais ativo: <strong>{foco || MUSCULOS[ativo]}</strong></span>}
+          {(ativo ? outros : principais).length > 0 && <span><i className="medio" />{ativo ? 'Também trabalha' : 'Trabalha'}: {nomes(ativo ? outros : principais)}</span>}
+          {secundarios.length > 0 && <span><i className="fraco" />Ajuda: {nomes(secundarios)}</span>}
         </div>
       )}
     </div>
@@ -51,16 +58,17 @@ export default function Corpo({ principais = [], secundarios = [], intensidade, 
 }
 
 // Versão pequena para a lista de exercícios: só a vista onde está o músculo principal.
-export function CorpoMini({ principais = [], secundarios = [], tamanho = 26, onClick }) {
+export function CorpoMini({ principais = [], secundarios = [], ativo, tamanho = 26, onClick }) {
   const naFrente = (m) => VISTAS.frente.musculos.includes(m)
   const naCostas = (m) => VISTAS.costas.musculos.includes(m)
-  const lado = principais.some((m) => naFrente(m) && !naCostas(m)) || !principais.some(naCostas) ? 'frente' : 'costas'
-  const nivel = (id) => (principais.includes(id) ? 1 : secundarios.includes(id) ? 0.45 : 0)
+  const chave = ativo ? [ativo] : principais
+  const lado = chave.some((m) => naFrente(m) && !naCostas(m)) || !chave.some(naCostas) ? 'frente' : 'costas'
+  const nivel = nivelDe(principais, secundarios, ativo)
   const nomes = principais.map((m) => MUSCULOS[m]).join(', ')
   if (!principais.length && !secundarios.length) return null
   return (
     <button type="button" className="corpo-mini" onClick={onClick} aria-label={`Músculos: ${nomes || 'ver'}`} title={nomes}>
-      <Vista lado={lado} titulo="" nivel={nivel} tamanho={tamanho} />
+      <Vista lado={lado} titulo="" nivel={nivel} ativo={ativo} tamanho={tamanho} />
     </button>
   )
 }
