@@ -39,6 +39,11 @@ export const AJUDA_ALUNO = {
     'Conversa particular com seu personal: dúvidas, dores, ajustes no treino. Só vocês dois veem.',
     'Quando um de vocês manda mensagem, o outro recebe um aviso no celular.',
   ],
+  inicio: [
+    'Seu resumo: treinos da semana, próximo treino, ranking e medalhas.',
+    '🔥 Ofensiva: são as semanas seguidas em que você treinou pelo menos 2 vezes. Se a semana estiver acabando e faltar treino, você recebe um aviso para não perder.',
+    'Toda segunda chega no celular o resumo da sua semana.',
+  ],
   novidades: ['Avisos da academia: feriados, eventos, mudanças de horário e novidades.'],
   comunidade: [
     'Cada check-in vira um post no feed. Reaja com emoji e comente nos treinos da turma.',
@@ -65,7 +70,7 @@ export const AJUDA_PERSONAL = {
   '/painel': [
     'Resumo do dia: quem precisa de atenção (sumido, ficha vencida, reavaliação, relato atrasado), aniversários e vídeos para avaliar.',
     'Toque no nome do aluno para abrir a ficha dele, ou no botão de WhatsApp para chamar com a mensagem pronta.',
-    'Uma vez por dia o Painel também dispara os avisos automáticos (ficha para trocar, mensalidade e motivação para quem sumiu).',
+    'Uma vez por dia o Painel também dispara os avisos automáticos (ficha para trocar, mensalidade, motivação para quem sumiu, resumo da semana e ofensiva em risco).',
   ],
   '/alunos': [
     'Lista de todos os alunos. Use os filtros Academia / Online e a busca para achar alguém.',
@@ -75,7 +80,10 @@ export const AJUDA_PERSONAL = {
     'Conversas particulares com cada aluno. O número laranja mostra as mensagens que você ainda não leu.',
     'Quando você responde, o aluno recebe um aviso no celular (se ativou as notificações).',
   ],
-  '/agenda': ['Seus horários fixos com cada aluno na semana. Remarque um dia sem mudar o horário fixo; o aluno recebe lembrete na véspera.'],
+  '/agenda': [
+    'Seus horários fixos com cada aluno na semana. Remarque um dia sem mudar o horário fixo; o aluno recebe lembrete na véspera.',
+    'As aulas experimentais marcadas pela página de vendas também aparecem aqui, com o botão para confirmar no WhatsApp.',
+  ],
   '/comunidade': [
     'O feed com os check-ins de todos os alunos. Reaja, comente e apague posts se precisar.',
     'O ranking tem as visões Geral, Academia e Online. Em "Desafios" você cria metas do mês (ex.: 16 treinos em novembro).',
@@ -83,14 +91,17 @@ export const AJUDA_PERSONAL = {
   ],
   '/academia': [
     'Dados da academia que os alunos veem: grade de aulas, avisos (Novidades), grupo do WhatsApp e o QR code do check-in da recepção.',
-    'Equipes: crie times (ex.: Laranja × Preta) e coloque cada aluno em um. Cada dia de treino vale 1 ponto e o time com mais pontos no mês ganha a coroa.',
+    'Equipes: crie times (ex.: Laranja × Preta). Aluno novo entra sozinho no time com menos gente, alternando. Cada dia de treino vale 1 ponto e o time com mais pontos no mês ganha a coroa.',
     'Fotos da tela de entrada: suba fotos da academia para aparecerem no login.',
   ],
   '/modelos': ['Fichas prontas para reaproveitar. Monte uma vez e aplique em qualquer aluno pela aba Treinos dele.'],
   '/exercicios': ['Biblioteca de exercícios com vídeo. Os que você criar aparecem na hora de montar fichas.'],
   '/assistente': ['A IA monta um rascunho de treino, dieta ou relatório para você revisar antes de mandar ao aluno.'],
   '/aulas': ['Aulas de spinning: bikes reservadas, pagamentos para confirmar, lista de espera e pacotes.'],
-  '/vendas': ['Página de vendas da consultoria online e os contatos de quem se interessou (leads).'],
+  '/vendas': [
+    'Página de vendas da consultoria online e os contatos de quem se interessou (leads).',
+    'Aula experimental: em "Página e planos" coloque seus horários livres. A pessoa marca pela página e aparece aqui e na Agenda.',
+  ],
   '/financeiro': ['Mensalidades do mês: quem pagou, quem está para vencer e quem está atrasado. Marque o pagamento quando receber o Pix.'],
   '/configuracoes': ['Seus dados, chave Pix, prazo para trocar ficha, mensagem de motivação automática e notificações neste celular.'],
 }
@@ -112,7 +123,7 @@ export const AJUDA_ALUNO_DETALHE = {
     '"Usar modelo pronto" preenche uma dieta inteira ajustada à meta de calorias; depois é só trocar o que quiser e salvar.',
     'No "Diário da dieta" você vê o que o aluno marcou nos últimos 7 dias, com as fotos dos pratos.',
   ],
-  relatorio: ['Relatório do mês para mandar ao aluno: treinos, cargas e avaliação.'],
+  relatorio: ['Relatório do mês para mandar ao aluno: treinos, cargas e avaliação.', '"Baixar PDF" monta uma folha com números, cargas, medidas e as fotos de antes e agora para salvar ou mandar no WhatsApp.'],
   anamnese: ['Histórico de saúde e PAR-Q que o aluno preencheu.'],
   fotos: ['Fotos de evolução (frente, lado e costas) por data.'],
 }

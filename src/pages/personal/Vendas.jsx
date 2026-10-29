@@ -5,6 +5,7 @@ import Modal from '../../components/Modal.jsx'
 import FormAluno from './FormAluno.jsx'
 import { brl, fmtData, num, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
+import { DIAS_SEMANA, diaDaSemana, hhmm } from '../../lib/agenda.js'
 
 const STATUS = [['novo', 'Novo'], ['conversando', 'Conversando'], ['fechou', 'Fechou'], ['nao_fechou', 'Não fechou']]
 const COR = { novo: 'pendente', conversando: 'pendente', fechou: 'ativo', nao_fechou: 'pausado' }
@@ -71,7 +72,9 @@ function Interessados() {
       {lista.map((i) => {
         const indicou = i.indicado_por && (indicacao.nomes[i.indicado_por] || 'um aluno')
         const descontoDado = indicacao.dados[i.id]
-        const zap = linkWhatsApp(i.telefone, `Oi, ${primeiroNome(i.nome)}! Aqui é da consultoria online, recebi seu contato pela página. Vamos conversar sobre seu objetivo${i.objetivo ? ` (${i.objetivo.toLowerCase()})` : ''}?`)
+        const zap = linkWhatsApp(i.telefone, i.experimental_data
+          ? `Oi, ${primeiroNome(i.nome)}! Recebi sua aula experimental para ${fmtData(i.experimental_data).slice(0, 5)} às ${hhmm(i.experimental_hora)}. Está confirmada, te espero! 💪`
+          : `Oi, ${primeiroNome(i.nome)}! Aqui é da consultoria online, recebi seu contato pela página. Vamos conversar sobre seu objetivo${i.objetivo ? ` (${i.objetivo.toLowerCase()})` : ''}?`)
         return (
           <div className="panel" key={i.id}>
             <div className="row between">
@@ -82,7 +85,8 @@ function Interessados() {
               <span className={`pill ${COR[i.status]}`}>{STATUS.find(([k]) => k === i.status)[1]}</span>
             </div>
             {indicou && <p className="meta" style={{ margin: '6px 0 0', color: 'var(--accent)', fontWeight: 600 }}>Indicado por {indicou}{descontoDado ? ` · desconto dado na mensalidade de ${descontoDado.slice(5)}/${descontoDado.slice(0, 4)}` : ''}</p>}
-            {i.mensagem && <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>“{i.mensagem}”</p>}
+            {i.experimental_data && <p className="aviso-experimental">📅 Aula experimental: {DIAS_SEMANA[diaDaSemana(i.experimental_data)].toLowerCase()}, {fmtData(i.experimental_data).slice(0, 5)} às {hhmm(i.experimental_hora)}</p>}
+            {i.mensagem && i.mensagem !== 'Aula experimental' && <p style={{ margin: '8px 0 0', whiteSpace: 'pre-wrap' }}>“{i.mensagem}”</p>}
             <div className="row" style={{ marginTop: 10 }}>
               {zap && <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer" onClick={() => i.status === 'novo' && mudar(i, 'conversando')}>Chamar no WhatsApp</a>}
               <select aria-label="Situação" value={i.status} onChange={(e) => mudar(i, e.target.value)} style={{ width: 'auto' }}>
@@ -98,7 +102,7 @@ function Interessados() {
       })}
       {virando && (
         <FormAluno
-          inicial={{ nome: virando.nome, email: virando.email || '', telefone: virando.telefone, objetivo: virando.objetivo || '', modalidade: 'online', plano: virando.planos_consultoria?.nome || '', valor_mensal: virando.planos_consultoria?.preco ?? '' }}
+          inicial={{ nome: virando.nome, email: virando.email || '', telefone: virando.telefone, objetivo: virando.objetivo || '', modalidade: virando.experimental_data ? 'presencial' : 'online', plano: virando.planos_consultoria?.nome || '', valor_mensal: virando.planos_consultoria?.preco ?? '' }}
           onFechar={() => setVirando(null)}
           onSalvo={async (aluno) => { await mudar(virando, 'fechou'); setVirando(null); navigate(`/alunos/${aluno.id}`) }}
         />
@@ -172,6 +176,7 @@ function Pagina() {
           </div>
         )}
       </div>
+      <HorariosExperimental />
       {editando && <FormPlano plano={editando} onFechar={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar() }} />}
     </div>
   )
@@ -198,5 +203,61 @@ function FormPlano({ plano, onFechar, onSalvo }) {
         <input type="checkbox" style={{ width: 18, height: 18 }} checked={d.destaque} onChange={(e) => setD({ ...d, destaque: e.target.checked })} /> Destacar como "mais escolhido"
       </label>
     </Modal>
+  )
+}
+
+// Horários livres para aula experimental: a pessoa escolhe um deles na página de vendas e cai na Agenda.
+function HorariosExperimental() {
+  const [lista, setLista] = useState(null)
+  const [userId, setUserId] = useState(null)
+  const [novo, setNovo] = useState({ dia: '1', hora: '18:00' })
+  const [erro, setErro] = useState('')
+  useEffect(() => {
+    supabase.from('personais').select('user_id, experimental_horarios').maybeSingle().then(({ data, error }) => {
+      if (error) return setErro('Para usar a aula experimental, rode o arquivo supabase/migracao-rotina.sql no Supabase (SQL Editor).')
+      setUserId(data?.user_id); setLista(data?.experimental_horarios || [])
+    })
+  }, [])
+  async function salvar(nova) {
+    const ordenada = nova.slice().sort((a, b) => a.dia - b.dia || (a.hora < b.hora ? -1 : 1))
+    const { error } = await supabase.from('personais').update({ experimental_horarios: ordenada }).eq('user_id', userId)
+    if (error) return setErro(`Não foi possível salvar: ${error.message}`)
+    setErro(''); setLista(ordenada)
+  }
+  function adicionar(e) {
+    e.preventDefault()
+    if (!/^\d{2}:\d{2}$/.test(novo.hora)) return setErro('Escolha a hora.')
+    if (lista.some((x) => x.dia === Number(novo.dia) && x.hora === novo.hora)) return
+    salvar([...lista, { dia: Number(novo.dia), hora: novo.hora }])
+  }
+  return (
+    <div className="panel">
+      <h2>Aula experimental</h2>
+      <p className="meta" style={{ margin: '2px 0 12px' }}>
+        Coloque os horários em que você pode dar uma aula experimental. Na página de vendas, a pessoa escolhe um dia dos próximos 14 dias e já aparece aqui em Interessados e na sua Agenda. Cada horário só pode ser marcado por uma pessoa por dia.
+      </p>
+      {erro && <p className="erro">{erro}</p>}
+      {lista && (
+        <>
+          <form className="row" style={{ gap: 8, flexWrap: 'nowrap' }} onSubmit={adicionar}>
+            <select id="exp-dia" aria-label="Dia da semana" value={novo.dia} onChange={(e) => setNovo({ ...novo, dia: e.target.value })} style={{ flex: 1, minWidth: 0 }}>
+              {DIAS_SEMANA.map((d, i) => <option key={d} value={i}>{d}</option>)}
+            </select>
+            <input id="exp-hora" aria-label="Hora" type="time" value={novo.hora} onChange={(e) => setNovo({ ...novo, hora: e.target.value })} style={{ width: 110 }} />
+            <button className="primary small">Adicionar</button>
+          </form>
+          {lista.length === 0 ? <p className="meta" style={{ margin: '10px 0 0' }}>Sem horários, a página não mostra a aula experimental.</p> : (
+            <div className="row" style={{ gap: 6, marginTop: 10 }}>
+              {lista.map((x) => (
+                <span key={`${x.dia}${x.hora}`} className="pill pendente" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                  {DIAS_SEMANA[x.dia].slice(0, 3)} {x.hora}
+                  <button type="button" className="ghost small" style={{ padding: '0 4px' }} aria-label={`Tirar ${DIAS_SEMANA[x.dia]} ${x.hora}`} onClick={() => salvar(lista.filter((y) => y !== x))}>✕</button>
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
   )
 }

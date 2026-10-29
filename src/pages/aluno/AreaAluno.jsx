@@ -373,7 +373,7 @@ export default function AreaAluno({ aluno }) {
           {avaliacoes.length > 0 && <div className="panel"><h2 style={{ marginBottom: 10 }}>Peso e gordura</h2><Grafico avaliacoes={avaliacoes} /></div>}
           <div className="panel"><h2 style={{ marginBottom: 10 }}>Evolução das cargas</h2><Progressao treinos={todosTreinos} registros={registros} /></div>
           <CompartilharStory aluno={aluno} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} treinos={todosTreinos} desafios={comunidade.dados?.desafios || []} />
-          <RelatoriosAluno alunoId={aluno.id} />
+          <RelatoriosAluno alunoId={aluno.id} nome={aluno.nome} />
           <Medalhas datas={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} desafios={comunidade.dados?.desafios || []} />
           <FotosEvolucao alunoId={aluno.id} />
         </div>} />

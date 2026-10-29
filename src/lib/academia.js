@@ -94,3 +94,15 @@ export function lembreteMensalidade(diaVencimento, hoje) {
   if (dia === diaVencimento + 3) return 'atrasada'
   return null
 }
+
+// Quem está sem equipe vai, um por um, para a equipe com menos gente (empate: a primeira da lista).
+// Mesma regra do cadastro automático (gatilho equipe_automatica no banco). Devolve [{ aluno_id, equipe_id }].
+export function dividirEquipes(equipes, alunos) {
+  if (!equipes.length) return []
+  const qtd = new Map(equipes.map((e) => [e.id, alunos.filter((a) => a.equipe_id === e.id).length]))
+  return alunos.filter((a) => !a.equipe_id || !qtd.has(a.equipe_id)).map((a) => {
+    const alvo = equipes.reduce((m, e) => (qtd.get(e.id) < qtd.get(m.id) ? e : m))
+    qtd.set(alvo.id, qtd.get(alvo.id) + 1)
+    return { aluno_id: a.id, equipe_id: alvo.id }
+  })
+}

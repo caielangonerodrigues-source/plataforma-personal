@@ -92,3 +92,13 @@ test('story: último recorde e textos do card', async () => {
   assert.equal(conteudoStory('mes', { mes: 'outubro', treinos: 14, sequencia: 3 }).unidade, 'treinos')
   assert.match(conteudoStory('recorde', { carga: 24, anterior: 20, exercicio: 'Supino' }).unidade, /Supino/)
 })
+
+test('dividir equipes: quem está sem equipe vai alternando para a menor', async () => {
+  const { dividirEquipes } = await import('./academia.js')
+  const equipes = [{ id: 'L' }, { id: 'P' }]
+  const alunos = [{ id: 1, equipe_id: 'L' }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5, equipe_id: 'apagada' }]
+  assert.deepEqual(dividirEquipes(equipes, alunos), [
+    { aluno_id: 2, equipe_id: 'P' }, { aluno_id: 3, equipe_id: 'L' }, { aluno_id: 4, equipe_id: 'P' }, { aluno_id: 5, equipe_id: 'L' },
+  ])
+  assert.deepEqual(dividirEquipes([], alunos), [])
+})

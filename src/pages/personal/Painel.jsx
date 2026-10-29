@@ -43,6 +43,7 @@ export default function Painel() {
         supabase.functions.invoke('notificacoes', { body: { acao: 'fichas' } }).catch(() => {})
         supabase.functions.invoke('notificacoes', { body: { acao: 'mensalidades' } }).catch(() => {})
         supabase.functions.invoke('notificacoes', { body: { acao: 'motivacao' } }).catch(() => {})
+        supabase.functions.invoke('notificacoes', { body: { acao: 'semana' } }).catch(() => {})
       }
     } catch { /* sem localStorage */ }
     supabase.from('feedbacks_treino').select('*').gte('data', somarDias(hoje, -7)).order('data', { ascending: false }).limit(30)

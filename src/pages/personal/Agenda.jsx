@@ -30,6 +30,7 @@ export default function Agenda() {
   const [novo, setNovo] = useState(null) // {} = novo horário, ou o horário em edição
   const [remarcando, setRemarcando] = useState(null) // atendimento
   const [avisoApp, setAvisoApp] = useState('')
+  const [experimentais, setExperimentais] = useState([]) // aulas experimentais marcadas pela página de vendas
 
   const carregar = useCallback(async () => {
     const [a, h, r] = await Promise.all([
@@ -38,6 +39,9 @@ export default function Agenda() {
       supabase.from('remarcacoes').select('*').gte('data', somarDias(hoje, -60)),
     ])
     setAlunos(a.data || [])
+    supabase.from('interessados').select('id, nome, telefone, experimental_data, experimental_hora, status').not('experimental_data', 'is', null)
+      .gte('experimental_data', somarDias(hoje, -30)).neq('status', 'nao_fechou')
+      .then(({ data, error }) => setExperimentais(error ? [] : data || []))
     if (h.error) { setErro(ERRO_SQL); setHorarios([]); return }
     setHorarios(h.data); setRemarcacoes(r.data || [])
   }, [hoje])
@@ -99,6 +103,24 @@ export default function Agenda() {
     )
   }
 
+  const Experimental = ({ x }) => {
+    const hora = hhmm(x.experimental_hora)
+    const zap = linkWhatsApp(x.telefone, `Oi, ${primeiroNome(x.nome)}! Confirmando sua aula experimental ${x.experimental_data === amanha ? 'amanhã' : curta(x.experimental_data)} às ${hora}. Te espero! 💪`)
+    return (
+      <div className="item agenda-item" style={{ cursor: 'default' }}>
+        <div className="mono agenda-hora">{hora}<div className="meta">{somarMinutos(hora, 60)}</div></div>
+        <div style={{ minWidth: 0 }}>
+          <Link to="/vendas" className="name" style={{ color: 'inherit', textDecoration: 'none' }}>{x.nome}</Link>
+          <div className="meta" style={{ color: 'var(--accent)', fontWeight: 600 }}>Aula experimental{x.status === 'fechou' ? ' · fechou' : ''}</div>
+        </div>
+        <div className="row" style={{ gap: 6, justifyContent: 'flex-end', flexWrap: 'nowrap' }}>
+          {zap && <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer">Confirmar</a>}
+        </div>
+      </div>
+    )
+  }
+  const expDoDia = (d) => experimentais.filter((x) => x.experimental_data === d).sort((x, y) => (x.experimental_hora < y.experimental_hora ? -1 : 1))
+
   return (
     <>
       <div className="row between">
@@ -107,11 +129,11 @@ export default function Agenda() {
       </div>
       {erro && <p className="erro">{erro}</p>}
 
-      {deAmanha.length > 0 && (
+      {(deAmanha.length > 0 || expDoDia(amanha).length > 0) && (
         <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
           <div className="row between"><h2>Amanhã, {curta(amanha)}</h2><button className="small" onClick={lembrarPeloApp}>Lembrar todos pelo app</button></div>
           {avisoApp && <p className="meta" style={{ margin: '4px 0 0' }}>{avisoApp}</p>}
-          <div className="list">{deAmanha.map((a) => <Linha key={a.chave} a={a} />)}</div>
+          <div className="list">{deAmanha.map((a) => <Linha key={a.chave} a={a} />)}{expDoDia(amanha).map((x) => <Experimental key={x.id} x={x} />)}</div>
         </div>
       )}
 
@@ -128,11 +150,12 @@ export default function Agenda() {
       <div className="stack" style={{ gap: 12 }}>
         {dias.map((d) => {
           const doDia = daSemana.filter((a) => a.data === d)
-          if (!doDia.length && diaDaSemana(d) === 0) return null
+          const exp = expDoDia(d)
+          if (!doDia.length && !exp.length && diaDaSemana(d) === 0) return null
           return (
             <div className="panel" key={d} style={d === hoje ? { borderColor: 'var(--accent)' } : undefined}>
               <h3 style={{ margin: 0 }}>{DIAS_SEMANA[diaDaSemana(d)]} <span className="meta">{fmtData(d).slice(0, 5)}{d === hoje ? ' · hoje' : ''}</span></h3>
-              {doDia.length ? <div className="list">{doDia.map((a) => <Linha key={a.chave} a={a} />)}</div> : <p className="meta" style={{ margin: '4px 0 0' }}>Livre</p>}
+              {doDia.length || exp.length ? <div className="list">{doDia.map((a) => <Linha key={a.chave} a={a} />)}{exp.map((x) => <Experimental key={x.id} x={x} />)}</div> : <p className="meta" style={{ margin: '4px 0 0' }}>Livre</p>}
             </div>
           )
         })}
