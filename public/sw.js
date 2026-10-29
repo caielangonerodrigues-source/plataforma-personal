@@ -1,6 +1,6 @@
 // Service worker simples: abre o app mesmo com internet ruim.
 // Páginas e arquivos do site: rede primeiro, cache como reserva. Dados do Supabase nunca são guardados.
-const CACHE = 'personal-v2'
+const CACHE = 'personal-v3'
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['/', '/manifest.webmanifest', '/icon-192.png'])))
