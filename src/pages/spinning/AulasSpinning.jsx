@@ -6,7 +6,8 @@ import { brl } from '../../lib/formato.js'
 import TopoSpinning, { minhasReservas } from './TopoSpinning.jsx'
 
 // Página pública: próximas aulas, com vagas livres. Não precisa de login.
-export default function AulasSpinning() {
+// embutido: dentro da área do aluno (aba Spinning), sem o topo da página pública.
+export default function AulasSpinning({ embutido = false }) {
   const [aulas, setAulas] = useState(null)
   const [erro, setErro] = useState('')
   const guardadas = minhasReservas()
@@ -31,9 +32,9 @@ export default function AulasSpinning() {
   }
 
   return (
-    <div className="solo">
-      <TopoSpinning />
-      <h1>Próximas aulas</h1>
+    <div className={embutido ? undefined : 'solo'}>
+      {!embutido && <TopoSpinning />}
+      {embutido ? <h2>Aulas de spinning</h2> : <h1>Próximas aulas</h1>}
       <p className="sub">Escolha o horário, depois a sua bike no mapa da sala. O pagamento é por Pix ou com um <Link to="/spinning/pacotes">pacote de aulas</Link>.</p>
       {guardadas.length > 0 && (
         <div className="panel row between" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
