@@ -42,7 +42,8 @@ export const AJUDA_ALUNO = {
   novidades: ['Avisos da academia: feriados, eventos, mudanças de horário e novidades.'],
   comunidade: [
     'Cada check-in vira um post no feed. Reaja com emoji e comente nos treinos da turma.',
-    'O ranking conta os dias com check-in no mês. Alunos da academia e da consultoria online têm rankings separados.',
+    'O ranking conta os dias com check-in no mês. Veja o Geral, só a Academia, só o Online ou só a sua equipe.',
+    'No placar das equipes, cada dia de treino de um membro vale 1 ponto para o time. O time com mais pontos no mês ganha a coroa 👑.',
     'Medalhas e recordes aparecem no feed sozinhos. No chat da turma todo mundo conversa junto.',
   ],
   dieta: [
@@ -77,7 +78,7 @@ export const AJUDA_PERSONAL = {
   '/agenda': ['Seus horários fixos com cada aluno na semana. Remarque um dia sem mudar o horário fixo; o aluno recebe lembrete na véspera.'],
   '/comunidade': [
     'O feed com os check-ins de todos os alunos. Reaja, comente e apague posts se precisar.',
-    'O ranking é separado: Academia e Online. Em "Desafios" você cria metas do mês (ex.: 16 treinos em novembro).',
+    'O ranking tem as visões Geral, Academia e Online. Em "Desafios" você cria metas do mês (ex.: 16 treinos em novembro).',
     'Equipes: cada dia de treino de um membro vale 1 ponto para o time. Crie as equipes em Academia.',
   ],
   '/academia': [

@@ -24,9 +24,14 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   if (!dados) return <p className="carregando">Carregando…</p>
 
   const membro = Object.fromEntries(dados.membros.map((m) => [m.id, m]))
+  // Ranking: Geral (todos), Academia, Online e Minha equipe. Começa no grupo do aluno.
   const temOnline = dados.membros.some((m) => grupoDe(m) === 'online')
-  const meuGrupo = grupo || grupoDe(dados.membros.find((m) => m.id === meuAlunoId))
-  const tabela = ranking(dados.mes, temOnline ? doGrupo(dados.membros, meuGrupo) : dados.membros)
+  const eu = dados.membros.find((m) => m.id === meuAlunoId)
+  const equipeMinha = (dados.equipes || []).find((e) => e.id === eu?.equipe_id)
+  const visoesRanking = [['geral', 'Geral'], ...(temOnline ? [['academia', 'Academia'], ['online', 'Online']] : []), ...(equipeMinha ? [['equipe', 'Minha equipe']] : [])]
+  const meuGrupo = visoesRanking.some(([k]) => k === grupo) ? grupo : temOnline && eu ? grupoDe(eu) : 'geral'
+  const tabela = ranking(dados.mes, meuGrupo === 'geral' ? dados.membros : meuGrupo === 'equipe' ? dados.membros.filter((m) => m.equipe_id === equipeMinha.id) : doGrupo(dados.membros, meuGrupo))
+  const legenda = { geral: 'Todos os alunos', academia: 'Quem treina na academia', online: 'Alunos da consultoria online', equipe: `Quem é da ${equipeMinha?.nome || 'sua equipe'}` }[meuGrupo]
   const feed = dados.feed.filter((c) => membro[c.aluno_id])
   const comFoto = feed.filter((c) => c.foto && dados.fotos[c.foto])
   const equipes = placarEquipes(dados.equipes || [], dados.membros, dados.mes)
@@ -95,14 +100,14 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
       <Desafios desafios={dados.desafios} checkins={dados.periodo} membros={dados.membros} minhasDatas={minhasDatas} podeGerenciar={podeApagarTudo} recarregar={carregar} />
       <div className="panel">
         <h2>Ranking de {nomeDoMes()}</h2>
-        {temOnline && (
-          <div className="segmentos" role="tablist" style={{ margin: '8px 0 4px' }}>
-            {[['academia', 'Academia'], ['online', 'Online']].map(([k, l]) => (
-              <button key={k} role="tab" aria-selected={meuGrupo === k} onClick={() => setGrupo(k)}>{l}</button>
+        {visoesRanking.length > 1 && (
+          <div className="segmentos" role="tablist" style={{ margin: '8px 0 4px', flexWrap: 'wrap' }}>
+            {visoesRanking.map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={meuGrupo === k} aria-pressed={meuGrupo === k} onClick={() => setGrupo(k)}>{l}</button>
             ))}
           </div>
         )}
-        <p className="meta" style={{ margin: '2px 0 8px' }}>{temOnline ? (meuGrupo === 'online' ? 'Alunos da consultoria online: dias com check-in neste mês' : 'Quem treina na academia: dias com check-in neste mês') : 'Dias com check-in neste mês'}</p>
+        <p className="meta" style={{ margin: '2px 0 8px' }}>{legenda}: dias com check-in neste mês</p>
         <div>
           {tabela.map((r, i) => (
             <div key={r.id} className={`rank${i < 3 && r.dias > 0 ? ' top' : ''}${r.id === meuAlunoId ? ' eu' : ''}`} role="button" tabIndex={0} style={{ cursor: 'pointer' }}
