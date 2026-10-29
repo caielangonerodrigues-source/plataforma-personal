@@ -753,11 +753,12 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .corpo-legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; text-align: center; font-size: 12px; color: var(--muted) }
 .corpo-legenda span { display: inline-flex; align-items: center; gap: 5px }
 .corpo-legenda i { width: 10px; height: 10px; border-radius: 3px; background: var(--accent) }
+.corpo-legenda i.forte { background: #c83a00 }
 .corpo-legenda i.medio { opacity: .6 }
 .corpo-legenda i.fraco { opacity: .3 }
 .corpo-legenda .corpo-foco { color: var(--ink) }
 .corpo-legenda .corpo-foco i { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent) }
-.corpo-img img.ativo { filter: saturate(1.25) brightness(1.08) drop-shadow(0 0 2px var(--accent)) }
+.corpo-img img.ativo { filter: drop-shadow(0 0 1.5px rgb(160 40 0 / .9)) }
 .foco-musculo { font-size: 12px; font-weight: 600; color: var(--accent); margin-top: 1px }
 .corpo-mini { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0 }
 .corpo-mini figcaption { display: none }
