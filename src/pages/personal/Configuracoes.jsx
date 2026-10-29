@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../supabase.js'
 import { pixCopiaECola } from '../../lib/pix.js'
+import { num } from '../../lib/formato.js'
 
 export default function Configuracoes() {
   const [d, setD] = useState(null)
@@ -8,7 +9,7 @@ export default function Configuracoes() {
   const [erro, setErro] = useState('')
 
   useEffect(() => {
-    supabase.from('personais').select('user_id, nome, telefone, pix_chave, pix_nome, pix_cidade').maybeSingle().then(({ data }) => setD(data))
+    supabase.from('personais').select('*').maybeSingle().then(({ data }) => setD(data))
   }, [])
 
   if (!d) return <p className="carregando">Carregando…</p>
@@ -19,6 +20,7 @@ export default function Configuracoes() {
     const { error } = await supabase.from('personais').update({
       nome: d.nome?.trim() || null, telefone: d.telefone?.trim() || null,
       pix_chave: d.pix_chave?.trim() || null, pix_nome: d.pix_nome?.trim() || null, pix_cidade: d.pix_cidade?.trim() || null,
+      ...('desconto_indicacao' in d ? { desconto_indicacao: num(d.desconto_indicacao) } : {}),
     }).eq('user_id', d.user_id)
     if (error) return setErro(`Não foi possível salvar: ${error.message}`)
     setErro(''); setAviso('Configurações salvas.')
@@ -47,6 +49,15 @@ export default function Configuracoes() {
           </p>
           {exemplo && <textarea id="config-pix-teste" className="full" readOnly rows={3} value={exemplo} onFocus={(e) => e.target.select()} style={{ fontFamily: 'var(--mono)', fontSize: 12 }} />}
         </div>
+        {'desconto_indicacao' in d && (
+          <div className="panel form">
+            <div className="secao" style={{ marginTop: 0 }}>Indique um amigo</div>
+            <label>Desconto por indicação (R$)<input type="number" min="0" step="0.01" placeholder="Ex.: 30" {...campo('desconto_indicacao')} /></label>
+            <p className="meta full" style={{ margin: 0 }}>
+              Cada aluno tem um link de indicação na área dele (aba Conta), que leva para a sua página de vendas. Quem chega pelo link aparece em Vendas com "indicado por". Quando a pessoa fecha, você dá o desconto na mensalidade do mês seguinte de quem indicou. A página de vendas precisa estar ativa.
+            </p>
+          </div>
+        )}
         {erro && <p className="erro">{erro}</p>}
         {aviso && <p className="ok">{aviso}</p>}
         <div><button className="primary">Salvar</button></div>

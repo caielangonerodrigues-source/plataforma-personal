@@ -4,7 +4,8 @@ import { supabase } from '../../supabase.js'
 import { MESES, brl, diasDesde, f1, fmtData, hojeISO, porData, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 import { somarDias } from '../../lib/comunidade.js'
-import { alunosSumidos, mensalidadesAtrasadas } from '../../lib/atencao.js'
+import { alunosSumidos, aniversariantes, mensalidadesAtrasadas } from '../../lib/atencao.js'
+import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { atendimentos } from '../../lib/agenda.js'
 
 export default function Painel() {
@@ -16,13 +17,17 @@ export default function Painel() {
   const [pagamentos, setPagamentos] = useState([])
   const [trocas, setTrocas] = useState([])
   const [amanha, setAmanha] = useState(0)
+  const [feedbacks, setFeedbacks] = useState([])
   const [erro, setErro] = useState('')
   const hoje = hojeISO()
 
   useEffect(() => {
     const desde = somarDias(hoje, -60)
-    supabase.from('alunos').select('id, nome, telefone, objetivo, status, inicio, created_at, valor_mensal, dia_vencimento, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
-      .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data)))
+    // Começa as fases de treino programadas para hoje antes de contar as fichas.
+    supabase.rpc('aplicar_fases').then(() => supabase.from('alunos').select('*, avaliacoes(data, peso, gordura), treinos(*)').order('nome'))
+      .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data.map((a) => ({ ...a, treinos: a.treinos.filter((t) => !t.arquivado) })))))
+    supabase.from('feedbacks_treino').select('*').gte('data', somarDias(hoje, -7)).order('data', { ascending: false }).limit(30)
+      .then(({ data }) => setFeedbacks(data || []))
     supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
       .then(({ data }) => setEnvios(data || []))
     supabase.from('interessados').select('id').eq('status', 'novo').then(({ data }) => setNovos(data?.length || 0))
@@ -54,6 +59,8 @@ export default function Painel() {
   const sumidos = alunosSumidos(alunos, atividades, hoje)
   const atrasados = mensalidadesAtrasadas(alunos, pagamentos, hoje)
   const mes = MESES[Number(hoje.slice(5, 7)) - 1]
+  const aniversarios = aniversariantes(alunos, hoje)
+  const feedbacksComDor = feedbacks.filter((f) => f.dor || f.esforco >= 9)
   const atencao = [
     ...atrasados.map((a) => ({ a, chave: `m${a.id}`, texto: `Mensalidade de ${mes} atrasada (${brl(a.valor_mensal)}, venceu dia ${a.dia_vencimento})`, botao: 'Cobrar',
       zap: `Oi, ${primeiroNome(a.nome)}! A mensalidade de ${mes} (${brl(a.valor_mensal)}) venceu dia ${a.dia_vencimento}. O Pix está na área do aluno, em Conta. Qualquer dúvida me chama!` })),
@@ -100,6 +107,30 @@ export default function Painel() {
           <span><strong>Amanhã você tem {amanha} {amanha === 1 ? 'atendimento' : 'atendimentos'}</strong><br /><span className="meta">Mande o lembrete pelo WhatsApp na Agenda</span></span>
           <span className="pill pendente">Ver agenda</span>
         </Link>
+      )}
+      {aniversarios.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16 }}>
+          <div className="row between"><h2>Aniversários</h2><span className="meta">próximos 7 dias</span></div>
+          <div className="list">
+            {aniversarios.map(({ aluno: a, data, idade, em }) => {
+              const zap = linkWhatsApp(a.telefone, `Feliz aniversário, ${primeiroNome(a.nome)}! 🎉 Muita saúde, treino pago e conquistas nesse novo ciclo. Tamo junto!`)
+              return (
+                <div className="item" key={a.id} style={{ cursor: 'default' }}>
+                  <Link to={`/alunos/${a.id}`} style={{ color: 'inherit', textDecoration: 'none', minWidth: 0 }}>
+                    <div className="name">{a.nome}</div><div className="meta">{em === 0 ? 'Hoje' : em === 1 ? 'Amanhã' : fmtData(data).slice(0, 5)} · faz {idade} anos</div>
+                  </Link>
+                  {zap && em === 0 ? <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer">Dar parabéns</a> : <span className="meta">🎂</span>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+      {feedbacksComDor.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--warn)' }}>
+          <div className="row between"><h2>Como foi o treino</h2><span className="meta">dor ou esforço no limite, últimos 7 dias</span></div>
+          <ListaFeedbacks feedbacks={feedbacksComDor} alunos={alunos} />
+        </div>
       )}
       {alunos.length > 0 && (
         <Link to="/assistente" className="panel ia-caixa row between" style={{ marginBottom: 16, textDecoration: 'none', color: 'inherit' }}>

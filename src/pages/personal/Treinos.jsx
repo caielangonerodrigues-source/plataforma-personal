@@ -7,6 +7,7 @@ import { fichasDoAluno } from '../../lib/modelos.js'
 import { BIBLIOTECA } from '../../lib/exercicios.js'
 import SeletorExercicios from '../../components/SeletorExercicios.jsx'
 import { AplicarModelo, FormModelo } from './Modelos.jsx'
+import Fases from '../../components/Fases.jsx'
 
 export default function Treinos({ aluno, recarregar }) {
   const [modal, setModal] = useState(null) // { tipo: 'ficha' } | { tipo: 'exercicio', treino, exercicio? }
@@ -65,6 +66,7 @@ export default function Treinos({ aluno, recarregar }) {
         ))}
         {!aluno.treinos.length && <div className="panel empty">Este aluno ainda não tem ficha. Clique em "Aplicar modelo" para usar uma ficha pronta ou em "Nova ficha" para montar o treino A.</div>}
       </div>
+      <Fases aluno={aluno} recarregar={recarregar} />
 
       {modal?.tipo === 'aplicarModelo' && <AplicarModelo aluno={aluno} onFechar={() => setModal(null)} onAplicado={() => { setModal(null); recarregar() }} />}
       {modal?.tipo === 'salvarModelo' && <FormModelo fichas={fichasDoAluno(aluno.treinos)} onFechar={() => setModal(null)} onSalvo={() => setModal(null)} />}

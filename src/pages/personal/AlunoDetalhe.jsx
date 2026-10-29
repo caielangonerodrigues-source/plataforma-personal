@@ -12,6 +12,7 @@ import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
 import Nutricao from '../../components/Nutricao.jsx'
 import Relatorio from '../../components/Relatorio.jsx'
+import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
 const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['relatorio', 'Relatório'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
@@ -24,15 +25,20 @@ export default function AlunoDetalhe() {
   const [aluno, setAluno] = useState(null)
   const [diasTreinados, setDiasTreinados] = useState(0)
   const [registros, setRegistros] = useState([])
+  const [feedbacks, setFeedbacks] = useState([])
   const [alertaParq, setAlertaParq] = useState(false)
   const [editando, setEditando] = useState(false)
   const [confirmarExclusao, setConfirmarExclusao] = useState(false)
   const [erro, setErro] = useState('')
 
   const carregar = useCallback(async () => {
+    await supabase.rpc('aplicar_fases') // fase nova da periodização, se chegou o dia
     const { data, error } = await supabase.from('alunos').select('*, treinos(*, exercicios(*)), avaliacoes(*)').eq('id', id).maybeSingle()
     if (error || !data) return setErro('Aluno não encontrado.')
     data.treinos.sort(porOrdem).forEach((t) => t.exercicios.sort(porOrdem))
+    // Fichas de fases anteriores (periodização) ficam guardadas para o histórico de cargas.
+    data.todosTreinos = data.treinos
+    data.treinos = data.treinos.filter((t) => !t.arquivado)
     data.avaliacoes.sort(porData)
     setAluno(data)
     const desde = new Date(Date.now() - 30 * 864e5).toLocaleDateString('sv-SE')
@@ -41,6 +47,7 @@ export default function AlunoDetalhe() {
       supabase.from('anamneses').select('parq').eq('aluno_id', id).maybeSingle(),
     ])
     setRegistros(regs || [])
+    supabase.from('feedbacks_treino').select('*').eq('aluno_id', id).order('data', { ascending: false }).limit(20).then(({ data: fb }) => setFeedbacks(fb || []))
     setDiasTreinados(new Set((regs || []).filter((r) => r.data >= desde).map((r) => r.data)).size)
     setAlertaParq(temAlertaParq(an))
   }, [id])
@@ -86,8 +93,9 @@ export default function AlunoDetalhe() {
       {aba === 'avaliacoes' && <Avaliacoes aluno={aluno} recarregar={carregar} />}
       {aba === 'progressao' && (
         <div className="stack">
-          <div className="panel"><Progressao treinos={aluno.treinos} registros={registros} /></div>
-          <TrocasDoAluno treinos={aluno.treinos} registros={registros} />
+          <div className="panel"><Progressao treinos={aluno.todosTreinos} registros={registros} /></div>
+          {feedbacks.length > 0 && <div className="panel"><h2>Como foi o treino</h2><p className="meta" style={{ marginTop: 0 }}>Esforço de 1 a 10 e dor que o aluno marcou no fim de cada treino.</p><ListaFeedbacks feedbacks={feedbacks} /></div>}
+          <TrocasDoAluno treinos={aluno.todosTreinos} registros={registros} />
         </div>
       )}
       {aba === 'relatorio' && <Relatorio aluno={aluno} />}

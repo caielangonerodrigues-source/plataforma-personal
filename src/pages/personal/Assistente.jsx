@@ -33,7 +33,7 @@ export default function Assistente() {
       supabase.from('alunos').select('*, treinos(*, exercicios(*)), avaliacoes(*)').eq('id', id).maybeSingle(),
       supabase.from('anamneses').select('parq').eq('aluno_id', id).maybeSingle(),
     ])
-    if (data) { data.treinos.sort(porOrdem); data.avaliacoes.sort(porData) }
+    if (data) { data.treinos.sort(porOrdem); data.todosTreinos = data.treinos; data.treinos = data.treinos.filter((t) => !t.arquivado); data.avaliacoes.sort(porData) }
     setAluno(data); setParq(temAlertaParq(an))
   }
   useEffect(() => { carregarAluno(alunoId); setEstado({}) }, [alunoId])

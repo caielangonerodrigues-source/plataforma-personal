@@ -3,11 +3,12 @@ import { supabase } from '../supabase.js'
 import { f1, hojeISO, primeiroNome } from '../lib/formato.js'
 import { linkWhatsApp } from '../lib/whatsapp.js'
 import { pedirIA } from '../lib/ia.js'
+import { avisarNoApp } from '../lib/push.js'
 import { somarDias } from '../lib/comunidade.js'
 import { fimDoMes, linhasDosNumeros, mensagemPadrao, mesesRecentes, nomeDoMes, numerosDoMes } from '../lib/relatorio.js'
 
 const VAZIO = { titulo: '', resumo: '', destaques: [], atencao: [], proximo_mes: '', mensagem: '' }
-const ERRO_SQL = 'Rode o arquivo supabase/migracao-agenda-relatorios.sql no Supabase para salvar relatórios.'
+const ERRO_SQL = 'Rode o arquivo supabase/migracao-melhorias.sql no Supabase para salvar relatórios.'
 
 // Relatório já pronto: números do mês e o texto do personal. Usado no painel e na área do aluno.
 export function VerRelatorio({ conteudo, numeros, paraAluno }) {
@@ -90,7 +91,7 @@ export default function Relatorio({ aluno }) {
       supabase.from('relatorios').select('*').eq('aluno_id', aluno.id).eq('mes', mes).maybeSingle(),
     ]).then(([r, c, f, rel]) => {
       if (!ativo) return
-      setNumeros(numerosDoMes({ mes, treinos: aluno.treinos, avaliacoes: aluno.avaliacoes, registros: r.data || [], checkins: c.data || [], fotos: f.data || [] }))
+      setNumeros(numerosDoMes({ mes, treinos: aluno.todosTreinos || aluno.treinos, avaliacoes: aluno.avaliacoes, registros: r.data || [], checkins: c.data || [], fotos: f.data || [] }))
       setSalvo(rel.data || null)
       setTexto(rel.data ? { ...VAZIO, ...rel.data.conteudo } : VAZIO)
     })
@@ -113,6 +114,7 @@ export default function Relatorio({ aluno }) {
       .upsert({ aluno_id: aluno.id, mes, conteudo, publicado, updated_at: new Date().toISOString() }, { onConflict: 'aluno_id,mes' }).select().maybeSingle()
     if (error) return setEstado({ erro: /relatorios|schema cache|does not exist/i.test(error.message) ? ERRO_SQL : `Não foi possível salvar: ${error.message}` })
     setSalvo(data); setTexto({ ...VAZIO, ...conteudo })
+    if (publicado && !salvo?.publicado) avisarNoApp([aluno.id], 'Seu relatório chegou', `Veja como foi seu mês de ${nomeDoMes(mes).split(' ')[0]} na aba Evolução.`)
     setEstado({ ok: publicado ? `Pronto: ${nome} já vê o relatório na aba Evolução.` : 'Rascunho salvo.' })
   }
 

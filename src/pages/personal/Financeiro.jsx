@@ -12,19 +12,24 @@ export default function Financeiro() {
   const [competencia, setCompetencia] = useState(hoje.slice(0, 7))
   const [alunos, setAlunos] = useState(null)
   const [pagos, setPagos] = useState({})
+  const [descontos, setDescontos] = useState({}) // { aluno_id: total do mês } (indique um amigo)
   const [temPix, setTemPix] = useState(true)
   const [erro, setErro] = useState('')
 
   const carregar = useCallback(async () => {
-    const [a, p, me] = await Promise.all([
+    const [a, p, me, d] = await Promise.all([
       supabase.from('alunos').select('id, nome, telefone, status, valor_mensal, dia_vencimento').not('valor_mensal', 'is', null).neq('status', 'pausado').order('nome'),
       supabase.from('pagamentos').select('id, aluno_id, valor, pago_em').eq('competencia', competencia),
       supabase.from('personais').select('pix_chave').maybeSingle(),
+      supabase.from('descontos').select('aluno_id, valor').eq('competencia', competencia),
     ])
     if (a.error) return setErro(a.error.message)
     setAlunos(a.data)
     setPagos(Object.fromEntries((p.data || []).map((x) => [x.aluno_id, x])))
     setTemPix(!!me.data?.pix_chave)
+    const tot = {}
+    for (const x of d.data || []) tot[x.aluno_id] = (tot[x.aluno_id] || 0) + Number(x.valor)
+    setDescontos(tot)
   }, [competencia])
 
   useEffect(() => { carregar() }, [carregar])
@@ -33,7 +38,7 @@ export default function Financeiro() {
     const pago = pagos[aluno.id]
     const { error } = pago
       ? await supabase.from('pagamentos').delete().eq('id', pago.id)
-      : await supabase.from('pagamentos').insert({ aluno_id: aluno.id, competencia, valor: aluno.valor_mensal, pago_em: hoje })
+      : await supabase.from('pagamentos').insert({ aluno_id: aluno.id, competencia, valor: aluno.valor, pago_em: hoje })
     if (error) setErro(`Não foi possível salvar: ${error.message}`)
     carregar()
   }
@@ -43,10 +48,12 @@ export default function Financeiro() {
   const atual = competencia === hoje.slice(0, 7)
   const linhas = alunos.map((a) => ({
     ...a,
+    desconto: descontos[a.id] || 0,
+    valor: Math.max(0, Number(a.valor_mensal) - (descontos[a.id] || 0)),
     situacao: situacaoMensalidade({ valor: a.valor_mensal, diaVencimento: a.dia_vencimento, pago: !!pagos[a.id], hoje: atual ? hoje : `${competencia}-31` }),
   }))
-  const recebido = linhas.filter((l) => l.situacao === 'pago').reduce((t, l) => t + Number(pagos[l.id].valor ?? l.valor_mensal), 0)
-  const aReceber = linhas.filter((l) => l.situacao !== 'pago').reduce((t, l) => t + Number(l.valor_mensal), 0)
+  const recebido = linhas.filter((l) => l.situacao === 'pago').reduce((t, l) => t + Number(pagos[l.id].valor ?? l.valor), 0)
+  const aReceber = linhas.filter((l) => l.situacao !== 'pago').reduce((t, l) => t + l.valor, 0)
   const atrasados = linhas.filter((l) => l.situacao === 'atrasado').length
   const mudarMes = (n) => {
     const [y, m] = competencia.split('-').map(Number)
@@ -77,12 +84,12 @@ export default function Financeiro() {
           <tbody>
             {linhas.map((l) => {
               const zap = linkWhatsApp(l.telefone, l.situacao === 'atrasado'
-                ? `Oi, ${primeiroNome(l.nome)}! A mensalidade de ${mes} (${brl(l.valor_mensal)}) venceu dia ${l.dia_vencimento}. O Pix está na área do aluno, em Conta. Qualquer dúvida me chama!`
-                : `Oi, ${primeiroNome(l.nome)}! Lembrete da mensalidade de ${mes}: ${brl(l.valor_mensal)}${l.dia_vencimento ? `, vence dia ${l.dia_vencimento}` : ''}. O Pix está na área do aluno, em Conta.`)
+                ? `Oi, ${primeiroNome(l.nome)}! A mensalidade de ${mes} (${brl(l.valor)}) venceu dia ${l.dia_vencimento}. O Pix está na área do aluno, em Conta. Qualquer dúvida me chama!`
+                : `Oi, ${primeiroNome(l.nome)}! Lembrete da mensalidade de ${mes}: ${brl(l.valor)}${l.dia_vencimento ? `, vence dia ${l.dia_vencimento}` : ''}. O Pix está na área do aluno, em Conta.`)
               return (
                 <tr key={l.id}>
                   <td><Link to={`/alunos/${l.id}`}>{l.nome}</Link></td>
-                  <td className="num">{brl(l.valor_mensal)}</td>
+                  <td className="num">{brl(l.valor)}{l.desconto > 0 && <div className="meta">−{brl(l.desconto)} indicação</div>}</td>
                   <td className="num">{l.dia_vencimento ? `dia ${l.dia_vencimento}` : '—'}</td>
                   <td><span className={`pill ${l.situacao === 'pago' ? 'ativo' : 'pendente'}`}>{ROTULO[l.situacao]}</span></td>
                   <td style={{ whiteSpace: 'nowrap', textAlign: 'right' }}>

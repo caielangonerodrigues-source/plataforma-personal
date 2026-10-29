@@ -16,6 +16,9 @@ import AulasSpinning from '../spinning/AulasSpinning.jsx'
 import { DietaAluno } from '../../components/Nutricao.jsx'
 import Cronometro, { prepararSom } from '../../components/Cronometro.jsx'
 import TrocaExercicio from '../../components/TrocaExercicio.jsx'
+import ComoFoiTreino from '../../components/ComoFoiTreino.jsx'
+import IndiqueAmigo from '../../components/IndiqueAmigo.jsx'
+import AtivarNotificacoes from '../../components/AtivarNotificacoes.jsx'
 import { RelatoriosAluno } from '../../components/Relatorio.jsx'
 import { SimboloCA } from '../../components/Logo.jsx'
 import { buscaVideo } from '../../lib/exercicios.js'
@@ -29,6 +32,7 @@ import { f1, hojeISO, num, porData, porOrdem, primeiroNome } from '../../lib/for
 export default function AreaAluno({ aluno }) {
   const [aba, setAba] = useState('treino')
   const [treinos, setTreinos] = useState(null)
+  const [todosTreinos, setTodosTreinos] = useState([]) // inclui fichas de fases anteriores, para o histórico
   const [avaliacoes, setAvaliacoes] = useState([])
   const [registros, setRegistros] = useState([])
   const [diasCheckin, setDiasCheckin] = useState([])
@@ -41,10 +45,12 @@ export default function AreaAluno({ aluno }) {
   const [trocando, setTrocando] = useState(null) // exercício
   const [trocas, setTrocas] = useState(() => lerTrocas(hojeISO())) // trocas escolhidas hoje e ainda não marcadas
   const [agenda, setAgenda] = useState(null) // próximo atendimento presencial
+  const [proximaFase, setProximaFase] = useState(null)
   const comunidade = useComunidade()
   const hoje = hojeISO()
 
   const carregar = useCallback(async () => {
+    await supabase.rpc('aplicar_fases') // começa a fase nova do treino, se chegou o dia (sem o SQL novo, não faz nada)
     const [t, a, r, c, an] = await Promise.all([
       supabase.from('treinos').select('*, exercicios(*)').eq('aluno_id', aluno.id),
       supabase.from('avaliacoes').select('*').eq('aluno_id', aluno.id),
@@ -54,7 +60,8 @@ export default function AreaAluno({ aluno }) {
     ])
     const lista = (t.data || []).sort(porOrdem)
     lista.forEach((x) => x.exercicios.sort(porOrdem))
-    setTreinos(lista)
+    setTodosTreinos(lista)
+    setTreinos(lista.filter((x) => !x.arquivado))
     setAvaliacoes((a.data || []).sort(porData))
     setRegistros(r.data || [])
     setDiasCheckin((c.data || []).map((x) => x.data))
@@ -65,6 +72,8 @@ export default function AreaAluno({ aluno }) {
   useEffect(() => {
     Promise.all([supabase.from('horarios').select('*').eq('aluno_id', aluno.id), supabase.from('remarcacoes').select('*')])
       .then(([h, r]) => !h.error && setAgenda(proximoAtendimento(h.data || [], r.data || [], hoje, new Date().toTimeString().slice(0, 5))))
+    supabase.from('fases').select('nome, inicio').eq('aluno_id', aluno.id).is('aplicada_em', null).order('inicio').limit(1)
+      .then(({ data }) => setProximaFase(data?.[0] || null))
   }, [aluno.id, hoje])
 
   const deHoje = (id) => registros.find((r) => r.exercicio_id === id && r.data === hoje)
@@ -156,7 +165,9 @@ export default function AreaAluno({ aluno }) {
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">
+          <AtivarNotificacoes />
           <Mensalidade aluno={aluno} />
+          <IndiqueAmigo aluno={aluno} />
           <Anamnese alunoId={aluno.id} onSalva={() => setTemAnamnese(true)} intro={<p className="meta" style={{ margin: 0 }}>Responda com sinceridade: isso ajuda seu personal a montar um treino seguro.</p>} />
         </div>
       )}
@@ -176,6 +187,7 @@ export default function AreaAluno({ aluno }) {
                   {agenda.horario.local ? ` · ${agenda.horario.local}` : ''}{agenda.remarcado ? ' (remarcado)' : ''}
                 </div>
               )}
+              {proximaFase && <div className="meta" style={{ marginBottom: 10 }}>Nova fase do treino ({proximaFase.nome}) começa em {fmtCurta(proximaFase.inicio)}.</div>}
               <div className="meta" style={{ marginBottom: 6 }}>{ficha.foco} · {qtdFeitos} de {ficha.exercicios.length} feitos</div>
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
               {erro && <p className="erro" style={{ marginTop: 10 }}>{erro}</p>}
@@ -211,6 +223,7 @@ export default function AreaAluno({ aluno }) {
                   )
                 })}
               </div>
+              {qtdFeitos > 0 && <ComoFoiTreino aluno={aluno} treinoId={ficha.id} hoje={hoje} />}
               {pct === 100 && (
                 <div className="row between" style={{ marginTop: 16 }}>
                   <p style={{ margin: 0, fontWeight: 700, color: 'var(--accent)' }}>Treino concluído. Bom trabalho!</p>
@@ -226,7 +239,7 @@ export default function AreaAluno({ aluno }) {
         <div className="stack">
           {ultima ? <Composicao avaliacao={ultima} sexo={aluno.sexo} titulo="Última avaliação" /> : <div className="panel empty">Seu personal ainda não registrou nenhuma avaliação.</div>}
           {avaliacoes.length > 0 && <div className="panel"><h2 style={{ marginBottom: 10 }}>Peso e gordura</h2><Grafico avaliacoes={avaliacoes} /></div>}
-          <div className="panel"><h2 style={{ marginBottom: 10 }}>Evolução das cargas</h2><Progressao treinos={treinos} registros={registros} /></div>
+          <div className="panel"><h2 style={{ marginBottom: 10 }}>Evolução das cargas</h2><Progressao treinos={todosTreinos} registros={registros} /></div>
           <RelatoriosAluno alunoId={aluno.id} />
           <Medalhas datas={diasCheckin} desafios={comunidade.dados?.desafios || []} />
           <FotosEvolucao alunoId={aluno.id} />

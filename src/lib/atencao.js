@@ -29,3 +29,20 @@ export function mensalidadesAtrasadas(alunos, pagamentos, hoje) {
   const pagos = new Set(pagamentos.map((p) => p.aluno_id))
   return alunos.filter((a) => a.status !== 'pausado' && situacaoMensalidade({ valor: a.valor_mensal, diaVencimento: a.dia_vencimento, pago: pagos.has(a.id), hoje }) === 'atrasado')
 }
+
+// Aniversários de hoje até `dias` à frente (29/02 vira 28/02 em ano que não é bissexto).
+export function aniversariantes(alunos, hoje, dias = 7) {
+  const ano = Number(hoje.slice(0, 4))
+  const bissexto = (a) => (a % 4 === 0 && a % 100 !== 0) || a % 400 === 0
+  return alunos
+    .filter((a) => a.status !== 'pausado' && /^\d{4}-\d{2}-\d{2}/.test(a.data_nascimento || ''))
+    .map((a) => {
+      const md = a.data_nascimento.slice(5, 10)
+      const dataEm = (y) => `${y}-${md === '02-29' && !bissexto(y) ? '02-28' : md}`
+      let data = dataEm(ano)
+      if (data < hoje) data = dataEm(ano + 1)
+      return { aluno: a, data, idade: Number(data.slice(0, 4)) - Number(a.data_nascimento.slice(0, 4)), em: diasEntre(hoje, data) }
+    })
+    .filter((x) => x.em <= dias)
+    .sort((x, y) => x.em - y.em)
+}

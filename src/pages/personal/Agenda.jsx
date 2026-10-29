@@ -7,7 +7,7 @@ import { somarDias } from '../../lib/comunidade.js'
 import { DIAS_SEMANA, atendimentos, diaDaSemana, hhmm, inicioDaSemana } from '../../lib/agenda.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
-const ERRO_SQL = 'Para usar a agenda, rode o arquivo supabase/migracao-agenda-relatorios.sql no Supabase (SQL Editor).'
+const ERRO_SQL = 'Para usar a agenda, rode o arquivo supabase/migracao-melhorias.sql no Supabase (SQL Editor).'
 const curta = (iso) => `${DIAS_SEMANA[diaDaSemana(iso)].toLowerCase()}, ${iso.slice(8, 10)}/${iso.slice(5, 7)}`
 const somarMinutos = (hora, min) => { const [h, m] = hora.split(':').map(Number), t = h * 60 + m + min; return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}` }
 
@@ -29,6 +29,7 @@ export default function Agenda() {
   const [erro, setErro] = useState('')
   const [novo, setNovo] = useState(null) // {} = novo horário, ou o horário em edição
   const [remarcando, setRemarcando] = useState(null) // atendimento
+  const [avisoApp, setAvisoApp] = useState('')
 
   const carregar = useCallback(async () => {
     const [a, h, r] = await Promise.all([
@@ -41,6 +42,14 @@ export default function Agenda() {
     setHorarios(h.data); setRemarcacoes(r.data || [])
   }, [hoje])
   useEffect(() => { carregar() }, [carregar])
+
+  // Notificação no celular de todos os atendimentos de amanhã (alunos que ativaram no app).
+  async function lembrarPeloApp() {
+    setAvisoApp('Enviando…')
+    const { data, error } = await supabase.functions.invoke('notificacoes', { body: { acao: 'lembretes' } })
+    setAvisoApp(error ? 'As notificações ainda não estão ligadas (veja o passo 8 do README).'
+      : data.enviadas ? `Lembrete enviado para ${data.enviadas} ${data.enviadas === 1 ? 'celular' : 'celulares'}.` : 'Nenhum desses alunos ativou as notificações no app ainda. Use o WhatsApp.')
+  }
 
   async function desfazer(a) {
     const { error } = await supabase.from('remarcacoes').delete().eq('id', a.remarcacao.id)
@@ -100,7 +109,8 @@ export default function Agenda() {
 
       {deAmanha.length > 0 && (
         <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>
-          <div className="row between"><h2>Amanhã, {curta(amanha)}</h2><span className="meta">mande o lembrete pelo WhatsApp</span></div>
+          <div className="row between"><h2>Amanhã, {curta(amanha)}</h2><button className="small" onClick={lembrarPeloApp}>Lembrar todos pelo app</button></div>
+          {avisoApp && <p className="meta" style={{ margin: '4px 0 0' }}>{avisoApp}</p>}
           <div className="list">{deAmanha.map((a) => <Linha key={a.chave} a={a} />)}</div>
         </div>
       )}

@@ -213,6 +213,8 @@ label.ex-item { justify-content: flex-start; cursor: pointer }
 .ex-item.on { background: var(--accent-soft) }
 a.botao-link { display: inline-block; font-weight: 600; border-radius: 8px; padding: 5px 10px; font-size: 13px; border: 1px solid var(--accent); color: var(--accent); text-decoration: none; background: var(--surface) }
 a.botao-link:hover { background: var(--accent-soft) }
+.indicado-por { display: inline-block; margin: 24px 0 0; padding: 4px 12px; border-radius: 99px; background: rgba(255, 255, 255, .2); font-weight: 700 }
+a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padding: 8px 14px; font-size: 14px }
 .macros { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px }
 .macros .kpi .n { font-size: 30px }
 .refeicao h3 { margin: 0 }

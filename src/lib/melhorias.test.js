@@ -120,3 +120,18 @@ test('mensagem padrão do relatório', async () => {
   const n = { mes: '2026-10', diasTreinados: 12, checkins: 1, subiram: 2, cargas: [{ nome: 'Agachamento', de: 40, para: 50, diferenca: 10 }], avaliacao: { noMes: true, anterior: '2026-08-01', peso_dif: -1.5, gordura_dif: null, cintura_dif: 2 } }
   assert.equal(mensagemPadrao('Ana', n), 'Oi, Ana! Seu resumo de outubro de 2026:\n\n• 12 dias de treino e 1 check-in\n• Carga subiu em 2 exercícios (Agachamento: 40 → 50 kg)\n• Avaliação: peso −1,5 kg, cintura +2 cm\n\nBora para mais um mês! 💪')
 })
+
+test('aniversários da semana', async () => {
+  const { aniversariantes } = await import('./atencao.js')
+  const alunos = [
+    { id: 'a', status: 'ativo', data_nascimento: '1995-10-29' },
+    { id: 'b', status: 'ativo', data_nascimento: '2000-11-03' },
+    { id: 'c', status: 'ativo', data_nascimento: '1990-11-10' },
+    { id: 'd', status: 'pausado', data_nascimento: '1990-10-30' },
+    { id: 'e', status: 'ativo', data_nascimento: null },
+    { id: 'f', status: 'ativo', data_nascimento: '1990-10-28' },
+  ]
+  assert.deepEqual(aniversariantes(alunos, '2026-10-29').map((x) => [x.aluno.id, x.em, x.idade]), [['a', 0, 31], ['b', 5, 26]])
+  assert.deepEqual(aniversariantes([{ id: 'g', status: 'ativo', data_nascimento: '2000-01-02' }], '2026-12-30').map((x) => [x.data, x.idade]), [['2027-01-02', 27]])
+  assert.deepEqual(aniversariantes([{ id: 'h', status: 'ativo', data_nascimento: '2000-02-29' }], '2027-02-25').map((x) => x.data), ['2027-02-28'])
+})
