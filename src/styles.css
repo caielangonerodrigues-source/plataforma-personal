@@ -629,3 +629,7 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
   .chat-msg.minha .reacoes.mini .reacao[aria-pressed="true"] { background: var(--surface) }
   .panel { border-color: rgb(255 255 255 / .05); box-shadow: none }
 }
+
+/* "+" das reações: abre a grade com todos os emojis */
+.reacoes-menu .mais-emojis { color: var(--muted); background: var(--bg) }
+.reacoes-menu.todos { display: grid; grid-template-columns: repeat(6, 40px); border-radius: 18px; max-width: calc(100vw - 32px) }

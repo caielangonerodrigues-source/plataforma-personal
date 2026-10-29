@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { EMOJIS, resumirReacoes } from '../lib/reacoes.js'
+import { EMOJIS, MAIS_EMOJIS, resumirReacoes } from '../lib/reacoes.js'
 
 // Reações com emoji de um post ou mensagem. Toque num emoji para reagir, no mesmo de novo para tirar.
 // `reacoes`: [{ user_id, emoji }]. `onReagir(emoji)`. `opcoes` limita os emojis (antes do SQL novo, só ❤️).
 // `mini` (chat): sem botão de reagir; quem abre a lista de emojis é o toque na mensagem (`aberto`/`onAbrir`).
 export default function Reacoes({ reacoes, eu, onReagir, opcoes = EMOJIS, mini = false, aberto: abertoFora, onAbrir }) {
   const [abertoDentro, setAbertoDentro] = useState(false)
+  const [todos, setTodos] = useState(false) // mostra também os emojis do "+"
   const aberto = onAbrir ? abertoFora : abertoDentro
   const setAberto = onAbrir || setAbertoDentro
   const caixa = useRef(null)
   const { lista, minha } = resumirReacoes(reacoes, eu)
 
+  useEffect(() => { if (!aberto) setTodos(false) }, [aberto])
   useEffect(() => {
     if (!aberto) return
     // No chat, o toque na própria mensagem já abre e fecha a lista.
@@ -38,10 +40,15 @@ export default function Reacoes({ reacoes, eu, onReagir, opcoes = EMOJIS, mini =
         {!lista.length && <span>Reagir</span>}
       </button>}
       {aberto && (
-        <div className="reacoes-menu" role="menu">
-          {opcoes.map((e) => (
+        <div className={`reacoes-menu${todos ? ' todos' : ''}`} role="menu">
+          {(todos ? [...opcoes, ...MAIS_EMOJIS] : opcoes).map((e) => (
             <button key={e} type="button" role="menuitem" aria-pressed={minha === e} aria-label={`Reagir com ${e}`} onClick={() => escolher(e)}>{e}</button>
           ))}
+          {!todos && opcoes === EMOJIS && (
+            <button type="button" className="mais-emojis" aria-label="Mais emojis" onClick={() => setTodos(true)}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            </button>
+          )}
         </div>
       )}
     </div>

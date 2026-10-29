@@ -2,12 +2,12 @@
 -- Pode rodar mais de uma vez.
 
 -- ---------------------------------------------------------------------------
--- Reações nos posts: cada pessoa escolhe um emoji por post (as curtidas antigas viram ❤️).
+-- Reações nos posts: cada pessoa escolhe um emoji por post (as curtidas antigas viram ❤️). Qualquer emoji da lista do app.
 -- ---------------------------------------------------------------------------
 
 alter table public.curtidas add column if not exists emoji text not null default '❤️';
 alter table public.curtidas drop constraint if exists curtidas_emoji_check;
-alter table public.curtidas add constraint curtidas_emoji_check check (emoji in ('❤️', '🔥', '💪', '👏', '😂', '😮'));
+alter table public.curtidas add constraint curtidas_emoji_check check (char_length(emoji) between 1 and 16);
 
 drop policy if exists "trocar reação" on public.curtidas;
 create policy "trocar reação" on public.curtidas
@@ -20,10 +20,12 @@ create policy "trocar reação" on public.curtidas
 create table if not exists public.reacoes_mensagem (
   mensagem_id uuid not null references public.mensagens_turma (id) on delete cascade,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  emoji text not null check (emoji in ('❤️', '🔥', '💪', '👏', '😂', '😮')),
+  emoji text not null check (char_length(emoji) between 1 and 16),
   created_at timestamptz not null default now(),
   primary key (mensagem_id, user_id)
 );
+alter table public.reacoes_mensagem drop constraint if exists reacoes_mensagem_emoji_check;
+alter table public.reacoes_mensagem add constraint reacoes_mensagem_emoji_check check (char_length(emoji) between 1 and 16);
 
 create or replace function public.turma_da_mensagem(m uuid) returns uuid
 language sql stable security definer set search_path = public as $$
@@ -102,10 +104,12 @@ create policy "apagar conquista" on public.conquistas
 create table if not exists public.reacoes_conquista (
   conquista_id uuid not null references public.conquistas (id) on delete cascade,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  emoji text not null check (emoji in ('❤️', '🔥', '💪', '👏', '😂', '😮')),
+  emoji text not null check (char_length(emoji) between 1 and 16),
   created_at timestamptz not null default now(),
   primary key (conquista_id, user_id)
 );
+alter table public.reacoes_conquista drop constraint if exists reacoes_conquista_emoji_check;
+alter table public.reacoes_conquista add constraint reacoes_conquista_emoji_check check (char_length(emoji) between 1 and 16);
 
 create or replace function public.aluno_da_conquista(c uuid) returns uuid
 language sql stable security definer set search_path = public as $$
