@@ -182,7 +182,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           </div>
         )}
         {proxima && (
-          <button className="panel stack cartao-link" style={{ gap: 6 }} onClick={() => irPara('evolucao')}>
+          <button className="panel stack cartao-link" style={{ gap: 6 }} onClick={() => irPara('voce')}>
             <div className="meta">{proxima.icone} Próxima medalha</div>
             <div className="name">{proxima.titulo}</div>
             <div className="meta">{proxima.descricao} · faltam {proxima.meta - proxima.valor}</div>

@@ -17,7 +17,7 @@ export default function Logo({ sub, grande = false }) {
     <div className="logo" style={{ marginBottom: 18 }}>
       <div className="row" style={{ gap: grande ? 14 : 10, flexWrap: 'nowrap', alignItems: 'center' }}>
         <SimboloCA size={grande ? 64 : 44} />
-        <div aria-label="Corpo Atlético" style={{ fontFamily: 'var(--display)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.02em', lineHeight: 0.95, fontSize: grande ? 44 : 26 }}>
+        <div aria-label="Corpo Atlético" style={{ fontFamily: 'var(--marca)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.02em', lineHeight: 0.95, fontSize: grande ? 44 : 26 }}>
           Corpo Atlético<span style={{ color: 'var(--accent)' }}>.</span>
         </div>
       </div>

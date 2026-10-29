@@ -26,6 +26,12 @@ const ICONES = {
   sair: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10',
   mensagens: 'M4 5h16v11H9l-5 4zM8 9h8M8 12h5',
   videos: 'M3 6h12v12H3zM15 10l6-3v10l-6-3',
+  atividades: 'M3 12h4l3-7 4 14 3-7h4',
+  galeria: 'M4 4h16v16H4zM4 10h16M4 15h16M10 4v16M15 4v16',
+  menu: 'M4 7h16M4 12h16M4 17h16',
+  gravar: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  conversas: 'M3 5h12v9H8l-5 4zM9 17v1h7l4 3v-3h1V9h-3',
+  sino: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4',
 }
 
 export function Icone({ nome, tamanho = 22 }) {
@@ -36,7 +42,8 @@ export function Icone({ nome, tamanho = 22 }) {
   )
 }
 
-// Barra de app fixa embaixo (só no celular). `itens`: [{ chave, rotulo, icone, ativo, badge, onClick }].
+// Barra de app flutuante embaixo (só no celular), no estilo do Strava. `itens`: [{ chave, rotulo, icone, ativo, badge, onClick }];
+// um item com `centro` vira o botão redondo do meio e um com `figura` mostra a foto do aluno no lugar do ícone.
 // `mais`: itens que vão para a gaveta "Mais".
 export default function BarraApp({ itens, mais = [] }) {
   const [aberta, setAberta] = useState(false)
@@ -66,8 +73,8 @@ export default function BarraApp({ itens, mais = [] }) {
       )}
       <nav className="barra-app" aria-label="Navegação">
         {itens.map((i) => (
-          <button key={i.chave} className={i.ativo ? 'ativo' : ''} aria-current={i.ativo ? 'page' : undefined} onClick={i.onClick}>
-            <span className="barra-icone"><Icone nome={i.icone} />{i.badge > 0 && <i className="barra-badge">{i.badge}</i>}</span>
+          <button key={i.chave} className={`${i.ativo ? 'ativo' : ''}${i.centro ? ' centro' : ''}`} aria-current={i.ativo ? 'page' : undefined} onClick={i.onClick}>
+            <span className="barra-icone">{i.figura || <Icone nome={i.icone} tamanho={i.centro ? 30 : 22} />}{i.badge > 0 && <i className="barra-badge">{i.badge}</i>}</span>
             <span>{i.rotulo}</span>
           </button>
         ))}

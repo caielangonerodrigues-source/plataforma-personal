@@ -50,7 +50,7 @@ export default function Cronometro({ descanso, onFechar }) {
       <div className="cron-barra"><i style={{ width: `${pct}%` }} /></div>
       <div className="row between" style={{ flexWrap: 'nowrap' }}>
         <div style={{ minWidth: 0 }}>
-          <div className="cron-rotulo">{acabou ? 'Descanso acabou' : 'Descanso'}</div>
+          <div className="cron-rotulo">{acabou ? 'Descanso acabou' : `Descanso${descanso.serie ? ` · ${descanso.serie}` : ''}`}</div>
           <div className="cron-nome">{acabou ? 'Bora para a próxima série!' : descanso.nome}</div>
         </div>
         {!acabou && <div className="cron-tempo">{mmss(restante)}</div>}

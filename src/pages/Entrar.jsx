@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { provedoresLigados, supabase } from '../supabase.js'
+import { definirLembrar, lembrarLogin, provedoresLigados, supabase } from '../supabase.js'
+import CampoSenha from '../components/CampoSenha.jsx'
 import HeroEntrada from '../components/HeroEntrada.jsx'
-import Logo from '../components/Logo.jsx'
+import { SimboloCA } from '../components/Logo.jsx'
 
 const MENSAGENS = {
   'Invalid login credentials': 'E-mail ou senha incorretos.',
@@ -13,7 +14,8 @@ const traduz = (e) => MENSAGENS[e?.message] || e?.message || 'Algo deu errado. T
 
 export default function Entrar() {
   const [modo, setModo] = useState('entrar') // entrar | criar | esqueci
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => { try { return localStorage.getItem('ultimo-email') || '' } catch { return '' } })
+  const [lembrar, setLembrar] = useState(lembrarLogin)
   const [senha, setSenha] = useState('')
   // Cadastro do aluno no primeiro acesso (vai para o cadastro em alunos pelo banco)
   const [ficha, setFicha] = useState({ nome: '', nascimento: '', telefone: '', sexo: 'F', objetivo: '' })
@@ -27,7 +29,7 @@ export default function Entrar() {
 
   // Google e Apple: o Supabase cria a conta na primeira vez; o cadastro de aluno sai com o nome da conta.
   async function social(provider) {
-    setErro('')
+    setErro(''); definirLembrar(lembrar)
     const { error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo: window.location.origin } })
     if (error) setErro(traduz(error))
   }
@@ -36,6 +38,10 @@ export default function Entrar() {
     e.preventDefault()
     setErro(''); setAviso(''); setEnviando(true)
     try {
+      if (modo !== 'esqueci') {
+        definirLembrar(lembrar)
+        try { if (lembrar) localStorage.setItem('ultimo-email', email); else localStorage.removeItem('ultimo-email') } catch { /* sem armazenamento */ }
+      }
       if (modo === 'entrar') {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
         if (error) throw error
@@ -61,12 +67,28 @@ export default function Entrar() {
   }
 
   const titulo = { entrar: 'Entrar', criar: 'Primeiro acesso', esqueci: 'Esqueci a senha' }[modo]
+  // Botões do topo e da foto: abrem o formulário já no modo certo.
+  const irPara = (m) => {
+    setModo(m); setErro(''); setAviso('')
+    document.getElementById('acesso')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
   return (
     <div className="entrada">
-      <HeroEntrada />
-      <div className="entrada-form">
-      <div style={{ width: '100%', maxWidth: 420 }}>
-        <Logo sub="Academia & Fitness · Treinos e avaliações" grande />
+      <header className="entrada-topo">
+        <div className="entrada-marca">
+          <SimboloCA size={36} />
+          <span>Corpo Atlético<i>.</i></span>
+        </div>
+        <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+          <button className="small entrada-topo-entrar" onClick={() => irPara('entrar')}>Entrar</button>
+          <button className="primary small" onClick={() => irPara('criar')}>Começar</button>
+        </div>
+      </header>
+
+      <HeroEntrada onComecar={() => irPara('criar')} onEntrar={() => irPara('entrar')} />
+
+      <section className="entrada-secao entrada-acesso" id="acesso">
+      <div style={{ width: '100%', maxWidth: 420, margin: '0 auto' }}>
         <form className="panel stack" onSubmit={enviar}>
           <h2>{titulo}</h2>
           {modo !== 'esqueci' && (provedores.google || provedores.apple) && (
@@ -98,7 +120,11 @@ export default function Entrar() {
           )}
           <label>E-mail<input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
           {modo !== 'esqueci' && (
-            <label>Senha<input id="senha" type="password" autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} required value={senha} onChange={(e) => setSenha(e.target.value)} /></label>
+            <CampoSenha id="senha" autoComplete={modo === 'criar' ? 'new-password' : 'current-password'} required minLength={modo === 'criar' ? 8 : undefined}
+              placeholder={modo === 'criar' ? 'Mínimo de 8 caracteres' : undefined} value={senha} onChange={(e) => setSenha(e.target.value)} />
+          )}
+          {modo !== 'esqueci' && (
+            <label className="lembrar"><input type="checkbox" checked={lembrar} onChange={(e) => setLembrar(e.target.checked)} /> Lembrar de mim neste aparelho</label>
           )}
           {erro && <p className="erro">{erro}</p>}
           {aviso && <p className="ok">{aviso}</p>}
@@ -114,7 +140,51 @@ export default function Entrar() {
           <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Reservar ›</span>
         </Link>
       </div>
-      </div>
+      </section>
+
+      <section className="entrada-secao entrada-sobre">
+        <p className="entrada-sobrelinha">Quem somos</p>
+        <p className="entrada-manifesto">
+          Se você treina, a Corpo Atlético foi feita para você. Seu treino montado pelo personal, suas cargas, sua evolução e uma turma inteira te puxando para cima, tudo no celular.
+        </p>
+      </section>
+
+      <section className="entrada-secao entrada-recursos">
+        <h2 className="entrada-titulo">Tudo o que você precisa para evoluir.</h2>
+        <div className="entrada-recursos-grade">
+          {RECURSOS.map(([icone, titulo, texto]) => (
+            <div key={titulo} className="entrada-recurso">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icone} /></svg>
+              <h3>{titulo}</h3>
+              <p>{texto}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="entrada-secao entrada-pronto">
+        <h2 className="entrada-titulo">Pronto para começar?</h2>
+        <ul>
+          {['Grátis para quem treina na Corpo Atlético', 'Treino montado e acompanhado pelo seu personal', 'Funciona no iPhone e no Android, como aplicativo', 'Consultoria online para quem treina longe'].map((t) => (
+            <li key={t}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" /></svg>{t}</li>
+          ))}
+        </ul>
+        <button className="entrada-junte" onClick={() => irPara('criar')}><span aria-hidden="true">›</span> Comece agora</button>
+      </section>
+
+      <footer className="entrada-rodape">
+        <SimboloCA size={44} />
+        <strong>Corpo Atlético<i>.</i></strong>
+        <span>Academia & Fitness</span>
+        <Link to="/consultoria">Consultoria online</Link>
+      </footer>
     </div>
   )
 }
+
+// Ícones de traço (24×24) dos recursos, no estilo do site do Strava.
+const RECURSOS = [
+  ['M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12', 'Treine e registre', 'Sua ficha no celular, cargas de cada série, cronômetro de descanso e o histórico de tudo o que você levantou.'],
+  ['M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 3-5 6-5s6 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3 0 6 2 6 5', 'Compartilhe e conecte', 'Check-in com foto, reações, comentários, equipes e ranking do mês. A turma te motiva a voltar amanhã.'],
+  ['M4 20V4M4 20h16M7 15l4-4 3 3 5-6M15 8h4v4', 'Acompanhe e evolua', 'Avaliação física, medidas, fotos de antes e depois, medalhas e o relatório do mês com a sua evolução.'],
+]

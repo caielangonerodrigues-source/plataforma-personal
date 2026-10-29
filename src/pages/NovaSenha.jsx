@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import CampoSenha from '../components/CampoSenha.jsx'
 
 export default function NovaSenha() {
   const navigate = useNavigate()
@@ -19,7 +20,7 @@ export default function NovaSenha() {
     <div className="centro">
       <form className="panel stack" style={{ width: '100%', maxWidth: 420 }} onSubmit={salvar}>
         <h2>Nova senha</h2>
-        <label>Nova senha<input id="nova-senha" type="password" autoComplete="new-password" required value={senha} onChange={(e) => setSenha(e.target.value)} /></label>
+        <CampoSenha rotulo="Nova senha" id="nova-senha" autoComplete="new-password" required value={senha} onChange={(e) => setSenha(e.target.value)} />
         {erro && <p className="erro">{erro}</p>}
         <button className="primary">Salvar senha</button>
       </form>

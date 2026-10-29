@@ -5,12 +5,22 @@
   --accent: #fc4c02; --accent-ink: #ffffff; --accent-soft: #ffe9df;
   --warn: #c4320a; --warn-soft: #fde7e1; --ok: #1a7f37; --ok-soft: #e1f3e6; --pause: #6b6f86; --pause-soft: #e7e8ef;
   --chart2: #3d5a80;
-  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
-  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --marca: "Barlow Condensed", "Arial Narrow", sans-serif; /* só o nome CORPO ATLÉTICO. */
+  --display: "Inter Tight", "Inter", system-ui, sans-serif; /* títulos e números, no estilo do Strava */
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   color-scheme: light;
 }
-/* O site é sempre claro (decisão da academia), mesmo com o celular no modo escuro. */
+/* Segue o tema do celular: escuro quando o aparelho está no modo escuro. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121214; --surface: #1c1c20; --ink: #ececf0; --muted: #a0a0ab; --line: #2e2e34;
+    --accent: #ff6a2b; --accent-ink: #160800; --accent-soft: #3a1d10;
+    --warn: #ff8a65; --warn-soft: #3b2019; --ok: #5cc982; --ok-soft: #173322; --pause: #a9adc4; --pause-soft: #2a2c36;
+    --chart2: #8fb3e0;
+    color-scheme: dark;
+  }
+}
 
 * { box-sizing: border-box }
 html, body, #root { height: 100% }
@@ -18,7 +28,7 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--b
 
 .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100% }
 nav.side { border-right: 1px solid var(--line); padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px; display: flex; flex-direction: column; gap: 6px }
-.brand { font-family: var(--display); font-size: 28px; letter-spacing: .02em; line-height: 1; margin-bottom: 18px; text-transform: uppercase; font-weight: 700 }
+.brand { font-family: var(--marca); font-size: 28px; letter-spacing: .02em; line-height: 1; margin-bottom: 18px; text-transform: uppercase; font-weight: 700 }
 .brand small { display: block; font-family: var(--body); font-size: 12px; letter-spacing: .08em; color: var(--muted); margin-top: 6px }
 .navbtn { padding: 9px 12px; border-radius: 8px; font-weight: 600; color: var(--muted); text-decoration: none }
 .navbtn:hover { color: var(--ink); background: var(--accent-soft) }
@@ -28,8 +38,8 @@ nav.side { border-right: 1px solid var(--line); padding-block: 24px; padding-lef
 main { padding-block: 28px 64px; padding-left: 28px; padding-right: max(28px, env(safe-area-inset-right, 0px)); min-width: 0; max-width: 1100px }
 .solo { max-width: 880px; margin-inline: auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
 
-h1 { font-family: var(--display); font-size: 40px; line-height: 1.05; margin: 0 0 4px; text-transform: uppercase; letter-spacing: .01em; text-wrap: balance }
-h2 { font-family: var(--display); font-size: 24px; margin: 0; text-transform: uppercase; letter-spacing: .02em }
+h1 { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1.05; margin: 0 0 4px; letter-spacing: -.02em; text-wrap: balance }
+h2 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0; letter-spacing: -.02em }
 h3 { font-size: 16px; margin: 0 }
 .sub { color: var(--muted); margin: 0 0 24px }
 .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center }
@@ -37,7 +47,7 @@ h3 { font-size: 16px; margin: 0 }
 .stack { display: flex; flex-direction: column; gap: 16px }
 .panel { background: var(--surface); border: 1px solid rgb(20 20 30 / .05); border-radius: 16px; padding: 18px; min-width: 0; box-shadow: 0 1px 2px rgb(20 20 30 / .04), 0 6px 20px rgb(20 20 30 / .05) }
 .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
-.kpi .n { font-family: var(--display); font-size: 42px; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 700 }
+.kpi .n { font-family: var(--display); letter-spacing: -.02em; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; font-weight: 700 }
 .kpi .n.txt { font-size: 28px; padding-block: 7px }
 .kpi .l { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted) }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px }
@@ -85,7 +95,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .tab[aria-selected="true"] { color: var(--ink); border-color: var(--accent) }
 
 .ficha-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; margin-bottom: 8px }
-.letter { font-family: var(--display); font-size: 30px; line-height: 1; color: var(--accent); margin-right: 8px; font-weight: 700 }
+.letter { font-family: var(--display); letter-spacing: -.02em; font-size: 24px; line-height: 1; color: var(--accent); margin-right: 8px; font-weight: 700 }
 
 .chart svg { width: 100%; height: auto; display: block }
 .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); flex-wrap: wrap }
@@ -125,10 +135,10 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .kudos button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
 .rank { display: grid; grid-template-columns: 28px 38px 1fr auto; gap: 10px; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--line) }
 .rank:last-child { border-bottom: 0 }
-.rank .pos { font-family: var(--display); font-size: 22px; font-weight: 700; color: var(--muted); text-align: center }
+.rank .pos { font-family: var(--display); letter-spacing: -.02em; font-size: 18px; font-weight: 700; color: var(--muted); text-align: center }
 .rank.top .pos { color: var(--accent) }
 .rank.eu { background: var(--accent-soft); border-radius: 10px }
-.rank .dias { font-family: var(--display); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums }
+.rank .dias { font-family: var(--display); letter-spacing: -.02em; font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums }
 .comunidade { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start }
 .foto-botao { flex-direction: row; justify-content: center; border: 1.5px dashed var(--accent); color: var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 14px; font-size: 14px; letter-spacing: 0; text-transform: none; cursor: pointer }
 .foto-botao:focus-within { outline: 2px solid var(--accent); outline-offset: 2px }
@@ -141,7 +151,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .fileira { display: flex; gap: 10px; justify-content: center }
 .bike { width: 62px; padding: 8px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 2px solid var(--line); border-radius: 12px 12px 8px 8px; background: var(--surface); color: var(--ink) }
 .bike svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
-.bike-n { font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1 }
+.bike-n { font-family: var(--display); letter-spacing: -.02em; font-weight: 700; font-size: 18px; line-height: 1 }
 .bike-nome { font-size: 11px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-height: 16px }
 .bike.livre { border-color: var(--accent); color: var(--accent) }
 .bike.livre:hover { background: var(--accent-soft) }
@@ -162,12 +172,12 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .aulas { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px }
 .aula { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: var(--surface); text-align: left; font-weight: 400 }
 .aula:hover, .aula[aria-current="true"] { border-color: var(--accent) }
-.aula .hora { font-family: var(--display); font-size: 34px; font-weight: 700; line-height: 1 }
+.aula .hora { font-family: var(--display); letter-spacing: -.02em; font-size: 27px; font-weight: 700; line-height: 1 }
 .aula .dia { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent) }
 .aula.lotada .hora { color: var(--muted) }
 .ingresso { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden }
 .ingresso-topo { background: var(--accent); color: var(--accent-ink); padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px }
-.ingresso-topo .bike-grande { font-family: var(--display); font-size: 52px; font-weight: 700; line-height: .9; text-align: right }
+.ingresso-topo .bike-grande { font-family: var(--display); letter-spacing: -.02em; font-size: 42px; font-weight: 700; line-height: .9; text-align: right }
 .ingresso-topo .bike-grande small { display: block; font-size: 12px; letter-spacing: .14em }
 .ingresso-corpo { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; border-top: 2px dashed var(--line) }
 .topo-publico { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px }
@@ -191,7 +201,7 @@ td.num, th.num { text-align: right; font-family: var(--mono); font-size: 13px; f
 .plano { display: flex; flex-direction: column; gap: 10px }
 .plano.destaque { border: 2px solid var(--accent) }
 .plano ul { margin: 0; padding-left: 18px }
-.preco { font-family: var(--display); font-size: 36px; font-weight: 700 }
+.preco { font-family: var(--display); letter-spacing: -.02em; font-size: 29px; font-weight: 700 }
 
 @media (prefers-reduced-motion: reduce) { .bar > i { transition: none } }
 /* Biblioteca de exercícios, nutrição e assistente IA */
@@ -226,7 +236,7 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
 .cron-barra > i { display: block; height: 100%; background: var(--accent); transition: width .25s linear }
 .cron-rotulo { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .75 }
 .cron-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.cron-tempo { font-family: var(--display); font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums }
+.cron-tempo { font-family: var(--display); letter-spacing: -.02em; font-size: 32px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums }
 .solo:has(.cronometro) { padding-bottom: 120px }
 .agenda-item { grid-template-columns: 56px minmax(0, 1fr) auto; gap: 6px 12px }
 .agenda-item:hover .name { color: inherit }
@@ -266,53 +276,76 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
 .avatares-prontos { display: grid; grid-template-columns: repeat(auto-fill, 46px); gap: 8px }
 .avatares-prontos button { width: 46px; height: 46px; border-radius: 50%; border: 3px solid transparent; padding: 0; font-size: 22px; display: grid; place-items: center }
 .avatares-prontos button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--surface) inset }
-/* Tela de entrada: imagens trocando + formulário */
-.entrada { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) }
-.entrada-form { display: grid; place-items: center; padding: 32px 16px }
-.hero-entrada { position: relative; overflow: hidden; color: #fff; min-height: 100vh; transition: background .8s ease }
-.hero-slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48px 40px 90px; opacity: 0; transform: scale(1.03); transition: opacity .8s ease, transform 1.2s ease }
+/* Tela de entrada, no estilo do site do Strava: topo branco, faixa de fotos, seções centralizadas */
+.entrada { min-height: 100%; background: var(--surface) }
+.entrada-topo { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px clamp(16px, 4vw, 40px); background: var(--surface); border-bottom: 1px solid var(--line) }
+.entrada-marca { display: flex; align-items: center; gap: 10px; min-width: 0 }
+.entrada-marca span { font-family: var(--marca); font-weight: 700; font-size: 24px; text-transform: uppercase; letter-spacing: .02em; line-height: 1; white-space: nowrap }
+.entrada-marca i, .entrada-rodape i { font-style: normal; color: var(--accent) }
+.entrada-topo-entrar { border-color: var(--accent); color: var(--accent); background: var(--surface) }
+
+.hero-entrada { position: relative; overflow: hidden; color: #fff; height: clamp(480px, 82vh, 760px); transition: background .8s ease }
+.hero-slide { position: absolute; inset: 0; opacity: 0; transform: scale(1.04); transition: opacity 1s ease, transform 6s ease }
 .hero-slide.ativo { opacity: 1; transform: none }
-.hero-desenho { width: min(520px, 100%) }
-.hero-desenho svg { display: block; width: 100%; height: auto }
-.hero-texto { text-align: center; max-width: 440px; display: flex; flex-direction: column; gap: 6px; margin-top: 8px }
-.hero-texto strong { font-family: var(--display); font-size: 44px; line-height: 1; text-transform: uppercase; letter-spacing: .01em }
-.hero-texto span { font-size: 17px; opacity: .9 }
 .hero-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover }
-.hero-slide.com-foto { justify-content: flex-end; align-items: flex-start }
-.hero-slide.com-foto::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, rgb(0 0 0 / .15) 0%, rgb(0 0 0 / .25) 40%, rgb(0 0 0 / .85) 100%) }
-.hero-slide.com-foto .hero-texto span { text-shadow: 0 1px 8px rgb(0 0 0 / .6); opacity: 1 }
-.hero-slide.com-foto .hero-texto { position: relative; z-index: 2; text-align: left; align-items: flex-start }
-.hero-slide.com-foto .hero-texto strong { font-size: 56px; text-shadow: 0 2px 16px rgb(0 0 0 / .3) }
-.hero-pontos { z-index: 3 }
-.hero-pontos { position: absolute; bottom: 28px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px }
+.hero-desenho { position: absolute; right: 4%; bottom: 8%; width: min(480px, 60%); opacity: .55 }
+.hero-desenho svg { display: block; width: 100%; height: auto }
+.hero-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / .05) 0%, rgb(0 0 0 / .25) 45%, rgb(0 0 0 / .6) 100%) }
+.hero-legenda { position: absolute; z-index: 2; right: clamp(16px, 4vw, 40px); bottom: 26px; font-size: 13px; opacity: .85; text-shadow: 0 1px 6px rgb(0 0 0 / .6); max-width: 46%; text-align: right }
+.hero-chamada { position: absolute; z-index: 3; left: 0; right: 0; top: 50%; transform: translateY(-50%); padding: 0 clamp(20px, 6vw, 80px); max-width: 860px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px }
+.hero-chamada h1 { color: #fff; font-size: clamp(38px, 6.4vw, 72px); font-weight: 600; letter-spacing: -.03em; line-height: 1.04; margin: 0; text-shadow: 0 2px 24px rgb(0 0 0 / .35) }
+.hero-chamada p { margin: 0; font-size: clamp(16px, 1.8vw, 20px); max-width: 560px; text-shadow: 0 1px 10px rgb(0 0 0 / .5) }
+.hero-cta { margin-top: 10px; background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 16px 34px; font-size: 18px; font-weight: 600; box-shadow: 0 8px 24px rgb(252 76 2 / .35) }
+.hero-cta:hover { background: #e34400 }
+.hero-link { background: none; border: 0; color: #fff; font-size: 16px; padding: 4px 2px; text-decoration: underline; text-underline-offset: 4px; text-shadow: 0 1px 8px rgb(0 0 0 / .5) }
+.hero-pontos { position: absolute; z-index: 3; bottom: 28px; left: clamp(20px, 6vw, 80px); display: flex; gap: 8px }
 .hero-pontos button { width: 9px; height: 9px; padding: 0; border-radius: 50%; border: 0; background: rgb(255 255 255 / .45) }
 .hero-pontos button[aria-selected="true"] { background: #fff; width: 26px; border-radius: 5px }
-.botao-social { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; background: var(--surface); border: 1px solid var(--line) }
-.botao-social.apple { background: #000; color: #fff; border-color: #000 }
-.ou { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px }
-.ou::before, .ou::after { content: ''; flex: 1; height: 1px; background: var(--line) }
-@media (max-width: 860px) {
-  .entrada { grid-template-columns: 1fr }
-  .hero-entrada { min-height: 0; height: 250px }
-  .hero-slide { flex-direction: row; padding: 20px 16px 40px; gap: 12px }
-  .hero-desenho { width: 48%; flex: none }
-  .hero-texto { text-align: left; margin: 0 }
-  .hero-texto strong { font-size: 30px }
-  .hero-texto span { font-size: 14px }
-  .hero-pontos { bottom: 14px }
-  .hero-slide.com-foto { flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 16px 16px 38px }
-  .hero-slide.com-foto .hero-texto strong { font-size: 32px }
+
+.entrada-secao { padding: clamp(48px, 8vw, 96px) clamp(16px, 5vw, 40px); text-align: center }
+.entrada-acesso { background: var(--bg); text-align: left; scroll-margin-top: 64px }
+.entrada-sobrelinha { margin: 0 0 18px; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.entrada-manifesto { margin: 0 auto; max-width: 760px; font-family: var(--display); font-size: clamp(24px, 3.4vw, 36px); line-height: 1.3; letter-spacing: -.02em; color: #3a3a40 }
+.entrada-titulo { font-size: clamp(28px, 4vw, 42px); font-weight: 600; letter-spacing: -.03em; margin: 0 0 40px }
+.entrada-recursos { border-top: 1px solid var(--line) }
+.entrada-recursos-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; max-width: 1040px; margin: 0 auto }
+.entrada-recurso h3 { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spacing: -.02em; margin: 18px 0 10px }
+.entrada-recurso p { margin: 0 auto; max-width: 320px; font-size: 16px; color: #45454d }
+.entrada-pronto { background: var(--bg) }
+.entrada-pronto ul { list-style: none; margin: 0 auto 36px; padding: 0; max-width: 520px; text-align: left; display: flex; flex-direction: column; gap: 18px }
+.entrada-pronto li { display: flex; gap: 18px; align-items: center; font-size: 17px }
+.entrada-pronto li svg { flex: none }
+.entrada-junte { display: flex; align-items: center; justify-content: center; gap: 28px; width: min(100%, 600px); margin: 0 auto; padding: 26px 0; background: none; border: 0; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line); border-radius: 0; color: var(--accent); font-family: var(--display); font-size: clamp(24px, 3vw, 30px); font-weight: 600; letter-spacing: -.02em }
+.entrada-junte span { font-weight: 400 }
+.entrada-rodape { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 48px 16px calc(48px + env(safe-area-inset-bottom, 0px)); background: var(--accent); color: #fff; text-align: center }
+.entrada-rodape strong { font-family: var(--marca); font-size: 28px; text-transform: uppercase; letter-spacing: .02em; margin-top: 8px }
+.entrada-rodape i { color: #161618 }
+.entrada-rodape span { opacity: .9 }
+.entrada-rodape a { color: #fff; font-weight: 600; margin-top: 8px }
+.entrada-rodape svg circle { fill: #fff }
+.entrada-rodape svg path { fill: var(--accent) }
+
+@media (max-width: 720px) {
+  .entrada-marca span { font-size: 20px }
+  .entrada-topo-entrar { display: none }
+  .hero-entrada { height: min(78vh, 640px) }
+  .hero-chamada { top: auto; bottom: 64px; transform: none }
+  .hero-legenda { display: none }
+  .hero-cta { align-self: stretch; text-align: center }
+  .hero-link { align-self: center }
+  .hero-pontos { left: 0; right: 0; justify-content: center; bottom: 24px }
+  .entrada-recursos-grade { grid-template-columns: 1fr; gap: 48px }
 }
 @media (prefers-reduced-motion: reduce) { .hero-slide, .hero-entrada { transition: none } }
 /* Início do aluno (3 colunas no computador, 1 no celular) */
 .solo.largo { max-width: 1180px }
 .inicio { display: grid; grid-template-columns: 270px minmax(0, 1fr) 280px; gap: 16px; align-items: start; margin-top: 4px }
 .perfil { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px }
-.perfil-nome { font-family: var(--display); font-size: 26px; font-weight: 700; text-transform: uppercase; line-height: 1.1; margin-top: 6px }
+.perfil-nome { font-family: var(--display); letter-spacing: -.02em; font-size: 21px; font-weight: 700; line-height: 1.1; margin-top: 6px }
 .perfil-numeros { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; margin: 12px 0 8px; padding: 10px 0; border-block: 1px solid var(--line) }
 .perfil-numeros span { display: block; font-size: 12px; color: var(--muted) }
-.perfil-numeros strong { font-family: var(--display); font-size: 28px; line-height: 1.1 }
-.semana-num { margin: 4px 0 8px } .semana-num strong { font-family: var(--display); font-size: 34px; color: var(--accent) }
+.perfil-numeros strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 22px; line-height: 1.1 }
+.semana-num { margin: 4px 0 8px } .semana-num strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 27px; color: var(--accent) }
 .semana-dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 14px }
 .semana-dias span { aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--line); color: var(--muted) }
 .semana-dias span.on { background: var(--accent); color: var(--accent-ink) }
@@ -324,7 +357,7 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
 .comecar-banner { display: flex; align-items: flex-end; gap: 18px; padding: 18px 22px 0; background: linear-gradient(120deg, #fff1ea, #ffe2d3); color: var(--ink); min-height: 130px; border-bottom: 1px solid rgb(252 76 2 / .12) }
 .comecar-banner svg path { fill: #fc4c02 }
 .comecar-banner > div { display: flex; flex-direction: column; gap: 4px; padding-bottom: 20px }
-.comecar-banner strong { font-family: var(--display); font-size: 32px; text-transform: uppercase; line-height: 1 }
+.comecar-banner strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 26px; line-height: 1 }
 .comecar-banner span { color: #6a3a24 }
 .passos { display: flex; flex-direction: column; padding: 6px 18px 10px }
 .passo { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line) }
@@ -358,13 +391,13 @@ aside > .botao-whatsapp { width: 100% }
 
 .grade-aulas { padding: 20px }
 .grade-topo { display: flex; align-items: center; gap: 14px; margin-bottom: 14px }
-.grade-titulo { font-family: var(--display); font-weight: 700; text-transform: uppercase; font-size: 34px; line-height: 1; letter-spacing: .01em }
+.grade-titulo { font-family: var(--display); font-weight: 700; font-size: 27px; line-height: 1; letter-spacing: -.02em }
 .grade-proxima { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px }
-.grade-proxima strong { font-family: var(--display); font-size: 22px; text-transform: uppercase; color: var(--accent) }
+.grade-proxima strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 18px; color: var(--accent) }
 .grade-tabela { display: grid; gap: 6px }
 .grade-cab { background: #161618; color: #fff; border-radius: 8px; text-align: center; padding: 8px 4px; font-family: var(--display); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: .04em }
 .grade-cab.hoje { background: var(--accent); color: #fff }
-.grade-hora { font-family: var(--display); font-weight: 700; font-size: 20px; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums }
+.grade-hora { font-family: var(--display); letter-spacing: -.02em; font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums }
 .grade-celula { background: var(--bg); border-radius: 8px; min-height: 52px; padding: 4px; display: flex; flex-direction: column; gap: 4px }
 .grade-celula.hoje { background: var(--accent-soft) }
 .grade-aula { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border-radius: 6px; padding: 6px 4px; background: var(--cor); color: #fff }
@@ -402,7 +435,7 @@ aside > .botao-whatsapp { width: 100% }
 .qr-resultado.erro { border-color: var(--warn); background: var(--warn-soft) }
 .qr-cartaz { display: flex; flex-direction: column; align-items: center; gap: 4px; background: #fff; color: #161618; border-radius: 12px; padding: 16px; border: 3px solid var(--accent) }
 .qr-cartaz img { width: min(260px, 100%); height: auto }
-.qr-cartaz strong { font-family: var(--display); font-size: 24px; text-transform: uppercase }
+.qr-cartaz strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 19px }
 .qr-cartaz span { font-size: 13px; color: #6d6d78 }
 @media print {
   body * { visibility: hidden }
@@ -433,12 +466,17 @@ aside > .botao-whatsapp { width: 100% }
   nav.side .logo { margin-bottom: 0 !important }
   .solo, main { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) }
   .solo .tabs { display: none }
-  .barra-app { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -4px 18px rgb(0 0 0 / .06) }
-  .barra-app button { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: 0; border-radius: 10px; padding: 6px 2px; font-size: 11px; font-weight: 600; color: var(--muted) }
-  .barra-app button.ativo { color: var(--accent) }
+  .barra-app { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; align-items: center; position: fixed; left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30; background: rgb(255 255 255 / .94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgb(20 20 30 / .06); border-radius: 30px; padding: 5px; box-shadow: 0 8px 28px rgb(20 20 30 / .14) }
+  .barra-app button { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: 0; border-radius: 24px; padding: 7px 2px; font-size: 11px; font-weight: 600; color: var(--ink); min-width: 0 }
+  .barra-app button > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .barra-app button.ativo { color: var(--accent); background: var(--pill-ativa, #efeff2) }
+  .barra-app button.centro .barra-icone { color: var(--ink) }
+  .barra-app button.centro.ativo { background: none }
+  .barra-app .figura-voce { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; display: inline-flex; box-shadow: 0 0 0 2px var(--surface) }
+  .barra-app button.ativo .figura-voce { box-shadow: 0 0 0 2px var(--accent) }
   .barra-icone { position: relative; display: inline-flex }
   .barra-badge { position: absolute; top: -4px; right: -9px; min-width: 16px; height: 16px; line-height: 16px; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-size: 10px; font-style: normal; font-weight: 700; text-align: center; padding: 0 4px }
-  .botao-checkin-flutuante { display: inline-flex; align-items: center; gap: 6px; position: fixed; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 24; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 700; box-shadow: 0 6px 18px rgb(252 76 2 / .35) }
+  .botao-checkin-flutuante.sempre { display: inline-flex; align-items: center; gap: 6px; position: fixed; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 24; background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px; padding: 12px 18px; font-weight: 700; box-shadow: 0 6px 18px rgb(252 76 2 / .35) }
   .cronometro { bottom: calc(76px + env(safe-area-inset-bottom, 0px)) }
 }
 .gaveta-fundo { position: fixed; inset: 0; z-index: 25; background: rgb(10 14 12 / .4); display: flex; align-items: flex-end }
@@ -495,7 +533,7 @@ aside > .botao-whatsapp { width: 100% }
 .card-treino-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px }
 .card-treino-nums div { display: flex; flex-direction: column; min-width: 0 }
 .card-treino-nums span { font-size: 12px; color: var(--muted) }
-.card-treino-nums strong { font-family: var(--display); font-size: 22px; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.card-treino-nums strong { font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 18px; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .card-treino-recorde { margin-top: 8px; font-size: 13px; background: var(--accent-soft); color: #8a2a00; border-radius: 8px; padding: 5px 10px }
 .card-treino-esporte { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--accent) }
 
@@ -503,7 +541,7 @@ aside > .botao-whatsapp { width: 100% }
 .post.conquista { background: linear-gradient(150deg, #fff 40%, #fff1ea) }
 .conquista-corpo { display: flex; align-items: center; gap: 14px; padding: 4px 14px 12px }
 .conquista-icone { flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 34px; background: linear-gradient(150deg, #fc4c02, #ff7a2b); box-shadow: 0 4px 14px rgb(252 76 2 / .35) }
-.conquista-corpo strong { display: block; font-family: var(--display); font-size: 22px; text-transform: uppercase; line-height: 1.05 }
+.conquista-corpo strong { display: block; font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 18px; line-height: 1.05 }
 
 /* Nome e avatar que abrem o perfil */
 .abre-perfil { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; min-width: 0; border-radius: 8px }
@@ -515,11 +553,11 @@ aside > .botao-whatsapp { width: 100% }
 .perfil-aluno-topo { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; margin-bottom: 14px }
 .perfil-aluno-topo h2 { margin: 4px 0 0 }
 .perfil-aluno-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line) }
-.perfil-aluno-nums strong { display: block; font-family: var(--display); font-size: 28px; color: var(--accent) }
+.perfil-aluno-nums strong { display: block; font-family: var(--display); font-weight: 700; letter-spacing: -.02em; font-size: 22px; color: var(--accent) }
 .perfil-aluno-nums span { font-size: 12px; color: var(--muted) }
 .perfil-medalhas { display: flex; flex-wrap: wrap; gap: 6px }
 .perfil-medalhas span { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; background: var(--accent-soft); border-radius: 999px; padding: 3px 10px 3px 4px }
-.perfil-medalhas i { font-style: normal; width: 22px; height: 22px; display: grid; place-items: center; background: #fff; border-radius: 50% }
+.perfil-medalhas i { font-style: normal; width: 22px; height: 22px; display: grid; place-items: center; background: var(--surface); border-radius: 50% }
 .perfil-aluno .grade-fotos { margin-top: 4px }
 
 /* Vídeos de execução */
@@ -535,3 +573,59 @@ aside > .botao-whatsapp { width: 100% }
 @media (max-width: 720px) { .conversas { grid-template-columns: 1fr } .conversas.aberta .conversas-lista { display: none } .conversas:not(.aberta) .conversa-aberta { display: none } }
 .so-celular { display: none }
 @media (max-width: 720px) { .so-celular { display: inline-flex } }
+
+
+/* Topo do app com botões redondos (estilo Strava) */
+.botao-redondo { position: relative; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 0; background: var(--surface); color: var(--ink); display: inline-grid; place-items: center; box-shadow: 0 2px 10px rgb(20 20 30 / .1); flex: none }
+.botao-redondo .barra-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; line-height: 18px; border-radius: 9px; background: #e5312b; color: #fff; font-size: 11px; font-style: normal; font-weight: 700; text-align: center; padding: 0 5px }
+
+/* Aba Você */
+.voce-topo { display: flex; align-items: center; gap: 16px; margin-top: 8px }
+.voce-nome { font-size: 26px; margin: 0 }
+.voce-botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 6px }
+.voce-botoes button { border-radius: 999px; padding: 10px; font-weight: 600; background: var(--surface); border: 1.5px solid var(--line) }
+.subabas { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); margin: 10px -16px 16px; position: sticky; top: 0; z-index: 5; background: var(--bg) }
+.subabas button { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; border-bottom: 3px solid transparent; border-radius: 0; padding: 10px 2px 8px; font-size: 13px; font-weight: 600; color: var(--muted) }
+.subabas button[aria-selected="true"] { color: var(--ink); border-color: var(--accent) }
+.atividade h3 { font-family: var(--display); font-size: 22px; letter-spacing: -.02em; margin: 6px 0 10px }
+.atividade-foto { width: 100%; border-radius: 12px; aspect-ratio: 4 / 3; object-fit: cover; display: block }
+.galeria { gap: 2px; border-radius: 0; margin: 0 -16px }
+.galeria button { aspect-ratio: 3 / 4 }
+.lista-mais { padding: 4px 14px }
+.lista-mais button { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 0; color: var(--ink) }
+.lista-mais button:last-child { border-bottom: 0 }
+.lista-mais .chevron { font-size: 24px; color: var(--muted); line-height: 1 }
+.lista-mais .perigo { color: var(--warn) }
+
+/* Abas com linha laranja embaixo, como no Strava */
+.tabs { border-bottom: 1px solid var(--line) }
+.tab { font-weight: 600; border-bottom-width: 3px }
+
+/* Séries do exercício: uma bolinha por série, cada toque liga o descanso */
+.bolinhas-series { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 2px }
+.bolinhas-series button { width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 14px; display: grid; place-items: center }
+.bolinhas-series button.feita { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.bolinhas-series .meta { font-size: 12px; margin-left: 4px }
+
+/* Senha com olhinho e "Lembrar de mim" */
+.campo-senha { position: relative; display: block }
+.campo-senha input { width: 100%; padding-right: 46px }
+.campo-senha .olho { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; padding: 0; border: 0; background: none; color: var(--muted); display: grid; place-items: center; border-radius: 50% }
+.campo-senha .olho:hover { color: var(--ink) }
+label.lembrar { flex-direction: row; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink); cursor: pointer }
+label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0 }
+
+/* Ajustes do modo escuro para o que tem cor própria */
+@media (prefers-color-scheme: dark) {
+  :root { --pill-ativa: #2a2a30 }
+  .barra-app { background: rgb(28 28 32 / .94) !important; border-color: rgb(255 255 255 / .06) !important; box-shadow: 0 8px 28px rgb(0 0 0 / .5) !important }
+  .comecar-banner { background: linear-gradient(120deg, #2a160d, #3a1d10) !important; border-bottom-color: rgb(255 106 43 / .2) !important }
+  .comecar-banner svg path { fill: #ff6a2b }
+  .comecar-banner span { color: #e8b9a3 }
+  .relato.pendente { background: linear-gradient(120deg, var(--surface), #2a160d) }
+  .post.conquista { background: linear-gradient(150deg, var(--surface) 40%, #2a160d) }
+  .botao-redondo { box-shadow: 0 2px 10px rgb(0 0 0 / .4) }
+  .chat-msg.minha .reacoes.mini .reacao { background: rgb(28 28 32 / .92); color: var(--ink) }
+  .chat-msg.minha .reacoes.mini .reacao[aria-pressed="true"] { background: var(--surface) }
+  .panel { border-color: rgb(255 255 255 / .05); box-shadow: none }
+}

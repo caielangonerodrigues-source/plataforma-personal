@@ -28,7 +28,9 @@ import GradeAulas from '../../components/GradeAulas.jsx'
 import NovidadesAcademia from '../../components/NovidadesAcademia.jsx'
 import CompartilharStory from '../../components/CompartilharStory.jsx'
 import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
-import BarraApp from '../../components/BarraApp.jsx'
+import BarraApp, { Icone } from '../../components/BarraApp.jsx'
+import Voce from '../../components/Voce.jsx'
+import Avatar from '../../components/Avatar.jsx'
 import { SimboloCA } from '../../components/Logo.jsx'
 import { buscaVideo } from '../../lib/exercicios.js'
 import { useComunidade } from '../../hooks/useComunidade.js'
@@ -59,6 +61,7 @@ export default function AreaAluno({ aluno }) {
   const [descanso, setDescanso] = useState(null) // { nome, segundos }
   const [trocando, setTrocando] = useState(null) // exercício
   const [trocas, setTrocas] = useState(() => lerTrocas(hojeISO())) // trocas escolhidas hoje e ainda não marcadas
+  const [seriesFeitas, setSeriesFeitas] = useState(() => lerSeries(hojeISO())) // { exercicioId: séries já feitas hoje }
   const [agenda, setAgenda] = useState(null) // próximo atendimento presencial
   const [proximaFase, setProximaFase] = useState(null)
   const [prazoFicha, setPrazoFicha] = useState(null) // semanas para trocar a ficha (do personal)
@@ -145,14 +148,27 @@ export default function AreaAluno({ aluno }) {
   const trocaDe = (id) => deHoje(id)?.troca || trocas[id] || null
   // Só manda a coluna troca quando existe, para funcionar mesmo antes do SQL novo.
   const comTroca = (id, dados) => (trocaDe(id) ? { ...dados, troca: trocaDe(id) } : dados)
-  function descansar(e) {
+  function descansar(e, serie) {
     prepararSom()
-    setDescanso({ nome: trocaDe(e.id) || e.nome, segundos: segundosDescanso(e.descanso) })
+    setDescanso({ id: Date.now(), nome: trocaDe(e.id) || e.nome, serie, segundos: segundosDescanso(e.descanso) })
   }
 
-  async function marcar(e, feito) {
+  // Cada série marcada liga o cronômetro do descanso; a última conclui o exercício.
+  function marcarSerie(e, i) {
+    const total = Math.max(1, Number(e.series) || 1)
+    const feitas = deHoje(e.id) ? total : seriesFeitas[e.id] || 0
+    const novo = i < feitas ? i : i + 1
+    const lista = { ...seriesFeitas, [e.id]: novo }
+    setSeriesFeitas(lista); salvarSeries(hoje, lista)
+    if (novo < feitas) { if (deHoje(e.id)) marcar(e, false); return }
+    if (novo >= total) marcar(e, true, `série ${novo}/${total}`)
+    else descansar(e, `série ${novo}/${total}`)
+  }
+
+  async function marcar(e, feito, serie) {
     const exercicioId = e.id
-    if (feito) descansar(e)
+    if (feito) descansar(e, serie)
+    if (!feito && seriesFeitas[e.id]) { const lista = { ...seriesFeitas }; delete lista[e.id]; setSeriesFeitas(lista); salvarSeries(hoje, lista) }
     setRegistros((rs) => (feito ? [...rs, comTroca(exercicioId, { exercicio_id: exercicioId, data: hoje, series: null })] : rs.filter((r) => !(r.exercicio_id === exercicioId && r.data === hoje))))
     const { error } = feito
       ? await supabase.from('registros').insert(comTroca(exercicioId, { aluno_id: aluno.id, exercicio_id: exercicioId, data: hoje }))
@@ -160,7 +176,7 @@ export default function AreaAluno({ aluno }) {
     if (error && error.code !== '23505') { setErro('Não foi possível salvar. Verifique a internet e tente de novo.'); carregar() } else setErro('')
   }
 
-  async function salvarSeries(e, series) {
+  async function salvarCargas(e, series) {
     descansar(e)
     const { error } = await supabase.from('registros').upsert(comTroca(e.id, { aluno_id: aluno.id, exercicio_id: e.id, data: hoje, series }), { onConflict: 'exercicio_id,data' })
     if (error) return setErro('Não foi possível salvar as cargas. Tente de novo.')
@@ -194,16 +210,20 @@ export default function AreaAluno({ aluno }) {
   const fezHoje = diasCheckin.includes(hoje)
   const seq = sequencia(diasCheckin, hoje)
   const noMes = new Set(diasCheckin.filter((d) => d >= inicioDoMes(hoje))).size
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['evolucao', 'Evolução'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  // No celular: barra de app embaixo com as abas principais; o resto fica em "Mais".
-  const principais = ['inicio', 'treino', online ? 'consultoria' : 'aulas', aluno.comunidade ? 'comunidade' : 'novidades']
+  // No celular: barra flutuante (Início, Treino, Check-in no meio, Turma/Consultoria e Você); o resto fica em Você › Mais.
+  const quarta = online ? 'consultoria' : aluno.comunidade ? 'comunidade' : 'novidades'
+  const principais = ['inicio', 'treino', quarta, 'voce']
+  const rotuloBarra = { comunidade: 'Turma' }
+  const textos = { aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
   const whatsapp = online ? null : academia.whatsapp
+  const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) })
   const badgeAba = (k) => (aba === k ? 0 : k === 'novidades' ? academia.novos : k === 'mensagens' ? naoLidas : 0)
 
   return (
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
-      <Cabecalho aluno={aluno} whatsapp={whatsapp} />
+      <Cabecalho aluno={aluno} whatsapp={whatsapp} naoLidas={aba === 'mensagens' ? 0 : naoLidas} onMensagens={() => irPara('mensagens')} />
       <InstalarApp />
       {qr && (
         <div className={`panel qr-resultado${qr.erro ? ' erro' : ''}`} role="status">
@@ -314,19 +334,19 @@ export default function AreaAluno({ aluno }) {
                           </label>
                           {troca && <div className="meta" style={{ fontSize: 12 }}>no lugar de {e.nome}</div>}
                           <div className="meta">{e.series} × {e.reps} · descanso {e.descanso}{e.obs ? ` · ${e.obs}` : ''}</div>
+                          <BolinhasSeries exercicio={e} feitas={hojeReg ? Infinity : seriesFeitas[e.id] || 0} onMarcar={(i) => marcarSerie(e, i)} />
                           <div className="row" style={{ gap: 12, marginTop: 2, rowGap: 2 }}>
                             <button className="link" style={{ fontSize: 13 }} onClick={() => setAberto(aberto === e.id ? null : e.id)}>
                               {hojeReg?.series?.length ? `Cargas: ${hojeReg.series.map((s) => f1(s.carga)).join(' / ')} kg` : 'Anotar cargas'}
                             </button>
                             <a href={troca ? buscaVideo(troca) : e.video_url || buscaVideo(e.nome)} target="_blank" rel="noreferrer" style={{ fontSize: 13, fontWeight: 600 }}>{e.video_url && !troca ? 'Ver execução' : 'Como fazer'}</a>
-                            <button className="link" style={{ fontSize: 13 }} onClick={() => descansar(e)}>Descansar</button>
                             <button className="link" style={{ fontSize: 13 }} onClick={() => setTrocando(e)}>{troca ? 'Mudar troca' : 'Trocar'}</button>
                           </div>
                           {anterior && <div className="meta" style={{ fontSize: 12 }}>Última vez: {anterior.series.map((s) => `${f1(s.carga)}×${s.reps}`).join(', ')}</div>}
                         </div>
                         <div className="meta mono">{e.carga}</div>
                       </div>
-                      {aberto === e.id && <Series exercicio={e} inicial={hojeReg?.series || anterior?.series} onSalvar={(s) => salvarSeries(e, s)} onFechar={() => setAberto(null)} />}
+                      {aberto === e.id && <Series exercicio={e} inicial={hojeReg?.series || anterior?.series} onSalvar={(s) => salvarCargas(e, s)} onFechar={() => setAberto(null)} />}
                     </div>
                   )
                 })}
@@ -343,7 +363,11 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {aba === 'evolucao' && treinos && (
+      {aba === 'voce' && treinos && (
+        <Voce aluno={aluno} avatar={meuAvatar} fotosAvatar={comunidade.dados?.fotos} totalTreinos={new Set(diasCheckin).size}
+          onEditar={() => irPara('conta')} onSair={() => supabase.auth.signOut()}
+          itens={abas.filter(([k]) => !principais.includes(k) && k !== 'treino').map(([k, l]) => ({ chave: k, rotulo: l, icone: k, texto: textos[k], badge: badgeAba(k), onClick: () => irPara(k) }))}
+          progresso={
         <div className="stack">
           {ultima ? <Composicao avaliacao={ultima} sexo={aluno.sexo} titulo="Última avaliação" /> : <div className="panel empty">Seu personal ainda não registrou nenhuma avaliação.</div>}
           {avaliacoes.length > 0 && <div className="panel"><h2 style={{ marginBottom: 10 }}>Peso e gordura</h2><Grafico avaliacoes={avaliacoes} /></div>}
@@ -352,19 +376,20 @@ export default function AreaAluno({ aluno }) {
           <RelatoriosAluno alunoId={aluno.id} />
           <Medalhas datas={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} desafios={comunidade.dados?.desafios || []} />
           <FotosEvolucao alunoId={aluno.id} />
-        </div>
+        </div>} />
       )}
 
-      <button className="botao-checkin-flutuante" onClick={() => setCheckinAberto(true)} aria-label="Fazer check-in">
-        <span aria-hidden="true">📸</span> {fezHoje ? 'Novo check-in' : 'Check-in'}
-      </button>
       <BarraApp
-        itens={principais.map((k) => ({ chave: k, rotulo: abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
-        mais={abas.filter(([k]) => !principais.includes(k)).map(([k, l]) => ({ chave: k, rotulo: l, icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) }))}
+        itens={[
+          ...principais.slice(0, 2).map(itemBarra),
+          { chave: 'checkin', rotulo: 'Check-in', icone: 'gravar', centro: true, onClick: () => setCheckinAberto(true) },
+          itemBarra(quarta),
+          { ...itemBarra('voce'), ativo: aba === 'voce' || !principais.includes(aba), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
+        ]}
       />
 
       {trocando && <TrocaExercicio exercicio={trocando} trocaAtual={trocaDe(trocando.id)} onEscolher={(nome) => trocar(trocando, nome)} onFechar={() => setTrocando(null)} />}
-      {descanso && <Cronometro descanso={descanso} onFechar={() => setDescanso(null)} />}
+      {descanso && <Cronometro key={descanso.id} descanso={descanso} onFechar={() => setDescanso(null)} />}
 
       {checkinAberto && (
         <FormCheckin
@@ -388,6 +413,29 @@ function lerTrocas(hoje) {
 function salvarTrocas(hoje, trocas) {
   try { localStorage.setItem(CHAVE_TROCAS, JSON.stringify({ dia: hoje, trocas })) } catch { /* sem armazenamento */ }
 }
+const CHAVE_SERIES = 'series-do-dia'
+function lerSeries(hoje) {
+  try { const t = JSON.parse(localStorage.getItem(CHAVE_SERIES) || '{}'); return t.dia === hoje ? t.feitas || {} : {} } catch { return {} }
+}
+function salvarSeries(hoje, feitas) {
+  try { localStorage.setItem(CHAVE_SERIES, JSON.stringify({ dia: hoje, feitas })) } catch { /* sem armazenamento */ }
+}
+
+// Uma bolinha por série: tocar marca a série e liga o descanso; tocar numa já feita desmarca dali em diante.
+function BolinhasSeries({ exercicio, feitas, onMarcar }) {
+  const n = Math.max(1, Math.min(12, Number(exercicio.series) || 1))
+  return (
+    <div className="bolinhas-series" role="group" aria-label={`Séries de ${exercicio.nome}`}>
+      {Array.from({ length: n }, (_, i) => (
+        <button key={i} type="button" className={i < feitas ? 'feita' : ''} aria-pressed={i < feitas} aria-label={`Série ${i + 1}${i < feitas ? ' feita' : ''}`} onClick={() => onMarcar(i)}>
+          {i < feitas ? '✓' : i + 1}
+        </button>
+      ))}
+      <span className="meta">{feitas >= n ? 'Todas as séries feitas' : 'Toque na série ao terminar'}</span>
+    </div>
+  )
+}
+
 const fmtCurta = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`
 
 // Carga e repetições de cada série, pré-preenchidas com o treino anterior.
@@ -421,7 +469,7 @@ function Series({ exercicio, inicial, onSalvar, onFechar }) {
   )
 }
 
-function Cabecalho({ aluno, whatsapp }) {
+function Cabecalho({ aluno, whatsapp, naoLidas = 0, onMensagens }) {
   return (
     <div className="row between">
       <div className="row" style={{ gap: 12, flexWrap: 'nowrap' }}>
@@ -429,8 +477,13 @@ function Cabecalho({ aluno, whatsapp }) {
         <div><p className="meta" style={{ margin: 0 }}>Corpo Atlético · Área do aluno</p><h1>Olá, {primeiroNome(aluno.nome)}</h1></div>
       </div>
       <div className="row" style={{ gap: 8, flexWrap: 'nowrap' }}>
+        {onMensagens && (
+          <button className="botao-redondo" onClick={onMensagens} aria-label={naoLidas ? `Mensagens, ${naoLidas} novas` : 'Mensagens do personal'} title="Mensagens do personal">
+            <Icone nome="conversas" />{naoLidas > 0 && <i className="barra-badge">{naoLidas}</i>}
+          </button>
+        )}
         {whatsapp && <a className="botao-whatsapp redondo" href={whatsapp} target="_blank" rel="noreferrer" aria-label="Grupo da academia no WhatsApp" title="Grupo da academia no WhatsApp"><IconeWhatsApp /></a>}
-        <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
+        <button className="small so-computador" onClick={() => supabase.auth.signOut()}>Sair</button>
       </div>
     </div>
   )

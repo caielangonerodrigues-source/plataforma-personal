@@ -41,13 +41,13 @@ function quebrar(ctx, texto, largura) {
 
 // Desenha no canvas e devolve um Blob PNG.
 export async function gerarStory(tipo, dados, nome) {
-  try { await Promise.all(['700 120px "Barlow Condensed"', '600 40px Figtree'].map((f) => document.fonts.load(f))) } catch { /* usa a fonte reserva */ }
+  try { await Promise.all(['700 120px "Barlow Condensed"', '600 40px Inter'].map((f) => document.fonts.load(f))) } catch { /* usa a fonte reserva */ }
   const c = document.createElement('canvas')
   c.width = 1080; c.height = 1920
   const ctx = c.getContext('2d')
   const { rotulo, numero, unidade, linha } = conteudoStory(tipo, dados)
   const display = (peso, px) => `${peso} ${px}px "Barlow Condensed", "Arial Narrow", sans-serif`
-  const corpo = (peso, px) => `${peso} ${px}px Figtree, system-ui, sans-serif`
+  const corpo = (peso, px) => `${peso} ${px}px Inter, system-ui, sans-serif`
 
   ctx.fillStyle = LARANJA
   ctx.fillRect(0, 0, 1080, 1920)
