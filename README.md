@@ -56,6 +56,17 @@ Site para o personal gerenciar alunos, fichas de treino e avaliações físicas,
 **Página de vendas da consultoria online**
 - Em **Vendas > Página e planos** você escreve o texto, cadastra os planos e coloca a página no ar em `/consultoria` (para a bio do Instagram). Quem preenche o formulário aparece em **Vendas > Interessados** e no Painel, com botão de WhatsApp e **Cadastrar como aluno** (já como consultoria online).
 
+**Biblioteca de exercícios**
+- Mais de 230 exercícios separados por grupo muscular (peito, costas, ombros, braços, pernas, glúteos, core, cardio, funcional e mobilidade), com busca sem acento. Na ficha, **Adicionar exercícios** abre a lista para marcar vários de uma vez.
+- Em **Exercícios** você cadastra os seus, com o seu vídeo de execução; eles aparecem primeiro. Exercício sem vídeo mostra para o aluno o link **Como fazer** (busca no YouTube).
+
+**Nutrição**
+- Aba **Nutrição** no aluno: o site calcula o gasto do dia pela última avaliação (Katch-McArdle com % de gordura, ou Mifflin-St Jeor) e sugere calorias, proteína, carboidrato, gordura e água pelo objetivo. Você monta as refeições; escolhendo o alimento da lista e os gramas, as calorias saem sozinhas (tabela TACO, valores aproximados).
+- O aluno vê o plano na aba **Dieta**. É orientação nutricional para acompanhar o treino; dieta clínica é com nutricionista.
+
+**Assistente IA**
+- Em **Assistente IA** (ou no botão **Gerar com IA** das abas Treinos e Nutrição) você escolhe o aluno e a IA monta um rascunho de fichas ou dieta usando a avaliação física, a anamnese/PAR-Q e o objetivo. Nada é salvo até você clicar em **Aplicar**. Precisa do passo 7 abaixo.
+
 Aluno pausado não consegue ver treinos. Cada personal só vê os próprios alunos, e cada aluno só vê os próprios dados. Isso é garantido pelo banco (Row Level Security), não só pela tela.
 
 ## Como colocar no ar (gratuito)
@@ -110,6 +121,13 @@ Sem isso, o site usa o Pix da sua chave (sem taxa) e você confirma os pagamento
 6. Teste: crie uma aula de spinning de R$ 1,00, reserve e pague. Em até um minuto a reserva muda para "Confirmada".
 
 Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
+
+### 7. Biblioteca de exercícios, nutrição e assistente IA
+1. No Supabase, abra **SQL Editor > New query**, cole o conteúdo de [`supabase/migracao-exercicios-nutricao.sql`](supabase/migracao-exercicios-nutricao.sql) e clique em **Run** (só precisa se o banco foi criado antes dessa versão; pode rodar mais de uma vez).
+2. Para a IA: em [console.anthropic.com](https://console.anthropic.com), crie a conta, coloque créditos em **Billing** e crie uma chave em **API Keys** (começa com `sk-ant-`). Não mostre essa chave para ninguém.
+3. No Supabase, em **Edge Functions > Secrets**, adicione `ANTHROPIC_API_KEY` com a chave.
+4. Em **Edge Functions > Deploy a new function > Via Editor**, dê o nome `ia-assistente`, cole o conteúdo de [`supabase/functions/ia-assistente/index.ts`](supabase/functions/ia-assistente/index.ts) e clique em **Deploy**. Deixe **Enforce JWT verification** ligado.
+5. Teste em **Assistente IA**. Cada sugestão custa cerca de US$ 0,10 a US$ 0,30 na conta da Anthropic.
 
 ## Desenvolvimento
 

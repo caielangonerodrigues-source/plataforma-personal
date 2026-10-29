@@ -21,6 +21,8 @@ import PacoteSpinning from './pages/spinning/PacoteSpinning.jsx'
 import PaginaVendas from './pages/PaginaVendas.jsx'
 import Modelos from './pages/personal/Modelos.jsx'
 import Vendas from './pages/personal/Vendas.jsx'
+import Exercicios from './pages/personal/Exercicios.jsx'
+import Assistente from './pages/personal/Assistente.jsx'
 
 export default function App() {
   const navigate = useNavigate()
@@ -93,6 +95,8 @@ export default function App() {
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
           <Route path="/modelos" element={<Modelos />} />
+          <Route path="/exercicios" element={<Exercicios />} />
+          <Route path="/assistente" element={<Assistente />} />
           <Route path="/aulas" element={<Spinning />} />
           <Route path="/vendas" element={<Vendas />} />
           <Route path="/financeiro" element={<Financeiro />} />
