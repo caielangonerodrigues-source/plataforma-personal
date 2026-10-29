@@ -1,22 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import Avatar from './Avatar.jsx'
+import Reacoes from './Reacoes.jsx'
+import { acaoReacao } from '../lib/reacoes.js'
 import { nomeCurto, quandoFoi } from '../lib/comunidade.js'
 
 // Chat da turma: quem participa da comunidade e o personal. Mensagens novas chegam na hora (Realtime),
 // e a cada 20 segundos o chat confere de novo, caso a conexão ao vivo caia.
 export default function ChatTurma({ dados, podeApagarTudo }) {
   const [mensagens, setMensagens] = useState(null)
+  const [reacoes, setReacoes] = useState(null) // null: SQL das reações ainda não rodou
   const [indisponivel, setIndisponivel] = useState(false)
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
+  const [reagindo, setReagindo] = useState(null) // mensagem com a lista de emojis aberta
   const fim = useRef(null)
   const membro = Object.fromEntries(dados.membros.map((m) => [m.id, m]))
 
   const carregar = useCallback(async () => {
     const { data, error } = await supabase.from('mensagens_turma').select('*').order('created_at', { ascending: false }).limit(100)
     if (error) return setIndisponivel(true)
+    const ids = data.map((m) => m.id)
+    const r = ids.length ? await supabase.from('reacoes_mensagem').select('mensagem_id, user_id, emoji').in('mensagem_id', ids) : { data: [] }
+    setReacoes(r.error ? null : r.data)
     setMensagens(data.reverse())
   }, [])
 
@@ -24,6 +31,7 @@ export default function ChatTurma({ dados, podeApagarTudo }) {
     carregar()
     const canal = supabase.channel('chat-turma')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'mensagens_turma' }, () => carregar())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reacoes_mensagem' }, () => carregar())
       .subscribe()
     const t = setInterval(carregar, 20000)
     return () => { clearInterval(t); supabase.removeChannel(canal) }
@@ -48,6 +56,19 @@ export default function ChatTurma({ dados, podeApagarTudo }) {
     carregar()
   }
 
+  async function reagir(mensagemId, emoji) {
+    const minha = reacoes.find((r) => r.mensagem_id === mensagemId && r.user_id === dados.eu)
+    const acao = acaoReacao(minha?.emoji || null, emoji)
+    const tabela = supabase.from('reacoes_mensagem')
+    const { error } = acao === 'tirar'
+      ? await tabela.delete().eq('mensagem_id', mensagemId).eq('user_id', dados.eu)
+      : acao === 'trocar'
+        ? await tabela.update({ emoji }).eq('mensagem_id', mensagemId).eq('user_id', dados.eu)
+        : await tabela.insert({ mensagem_id: mensagemId, emoji })
+    if (error && error.code !== '23505') setErro('Não foi possível reagir agora. Tente de novo.')
+    carregar()
+  }
+
   if (indisponivel) return <div className="panel empty">O chat da turma aparece aqui assim que o personal atualizar o sistema.</div>
   if (!mensagens) return <p className="carregando">Carregando…</p>
 
@@ -61,11 +82,13 @@ export default function ChatTurma({ dados, podeApagarTudo }) {
           return (
             <div key={m.id} className={`chat-msg${minha ? ' minha' : ''}${seguida ? ' seguida' : ''}`}>
               {!minha && <span className="chat-avatar">{!seguida && <Avatar nome={m.autor} avatar={quem?.avatar} fotos={dados.fotos} tamanho={30} />}</span>}
-              <div className="chat-balao">
+              <div className={`chat-balao${reacoes ? ' reagivel' : ''}`} onClick={(e) => reacoes && !e.target.closest('button') && setReagindo(reagindo === m.id ? null : m.id)}>
                 {!minha && !seguida && (
                   <div className="chat-autor">{nomeCurto(m.autor || 'Aluno')}{m.do_personal && <span className="post-tag" style={{ marginLeft: 6 }}>Personal</span>}</div>
                 )}
                 <div style={{ whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{m.texto}</div>
+                {reacoes && <Reacoes mini reacoes={reacoes.filter((r) => r.mensagem_id === m.id)} eu={dados.eu} onReagir={(e) => reagir(m.id, e)}
+                  aberto={reagindo === m.id} onAbrir={(v) => setReagindo(v ? m.id : null)} />}
                 <div className="chat-hora">
                   {quandoFoi(m.created_at)}
                   {(minha || podeApagarTudo) && <button className="link" onClick={() => apagar(m.id)} aria-label="Apagar mensagem">apagar</button>}
@@ -76,6 +99,7 @@ export default function ChatTurma({ dados, podeApagarTudo }) {
         })}
         {!mensagens.length && <p className="empty">Ninguém falou nada ainda. Mande um "bora treinar" para a turma!</p>}
       </div>
+      {reacoes && mensagens.length > 0 && <p className="meta chat-dica">Toque numa mensagem para reagir com emoji</p>}
       <form className="chat-form" onSubmit={enviar}>
         <input aria-label="Mensagem para a turma" maxLength={500} placeholder="Mensagem para a turma…" value={texto} onChange={(e) => setTexto(e.target.value)} />
         <button className="primary" disabled={enviando || !texto.trim()}>{enviando ? '…' : 'Enviar'}</button>

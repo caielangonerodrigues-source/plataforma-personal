@@ -2,6 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { inicioDoMes } from '../lib/comunidade.js'
+import { EMOJIS, acaoReacao } from '../lib/reacoes.js'
+
+// Curtidas com o emoji de cada reação; sem o SQL das reações, lê só as curtidas (viram ❤️).
+async function lerCurtidas(ids) {
+  const r = await supabase.from('curtidas').select('checkin_id, user_id, emoji').in('checkin_id', ids)
+  if (!r.error) return r
+  return { ...(await supabase.from('curtidas').select('checkin_id, user_id').in('checkin_id', ids)), simples: true }
+}
 
 // Feed (últimos 30 check-ins), check-ins do mês para o ranking, curtidas, comentários, fotos, avatares e equipes.
 export function useComunidade() {
@@ -27,7 +35,7 @@ export function useComunidade() {
     const avatares = membros.data.map((m) => m.avatar).filter((a) => a && !a.startsWith('p:'))
     // Comentários e avatares são do SQL novo: se ainda não rodou, só não aparecem.
     const [curtidas, fotos, comentarios, fotosAvatar] = await Promise.all([
-      ids.length ? supabase.from('curtidas').select('checkin_id, user_id').in('checkin_id', ids) : { data: [] },
+      ids.length ? lerCurtidas(ids) : { data: [] },
       caminhos.length ? supabase.storage.from('checkins').createSignedUrls(caminhos, 3600) : { data: [] },
       ids.length ? supabase.from('comentarios_checkin').select('*').in('checkin_id', ids).order('created_at') : { data: [] },
       avatares.length ? supabase.storage.from('avatares').createSignedUrls(avatares, 3600) : { data: [] },
@@ -42,6 +50,7 @@ export function useComunidade() {
       desafios: desafios.data,
       equipes: equipes.error ? [] : equipes.data || [],
       curtidas: curtidas.data || [],
+      reacoesSimples: !!curtidas.simples, // SQL das reações ainda não rodou: só ❤️
       comentarios: comentarios.error ? null : comentarios.data || [],
       fotos: Object.fromEntries([...(fotos.data || []), ...(fotosAvatar.data || [])].filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])),
     })
@@ -49,11 +58,17 @@ export function useComunidade() {
 
   useEffect(() => { carregar() }, [carregar])
 
-  async function curtir(checkinId, curtido) {
-    const { error } = curtido
-      ? await supabase.from('curtidas').delete().eq('checkin_id', checkinId).eq('user_id', dados.eu)
-      : await supabase.from('curtidas').insert({ checkin_id: checkinId })
-    if (error && error.code !== '23505') setErro('Não foi possível curtir agora. Tente de novo.')
+  // Reação com emoji: o mesmo emoji tira, outro troca. Antes do SQL novo, só curtida (❤️).
+  async function reagir(checkinId, emoji) {
+    const minha = dados.curtidas.find((k) => k.checkin_id === checkinId && k.user_id === dados.eu)
+    const acao = acaoReacao(minha ? minha.emoji || EMOJIS[0] : null, emoji)
+    const tabela = supabase.from('curtidas')
+    const { error } = acao === 'tirar'
+      ? await tabela.delete().eq('checkin_id', checkinId).eq('user_id', dados.eu)
+      : acao === 'trocar'
+        ? await tabela.update({ emoji }).eq('checkin_id', checkinId).eq('user_id', dados.eu)
+        : await tabela.insert(dados.reacoesSimples ? { checkin_id: checkinId } : { checkin_id: checkinId, emoji })
+    if (error && error.code !== '23505') setErro('Não foi possível reagir agora. Tente de novo.')
     carregar()
   }
 
@@ -77,5 +92,5 @@ export function useComunidade() {
     carregar()
   }
 
-  return { dados, erro, carregar, curtir, apagar, comentar, apagarComentario }
+  return { dados, erro, carregar, reagir, apagar, comentar, apagarComentario }
 }

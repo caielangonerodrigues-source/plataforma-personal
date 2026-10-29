@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
+import Reacoes from './Reacoes.jsx'
 import Desafios from './Desafios.jsx'
 import ChatTurma from './ChatTurma.jsx'
 import BotaoWhatsApp from './BotaoWhatsApp.jsx'
@@ -12,7 +13,7 @@ const nomeDoMes = () => new Date().toLocaleDateString('pt-BR', { month: 'long' }
 // Feed de check-ins (foto em destaque, curtidas e comentários), grade de fotos e ranking do mês.
 // `meuAlunoId` destaca o aluno logado; `podeApagarTudo` é o personal.
 export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeApagarTudo, whatsapp }) {
-  const { dados, erro, curtir, apagar, carregar } = comunidade
+  const { dados, erro, reagir, apagar, carregar } = comunidade
   const [visao, setVisao] = useState('feed') // feed | fotos | chat
   if (erro) return <p className="erro">{erro}</p>
   if (!dados) return <p className="carregando">Carregando…</p>
@@ -55,7 +56,7 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
 
         {visao === 'feed' && feed.map((c) => (
           <Post key={c.id} c={c} dados={dados} membro={membro} comunidade={comunidade}
-            meu={c.aluno_id === meuAlunoId} podeApagarTudo={podeApagarTudo} curtir={curtir} apagar={apagar} />
+            meu={c.aluno_id === meuAlunoId} podeApagarTudo={podeApagarTudo} reagir={reagir} apagar={apagar} />
         ))}
         {visao === 'feed' && !feed.length && <div className="panel empty">Nenhum check-in ainda. O primeiro a treinar abre o feed!</div>}
       </div>
@@ -101,10 +102,9 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   )
 }
 
-function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, curtir, apagar }) {
+function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, reagir, apagar }) {
   const autor = membro[c.aluno_id]
   const curtidas = dados.curtidas.filter((k) => k.checkin_id === c.id)
-  const curti = curtidas.some((k) => k.user_id === dados.eu)
   const foto = c.foto && dados.fotos[c.foto]
   const comentarios = dados.comentarios ? dados.comentarios.filter((k) => k.checkin_id === c.id) : null
   const [abrirTodos, setAbrirTodos] = useState(false)
@@ -134,7 +134,7 @@ function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, curtir, apaga
         </div>
       </div>
       {foto && (
-        <div className="post-foto-caixa" onDoubleClick={() => !curti && curtir(c.id, false)}>
+        <div className="post-foto-caixa" onDoubleClick={() => !curtidas.some((k) => k.user_id === dados.eu) && reagir(c.id, '❤️')}>
           <img className="post-foto" src={foto} alt={`Foto do check-in de ${nomeCurto(autor.nome)}`} loading="lazy" />
           {c.titulo && <span className="post-tag sobre-foto">{c.titulo}</span>}
         </div>
@@ -146,17 +146,14 @@ function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, curtir, apaga
         </div>
       )}
       <div className="kudos">
-        <button aria-pressed={curti} onClick={() => curtir(c.id, curti)}>
-          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.5.8-1.3 2.3-2.5 4.4-2.5 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z" /></svg>
-          {curti ? 'Curtido' : 'Curtir'}
-        </button>
+        <Reacoes reacoes={curtidas} eu={dados.eu} onReagir={(e) => reagir(c.id, e)} opcoes={dados.reacoesSimples ? ['❤️'] : undefined} />
         {comentarios && (
           <button aria-expanded={escrevendo} onClick={() => setEscrevendo(!escrevendo)}>
             <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /></svg>
             Comentar
           </button>
         )}
-        <span className="meta">{[curtidas.length && `${curtidas.length} curtida${curtidas.length > 1 ? 's' : ''}`, comentarios?.length && `${comentarios.length} comentário${comentarios.length > 1 ? 's' : ''}`].filter(Boolean).join(' · ')}</span>
+        {comentarios?.length > 0 && <span className="meta">{comentarios.length} comentário{comentarios.length > 1 ? 's' : ''}</span>}
         {(podeApagarTudo || meu) && <button className="ghost small" style={{ marginLeft: 'auto' }} onClick={() => apagar(c)}>Apagar</button>}
       </div>
       {comentarios && (comentarios.length > 0 || escrevendo) && (

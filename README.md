@@ -170,6 +170,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 2. Publique de novo a função `notificacoes` (Edge Functions › notificacoes › cole o `supabase/functions/notificacoes/index.ts` › Deploy). Ela passa a mandar o lembrete da mensalidade (2 dias antes, no dia e 3 dias depois do vencimento, se não estiver paga).
 3. No site, entre em **Academia** para publicar novidades, editar a grade, imprimir o QR code da recepção, montar as equipes e subir as fotos da tela de entrada.
 
+### 11. Reações com emoji
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-reacoes.sql` e toque em **Run** (pode rodar mais de uma vez). As curtidas antigas viram ❤️.
+2. Pronto: nos posts da comunidade aparece o botão de reagir (❤️ 🔥 💪 👏 😂 😮), e no chat da turma é só tocar numa mensagem. Antes desse passo, os posts continuam só com a curtida (❤️).
+
 ## Desenvolvimento
 
 ```bash
