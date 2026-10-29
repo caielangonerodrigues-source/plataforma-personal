@@ -3,10 +3,18 @@ import Modal from '../../components/Modal.jsx'
 import { supabase } from '../../supabase.js'
 import { hojeISO, num } from '../../lib/formato.js'
 
-const VAZIO = { nome: '', email: '', telefone: '', sexo: 'F', idade: '', objetivo: '', plano: '', inicio: hojeISO(), status: 'ativo', modalidade: 'presencial', comunidade: true, valor_mensal: '', dia_vencimento: '' }
+const VAZIO = { nome: '', email: '', telefone: '', sexo: 'F', idade: '', data_nascimento: '', objetivo: '', plano: '', inicio: hojeISO(), status: 'ativo', modalidade: 'presencial', comunidade: true, valor_mensal: '', dia_vencimento: '' }
+
+// Idade completa hoje a partir da data de nascimento (AAAA-MM-DD)
+function idadeEm(nasc) {
+  if (!nasc) return null
+  const [a, m, dia] = nasc.split('-').map(Number)
+  const h = new Date()
+  return h.getFullYear() - a - (h.getMonth() + 1 < m || (h.getMonth() + 1 === m && h.getDate() < dia) ? 1 : 0)
+}
 
 export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
-  const [d, setD] = useState(() => (aluno ? { ...VAZIO, ...aluno, idade: aluno.idade ?? '', email: aluno.email ?? '', valor_mensal: aluno.valor_mensal ?? '', dia_vencimento: aluno.dia_vencimento ?? '' } : { ...VAZIO, ...inicial }))
+  const [d, setD] = useState(() => (aluno ? { ...VAZIO, ...aluno, idade: aluno.idade ?? '', data_nascimento: aluno.data_nascimento ?? '', email: aluno.email ?? '', valor_mensal: aluno.valor_mensal ?? '', dia_vencimento: aluno.dia_vencimento ?? '' } : { ...VAZIO, ...inicial }))
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const campo = (k) => ({ id: `aluno-${k}`, value: d[k] ?? '', onChange: (e) => setD({ ...d, [k]: e.target.value }) })
@@ -15,7 +23,7 @@ export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
     if (!d.nome.trim()) return setErro('Informe o nome do aluno.')
     setSalvando(true); setErro('')
     const dados = {
-      nome: d.nome.trim(), email: d.email.trim() || null, telefone: d.telefone, sexo: d.sexo, idade: num(d.idade),
+      nome: d.nome.trim(), email: d.email.trim() || null, telefone: d.telefone, sexo: d.sexo, idade: idadeEm(d.data_nascimento) ?? num(d.idade), data_nascimento: d.data_nascimento || null,
       objetivo: d.objetivo, plano: d.plano, inicio: d.inicio || null, status: d.status, modalidade: d.modalidade, comunidade: d.comunidade,
       valor_mensal: num(d.valor_mensal), dia_vencimento: num(d.dia_vencimento),
     }
@@ -34,7 +42,8 @@ export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
       <label>E-mail de acesso<input type="email" placeholder="o aluno entra com ele" {...campo('email')} /></label>
       <label>WhatsApp<input {...campo('telefone')} /></label>
       <label>Sexo<select {...campo('sexo')}><option value="F">Feminino</option><option value="M">Masculino</option></select></label>
-      <label>Idade<input type="number" min="5" max="110" {...campo('idade')} /></label>
+      <label>Data de nascimento<input type="date" {...campo('data_nascimento')} /></label>
+      <label>Idade<input type="number" min="5" max="110" placeholder={d.data_nascimento ? 'calculada pela data' : ''} disabled={!!d.data_nascimento} {...campo('idade')} value={d.data_nascimento ? idadeEm(d.data_nascimento) ?? '' : d.idade} /></label>
       <label>Objetivo<input placeholder="Ex.: Hipertrofia" {...campo('objetivo')} /></label>
       <label>Plano<input placeholder="Ex.: 3x por semana" {...campo('plano')} /></label>
       <label>Início<input type="date" {...campo('inicio')} /></label>
@@ -46,7 +55,7 @@ export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
         <input id="aluno-comunidade" type="checkbox" style={{ width: 18, height: 18 }} checked={d.comunidade} onChange={(e) => setD({ ...d, comunidade: e.target.checked })} />
         Participa da comunidade (aparece no feed e no ranking dos colegas)
       </label>
-      <p className="meta full" style={{ margin: 0 }}>O aluno cria a senha em "Primeiro acesso" usando este e-mail. Aluno pausado não consegue ver os treinos. Na consultoria online, o aluno envia medidas e fotos pela área dele.</p>
+      <p className="meta full" style={{ margin: 0 }}>O aluno também pode se cadastrar sozinho em "Primeiro acesso" e aparece aqui automaticamente. Aluno pausado não consegue ver os treinos. Na consultoria online, o aluno envia medidas e fotos pela área dele.</p>
     </Modal>
   )
 }
