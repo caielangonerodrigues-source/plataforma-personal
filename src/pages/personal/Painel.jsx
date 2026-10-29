@@ -1,27 +1,47 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
-import { diasDesde, f1, fmtData, hojeISO, porData, primeiroNome } from '../../lib/formato.js'
+import { MESES, brl, diasDesde, f1, fmtData, hojeISO, porData, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
+import { somarDias } from '../../lib/comunidade.js'
+import { alunosSumidos, mensalidadesAtrasadas } from '../../lib/atencao.js'
+import { atendimentos } from '../../lib/agenda.js'
 
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
   const [treinaramHoje, setTreinaramHoje] = useState(0)
   const [envios, setEnvios] = useState([])
   const [novos, setNovos] = useState(0)
+  const [atividades, setAtividades] = useState([])
+  const [pagamentos, setPagamentos] = useState([])
+  const [trocas, setTrocas] = useState([])
+  const [amanha, setAmanha] = useState(0)
   const [erro, setErro] = useState('')
+  const hoje = hojeISO()
 
   useEffect(() => {
-    supabase.from('alunos').select('id, nome, telefone, objetivo, status, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
+    const desde = somarDias(hoje, -60)
+    supabase.from('alunos').select('id, nome, telefone, objetivo, status, inicio, created_at, valor_mensal, dia_vencimento, avaliacoes(data, peso, gordura), treinos(id)').order('nome')
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data)))
     supabase.from('envios_consultoria').select('id, data, peso, aluno_id, alunos(nome)').is('resposta', null).order('data')
       .then(({ data }) => setEnvios(data || []))
     supabase.from('interessados').select('id').eq('status', 'novo').then(({ data }) => setNovos(data?.length || 0))
     Promise.all([
-      supabase.from('registros').select('aluno_id').eq('data', hojeISO()),
-      supabase.from('checkins').select('aluno_id').eq('data', hojeISO()),
-    ]).then(([r, c]) => setTreinaramHoje(new Set([...(r.data || []), ...(c.data || [])].map((x) => x.aluno_id)).size))
-  }, [])
+      supabase.from('registros').select('aluno_id, data').gte('data', desde),
+      supabase.from('checkins').select('aluno_id, data').gte('data', desde),
+    ]).then(([r, c]) => {
+      const todas = [...(r.data || []), ...(c.data || [])]
+      setAtividades(todas)
+      setTreinaramHoje(new Set(todas.filter((x) => x.data === hoje).map((x) => x.aluno_id)).size)
+    })
+    supabase.from('pagamentos').select('aluno_id').eq('competencia', hoje.slice(0, 7)).then(({ data }) => setPagamentos(data || []))
+    // Colunas e tabelas novas: se o SQL da agenda ainda não rodou, só não aparecem.
+    supabase.from('registros').select('aluno_id, data, troca, exercicios(nome)').not('troca', 'is', null).gte('data', somarDias(hoje, -7)).order('data', { ascending: false })
+      .then(({ data }) => setTrocas(data || []))
+    const dia = somarDias(hoje, 1)
+    Promise.all([supabase.from('horarios').select('*'), supabase.from('remarcacoes').select('*').gte('data', somarDias(hoje, -60))])
+      .then(([h, r]) => setAmanha(h.error ? 0 : atendimentos(h.data, r.data || [], dia, dia).filter((a) => !a.desmarcado).length))
+  }, [hoje])
 
   if (erro) return <p className="erro">Não foi possível carregar: {erro}</p>
   if (!alunos) return <p className="carregando">Carregando…</p>
@@ -31,6 +51,15 @@ export default function Painel() {
   const reavaliar = alunos.filter((a) => { const u = ultima(a); return a.status !== 'pausado' && (!u || diasDesde(u.data) > 60) })
   const semTreino = alunos.filter((a) => a.status !== 'pausado' && a.treinos.length === 0)
   const evolucao = alunos.filter((a) => a.avaliacoes.length > 1)
+  const sumidos = alunosSumidos(alunos, atividades, hoje)
+  const atrasados = mensalidadesAtrasadas(alunos, pagamentos, hoje)
+  const mes = MESES[Number(hoje.slice(5, 7)) - 1]
+  const atencao = [
+    ...atrasados.map((a) => ({ a, chave: `m${a.id}`, texto: `Mensalidade de ${mes} atrasada (${brl(a.valor_mensal)}, venceu dia ${a.dia_vencimento})`, botao: 'Cobrar',
+      zap: `Oi, ${primeiroNome(a.nome)}! A mensalidade de ${mes} (${brl(a.valor_mensal)}) venceu dia ${a.dia_vencimento}. O Pix está na área do aluno, em Conta. Qualquer dúvida me chama!` })),
+    ...sumidos.map(({ aluno: a, ultimo, dias }) => ({ a, chave: `s${a.id}`, texto: ultimo ? `${dias} dias sem treinar · último em ${fmtData(ultimo)}` : `Não registrou nenhum treino em ${dias} dias`, botao: 'Chamar',
+      zap: `Oi, ${primeiroNome(a.nome)}! Senti sua falta nos treinos 😅 Está tudo bem? Bora voltar essa semana? Me fala o melhor dia que eu te ajudo a encaixar.` })),
+  ]
 
   return (
     <>
@@ -47,6 +76,30 @@ export default function Painel() {
           <h2>Comece cadastrando um aluno</h2>
           <p>Vá em <Link to="/alunos">Alunos</Link> e clique em "Novo aluno". Coloque o e-mail dele para ele conseguir entrar e ver o treino.</p>
         </div>
+      )}
+      {atencao.length > 0 && (
+        <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--warn)' }}>
+          <div className="row between"><h2>Precisam de atenção</h2><span className="meta">sumidos há 7 dias ou mais e mensalidades atrasadas</span></div>
+          <div className="list">
+            {atencao.map(({ a, chave, texto, botao, zap }) => {
+              const link = linkWhatsApp(a.telefone, zap)
+              return (
+                <div className="item" key={chave} style={{ cursor: 'default' }}>
+                  <Link to={`/alunos/${a.id}`} style={{ color: 'inherit', textDecoration: 'none', minWidth: 0 }}>
+                    <div className="name">{a.nome}</div><div className="meta">{texto}</div>
+                  </Link>
+                  {link ? <a className="pill pendente" style={{ textDecoration: 'none' }} href={link} target="_blank" rel="noreferrer">{botao} no WhatsApp</a> : <span className="meta">sem WhatsApp</span>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+      {amanha > 0 && (
+        <Link to="/agenda" className="panel row between" style={{ marginBottom: 16, textDecoration: 'none', color: 'inherit' }}>
+          <span><strong>Amanhã você tem {amanha} {amanha === 1 ? 'atendimento' : 'atendimentos'}</strong><br /><span className="meta">Mande o lembrete pelo WhatsApp na Agenda</span></span>
+          <span className="pill pendente">Ver agenda</span>
+        </Link>
       )}
       {alunos.length > 0 && (
         <Link to="/assistente" className="panel ia-caixa row between" style={{ marginBottom: 16, textDecoration: 'none', color: 'inherit' }}>
@@ -108,6 +161,19 @@ export default function Painel() {
           </div>
         </div>
       </div>
+      {trocas.length > 0 && (
+        <div className="panel" style={{ marginTop: 16 }}>
+          <div className="row between"><h2>Trocas de exercício</h2><span className="meta">últimos 7 dias</span></div>
+          <div className="list">
+            {trocas.map((t, i) => (
+              <Link className="item" key={i} to={`/alunos/${t.aluno_id}?aba=progressao`}>
+                <div style={{ minWidth: 0 }}><div className="name">{alunos.find((a) => a.id === t.aluno_id)?.nome}</div><div className="meta">Fez {t.troca} no lugar de {t.exercicios?.nome || 'um exercício'}</div></div>
+                <span className="meta mono">{fmtData(t.data)}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
       {semTreino.length > 0 && (
         <div className="panel" style={{ marginTop: 16 }}>
           <h2>Sem treino montado</h2>

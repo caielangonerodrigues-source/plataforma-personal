@@ -23,6 +23,7 @@ import Modelos from './pages/personal/Modelos.jsx'
 import Vendas from './pages/personal/Vendas.jsx'
 import Exercicios from './pages/personal/Exercicios.jsx'
 import Assistente from './pages/personal/Assistente.jsx'
+import Agenda from './pages/personal/Agenda.jsx'
 
 export default function App() {
   const navigate = useNavigate()
@@ -92,6 +93,7 @@ export default function App() {
         <Route element={<LayoutPersonal nome={perfil.nome} />}>
           <Route path="/painel" element={<Painel />} />
           <Route path="/alunos" element={<Alunos />} />
+          <Route path="/agenda" element={<Agenda />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
           <Route path="/modelos" element={<Modelos />} />

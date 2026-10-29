@@ -222,6 +222,21 @@ a.botao-link:hover { background: var(--accent-soft) }
 .itens input { padding: 6px 8px }
 .ia-caixa { border: 1.5px solid var(--accent); background: linear-gradient(0deg, var(--surface), var(--accent-soft)) }
 
+/* Cronômetro de descanso: barra fixa no rodapé da área do aluno */
+.cronometro { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(12px, env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100% - 24px)); z-index: 40; background: var(--ink); color: var(--surface); border-radius: 14px; padding: 12px 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, .25) }
+.cronometro.fim { background: var(--accent); color: var(--accent-ink) }
+.cronometro button { background: transparent; color: inherit; border-color: currentColor }
+.cron-barra { height: 4px; background: rgba(127, 127, 127, .35); border-radius: 99px; overflow: hidden; margin-bottom: 8px }
+.cron-barra > i { display: block; height: 100%; background: var(--accent); transition: width .25s linear }
+.cron-rotulo { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .75 }
+.cron-nome { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.cron-tempo { font-family: var(--display); font-size: 40px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums }
+.solo:has(.cronometro) { padding-bottom: 120px }
+.agenda-item { grid-template-columns: 56px minmax(0, 1fr) auto; gap: 6px 12px }
+.agenda-item:hover .name { color: inherit }
+.agenda-hora { min-width: 52px; font-weight: 700 }
+.agenda-hora .meta { font-weight: 400; font-size: 12px }
+
 @media (max-width: 760px) {
   .macros { grid-template-columns: repeat(3, minmax(0, 1fr)) }
   .itens thead { display: none }
@@ -238,6 +253,8 @@ a.botao-link:hover { background: var(--accent-soft) }
   .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .grid2, .comunidade { grid-template-columns: 1fr }
   .opcional { display: none }
+  .agenda-item { grid-template-columns: 56px minmax(0, 1fr) }
+  .agenda-item > :last-child { grid-column: 2; justify-content: flex-start !important }
   .comunidade > :last-child { order: -1 }
   h1 { font-size: 32px }
   .bike { width: 62px }

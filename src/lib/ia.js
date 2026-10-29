@@ -3,9 +3,9 @@ import { BIBLIOTECA } from './exercicios.js'
 
 // Chama a função ia-assistente do Supabase (a chave da IA fica só lá, nunca no site).
 // Devolve o treino ou a dieta sugeridos, ou lança erro com uma mensagem para a tela.
-export async function pedirIA({ tipo, alunoId, pedido, meusExercicios = [] }) {
+export async function pedirIA({ tipo, alunoId, pedido, meusExercicios = [], extra = {} }) {
   const exercicios = [...new Set([...meusExercicios.map((e) => e.nome), ...BIBLIOTECA.map((e) => e.nome)])]
-  const { data, error } = await supabase.functions.invoke('ia-assistente', { body: { tipo, aluno_id: alunoId, pedido, exercicios } })
+  const { data, error } = await supabase.functions.invoke('ia-assistente', { body: { ...extra, tipo, aluno_id: alunoId, pedido, exercicios: tipo === 'treino' ? exercicios : undefined } })
   if (error) {
     let msg = ''
     try { msg = (await error.context.json()).erro } catch { /* sem corpo */ }

@@ -130,3 +130,27 @@ export function juntarBiblioteca(meus = []) {
 
 // Link de busca no YouTube para ver a execução de um exercício.
 export const buscaVideo = (nome) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${nome} execução`)}`
+
+// Grupo muscular de um exercício da ficha: pelo nome exato na biblioteca ou, se não achar,
+// pelo exercício da biblioteca que tem mais palavras em comum (pelo menos a primeira, ex.: "Supino").
+export function grupoDoExercicio(nome, lista = BIBLIOTECA) {
+  const alvo = semAcento(nome).trim()
+  const exato = lista.find((e) => semAcento(e.nome) === alvo)
+  if (exato) return exato.grupo
+  const palavras = alvo.split(/[^a-z0-9]+/).filter((p) => p.length > 2)
+  let melhor = null, pontos = 0
+  for (const e of lista) {
+    const outras = semAcento(e.nome).split(/[^a-z0-9]+/)
+    if (!palavras.length || outras[0] !== palavras[0]) continue
+    const p = palavras.filter((x) => outras.includes(x)).length
+    if (p > pontos) { melhor = e; pontos = p }
+  }
+  return melhor?.grupo || null
+}
+
+// Variações do mesmo grupo muscular para o aluno trocar quando o aparelho estiver ocupado.
+export function alternativas(nome, lista = BIBLIOTECA) {
+  const grupo = grupoDoExercicio(nome, lista)
+  const alvo = semAcento(nome)
+  return grupo ? lista.filter((e) => e.grupo === grupo && semAcento(e.nome) !== alvo) : []
+}

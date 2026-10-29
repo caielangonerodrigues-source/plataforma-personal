@@ -11,9 +11,10 @@ import Anamnese, { temAlertaParq } from '../../components/Anamnese.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
 import Nutricao from '../../components/Nutricao.jsx'
+import Relatorio from '../../components/Relatorio.jsx'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
-const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
+const ABAS = [['treinos', 'Treinos'], ['consultoria', 'Consultoria'], ['avaliacoes', 'Avaliações físicas'], ['progressao', 'Cargas'], ['nutricao', 'Nutrição'], ['relatorio', 'Relatório'], ['anamnese', 'Anamnese'], ['fotos', 'Fotos']]
 
 export default function AlunoDetalhe() {
   const { id } = useParams()
@@ -36,7 +37,7 @@ export default function AlunoDetalhe() {
     setAluno(data)
     const desde = new Date(Date.now() - 30 * 864e5).toLocaleDateString('sv-SE')
     const [{ data: regs }, { data: an }] = await Promise.all([
-      supabase.from('registros').select('exercicio_id, data, series').eq('aluno_id', id).lte('data', hojeISO()),
+      supabase.from('registros').select('*').eq('aluno_id', id).lte('data', hojeISO()),
       supabase.from('anamneses').select('parq').eq('aluno_id', id).maybeSingle(),
     ])
     setRegistros(regs || [])
@@ -83,7 +84,13 @@ export default function AlunoDetalhe() {
       {aba === 'treinos' && <Treinos aluno={aluno} recarregar={carregar} />}
       {aba === 'consultoria' && <Consultoria aluno={aluno} personal onAvaliacao={carregar} />}
       {aba === 'avaliacoes' && <Avaliacoes aluno={aluno} recarregar={carregar} />}
-      {aba === 'progressao' && <div className="panel"><Progressao treinos={aluno.treinos} registros={registros} /></div>}
+      {aba === 'progressao' && (
+        <div className="stack">
+          <div className="panel"><Progressao treinos={aluno.treinos} registros={registros} /></div>
+          <TrocasDoAluno treinos={aluno.treinos} registros={registros} />
+        </div>
+      )}
+      {aba === 'relatorio' && <Relatorio aluno={aluno} />}
       {aba === 'nutricao' && <Nutricao aluno={aluno} />}
       {aba === 'anamnese' && <Anamnese alunoId={aluno.id} onSalva={carregar} intro={<p className="meta" style={{ margin: 0 }}>O aluno também pode preencher pela área dele.</p>} />}
       {aba === 'fotos' && <FotosEvolucao alunoId={aluno.id} podeApagar />}
@@ -100,5 +107,27 @@ export default function AlunoDetalhe() {
 
       {editando && <FormAluno aluno={aluno} onFechar={() => setEditando(false)} onSalvo={() => { setEditando(false); carregar() }} />}
     </>
+  )
+}
+
+// Exercícios que o aluno trocou no dia (aparelho ocupado), dos últimos 60 dias.
+function TrocasDoAluno({ treinos, registros }) {
+  const nomes = new Map(treinos.flatMap((t) => t.exercicios.map((e) => [e.id, `${t.nome} · ${e.nome}`])))
+  const desde = new Date(Date.now() - 60 * 864e5).toLocaleDateString('sv-SE')
+  const trocas = registros.filter((r) => r.troca && r.data >= desde).sort((a, b) => (a.data < b.data ? 1 : -1))
+  if (!trocas.length) return null
+  return (
+    <div className="panel">
+      <h2>Trocas de exercício</h2>
+      <p className="meta" style={{ marginTop: 0 }}>Quando o aparelho estava ocupado, o aluno fez outro exercício no lugar. As cargas desses dias não entram na evolução acima.</p>
+      <div className="list">
+        {trocas.map((r) => (
+          <div className="item" key={`${r.exercicio_id}${r.data}`} style={{ cursor: 'default' }}>
+            <div style={{ minWidth: 0 }}><div className="name">{r.troca}</div><div className="meta">no lugar de {nomes.get(r.exercicio_id) || 'exercício removido'}</div></div>
+            <span className="meta mono">{fmtData(r.data)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
