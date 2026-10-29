@@ -1,6 +1,7 @@
 // Bonequinho de frente e de costas com os músculos acesos.
 // Cada músculo é desenhado do lado esquerdo e espelhado para o direito.
 // `principais`/`secundarios`: ids de MUSCULOS; ou `intensidade`: { id: 0..1 } para o mapa da semana.
+import { useId } from 'react'
 import { MUSCULOS } from '../lib/musculos.js'
 
 // Silhueta (neutra) e músculos de cada vista, em coordenadas de 0 a 100 (largura) × 0 a 218 (altura).
@@ -59,16 +60,39 @@ const Espelho = ({ partes }) => partes.map((d) => [
   <path key={`${d}-d`} d={d} transform="translate(100 0) scale(-1 1)" />,
 ])
 
+// Volume: cada músculo ganha brilho no meio e sombra nas bordas, mais uma textura leve de fibra;
+// a silhueta escurece nas laterais para parecer arredondada.
 function Vista({ titulo, musculos, cor, tamanho }) {
+  const id = useId().replace(/:/g, '')
   return (
     <figure className="corpo-vista">
       <svg viewBox="0 0 100 218" width={tamanho} height={tamanho * 2.18} aria-hidden="true">
+        <defs>
+          <radialGradient id={`${id}v`} cx=".45" cy=".4" r=".7">
+            <stop offset="0" stopColor="#fff" stopOpacity=".38" />
+            <stop offset=".45" stopColor="#fff" stopOpacity="0" />
+            <stop offset="1" stopColor="#000" stopOpacity=".4" />
+          </radialGradient>
+          <linearGradient id={`${id}s`} x1="0" x2="50" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#000" stopOpacity=".22" />
+            <stop offset=".55" stopColor="#000" stopOpacity="0" />
+            <stop offset="1" stopColor="#fff" stopOpacity=".18" />
+          </linearGradient>
+          <pattern id={`${id}f`} width="1.3" height="1.3" patternUnits="userSpaceOnUse" patternTransform="rotate(12)">
+            <rect width=".35" height="1.3" fill="#000" fillOpacity=".13" />
+          </pattern>
+        </defs>
         <g className="corpo-silhueta"><Espelho partes={SILHUETA} /></g>
-        {Object.entries(musculos).map(([id, partes]) => (
-          <g key={id} className="corpo-musculo" style={cor(id)}><Espelho partes={partes} /></g>
+        <g fill={`url(#${id}s)`}><Espelho partes={SILHUETA} /></g>
+        {Object.entries(musculos).map(([m, partes]) => (
+          <g key={m}>
+            <g className="corpo-musculo" style={cor(m)}><Espelho partes={partes} /></g>
+            <g fill={`url(#${id}f)`}><Espelho partes={partes} /></g>
+            <g fill={`url(#${id}v)`}><Espelho partes={partes} /></g>
+          </g>
         ))}
       </svg>
-      <figcaption>{titulo}</figcaption>
+      {titulo && <figcaption>{titulo}</figcaption>}
     </figure>
   )
 }
