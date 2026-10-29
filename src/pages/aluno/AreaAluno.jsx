@@ -29,6 +29,8 @@ import NovidadesAcademia from '../../components/NovidadesAcademia.jsx'
 import CompartilharStory from '../../components/CompartilharStory.jsx'
 import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
 import BarraApp, { Icone } from '../../components/BarraApp.jsx'
+import Corpo, { CorpoMini } from '../../components/Corpo.jsx'
+import { MUSCULOS, musculosDoExercicio } from '../../lib/musculos.js'
 import Voce from '../../components/Voce.jsx'
 import ComoFunciona, { AJUDA_ALUNO } from '../../components/ComoFunciona.jsx'
 import Avatar from '../../components/Avatar.jsx'
@@ -57,6 +59,7 @@ export default function AreaAluno({ aluno }) {
   const [temAnamnese, setTemAnamnese] = useState(true)
   const [fichaId, setFichaId] = useState(null)
   const [aberto, setAberto] = useState(null) // exercício com as séries abertas
+  const [musculos, setMusculos] = useState(null) // exercício com o bonequinho aberto
   const [checkinAberto, setCheckinAberto] = useState(false)
   const [erro, setErro] = useState('')
   const [descanso, setDescanso] = useState(null) // { nome, segundos }
@@ -254,7 +257,7 @@ export default function AreaAluno({ aluno }) {
       {AJUDA_ALUNO[aba] && <ComoFunciona key={aba} chave={aba} itens={AJUDA_ALUNO[aba]} />}
 
       {aba === 'inicio' && (
-        <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos}
+        <InicioAluno aluno={aluno} avatar={meuAvatar} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes} treinos={treinos} todosTreinos={todosTreinos}
           temAnamnese={temAnamnese} comunidade={comunidade} agenda={agenda} ficha={ficha} fichaVencida={fichaVencida} situacaoFicha={situacao} proximaFase={proximaFase} academia={academia} online={online}
           irPara={irPara} onCheckin={() => setCheckinAberto(true)} />
       )}
@@ -303,6 +306,7 @@ export default function AreaAluno({ aluno }) {
                 </div>
               )}
               {proximaFase && <div className="meta" style={{ marginBottom: 10 }}>Nova fase do treino ({proximaFase.nome}) começa em {fmtCurta(proximaFase.inicio)}.</div>}
+              <MusculosDoTreino nomes={ficha.exercicios.map((e) => trocaDe(e.id) || e.nome)} />
               <div className="meta" style={{ marginBottom: 6 }}>{ficha.foco} · {qtdFeitos} de {ficha.exercicios.length} feitos</div>
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
               {erro && <p className="erro" style={{ marginTop: 10 }}>{erro}</p>}
@@ -331,8 +335,12 @@ export default function AreaAluno({ aluno }) {
                           </div>
                           {anterior && <div className="meta" style={{ fontSize: 12 }}>Última vez: {anterior.series.map((s) => `${f1(s.carga)}×${s.reps}`).join(', ')}</div>}
                         </div>
-                        <div className="meta mono">{e.carga}</div>
+                        <div className="col-carga">
+                          <CorpoMini {...musculosDoExercicio(troca || e.nome)} onClick={() => setMusculos(musculos === e.id ? null : e.id)} />
+                          <div className="meta mono">{e.carga}</div>
+                        </div>
                       </div>
+                      {musculos === e.id && <div className="panel" style={{ margin: '6px 0 10px' }}><Corpo {...musculosDoExercicio(troca || e.nome)} tamanho={78} /></div>}
                       {aberto === e.id && <Series exercicio={e} inicial={hojeReg?.series || anterior?.series} onSalvar={(s) => salvarCargas(e, s)} onFechar={() => setAberto(null)} />}
                     </div>
                   )
@@ -472,6 +480,24 @@ function Cabecalho({ aluno, whatsapp, naoLidas = 0, onMensagens, onCheckin, fezH
         {whatsapp && <a className="botao-whatsapp redondo" href={whatsapp} target="_blank" rel="noreferrer" aria-label="Grupo da academia no WhatsApp" title="Grupo da academia no WhatsApp"><IconeWhatsApp /></a>}
         {onCheckin && <button className="primary small so-computador" onClick={onCheckin}>{fezHoje ? 'Novo check-in' : '📸 Fazer check-in'}</button>}
         <button className="small so-computador" onClick={() => supabase.auth.signOut()}>Sair</button>
+      </div>
+    </div>
+  )
+}
+
+// Resumo no topo da ficha: o bonequinho com tudo o que o treino de hoje trabalha.
+function MusculosDoTreino({ nomes }) {
+  const principais = [...new Set(nomes.flatMap((n) => musculosDoExercicio(n).principais))]
+  const secundarios = [...new Set(nomes.flatMap((n) => musculosDoExercicio(n).secundarios))].filter((m) => !principais.includes(m))
+  if (!principais.length) return null
+  return (
+    <div className="musculos-do-dia">
+      <Corpo principais={principais} secundarios={secundarios} tamanho={44} legenda={false} />
+      <div style={{ minWidth: 0 }}>
+        <div className="name">Hoje você trabalha</div>
+        <div className="meta">{principais.map((m) => MUSCULOS[m]).join(', ')}</div>
+        {secundarios.length > 0 && <div className="meta" style={{ fontSize: 12 }}>e ajuda: {secundarios.map((m) => MUSCULOS[m]).join(', ')}</div>}
+        <div className="meta" style={{ fontSize: 12 }}>Toque no bonequinho de cada exercício para ver os músculos dele.</div>
       </div>
     </div>
   )
