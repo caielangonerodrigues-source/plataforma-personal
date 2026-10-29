@@ -14,6 +14,7 @@ import Anamnese from '../../components/Anamnese.jsx'
 import Consultoria from '../../components/Consultoria.jsx'
 import AulasSpinning from '../spinning/AulasSpinning.jsx'
 import { DietaAluno } from '../../components/Nutricao.jsx'
+import { SimboloCA } from '../../components/Logo.jsx'
 import { buscaVideo } from '../../lib/exercicios.js'
 import { useComunidade } from '../../hooks/useComunidade.js'
 import { inicioDoMes, sequencia, somarDias } from '../../lib/comunidade.js'
@@ -231,7 +232,10 @@ function Series({ exercicio, inicial, onSalvar, onFechar }) {
 function Cabecalho({ aluno }) {
   return (
     <div className="row between">
-      <div><p className="meta" style={{ margin: 0 }}>Área do aluno</p><h1>Olá, {primeiroNome(aluno.nome)}</h1></div>
+      <div className="row" style={{ gap: 12, flexWrap: 'nowrap' }}>
+        <SimboloCA size={44} />
+        <div><p className="meta" style={{ margin: 0 }}>Corpo Atlético · Área do aluno</p><h1>Olá, {primeiroNome(aluno.nome)}</h1></div>
+      </div>
       <button className="small" onClick={() => supabase.auth.signOut()}>Sair</button>
     </div>
   )

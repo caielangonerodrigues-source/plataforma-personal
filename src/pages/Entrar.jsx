@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase.js'
+import Logo from '../components/Logo.jsx'
 
 const MENSAGENS = {
   'Invalid login credentials': 'E-mail ou senha incorretos.',
@@ -52,7 +53,7 @@ export default function Entrar() {
   return (
     <div className="centro">
       <div style={{ width: '100%', maxWidth: 420 }}>
-        <div className="brand" style={{ fontSize: 44 }}>Personal<small>Treinos e avaliações</small></div>
+        <Logo sub="Academia & Fitness · Treinos e avaliações" grande />
         <form className="panel stack" onSubmit={enviar}>
           <h2>{titulo}</h2>
           {modo === 'criar' && (

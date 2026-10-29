@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Logo from '../../components/Logo.jsx'
 
 // Guarda no aparelho as reservas feitas, para a pessoa voltar ao Pix sem login.
 const CHAVE = 'spinning-reservas'
@@ -13,7 +14,7 @@ export default function TopoSpinning({ voltar }) {
   return (
     <div className="topo-publico">
       <Link to="/spinning" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <div className="brand">Spinning<small>Reserve sua bike</small></div>
+        <Logo sub="Spinning · Reserve sua bike" />
       </Link>
       {voltar ? <Link to={voltar} className="meta">‹ Voltar</Link> : <Link to="/" className="meta">Área do aluno</Link>}
     </div>
