@@ -852,3 +852,16 @@ body { background: var(--surface) }
 .rank.eu { background: none }
 .rank.eu .name { color: var(--accent) }
 .postar-foto { display: flex; gap: 14px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid var(--line) }
+/* Avatares no padrão do site: círculo claro, iniciais em grafite e ícone de traço laranja nos avatares prontos */
+.avatar { background: color-mix(in srgb, var(--ink) 7%, var(--surface)); color: var(--ink) }
+.avatares-prontos button { background: color-mix(in srgb, var(--ink) 7%, var(--surface)) }
+.avatares-prontos button[aria-pressed="true"] { border-color: var(--accent) }
+/* Tipos de aviso: cada um com sua cor e ícone (novidade laranja, lembrete âmbar, informação azul) */
+.tipo-novidade { --cor-tipo: var(--accent) }
+.tipo-lembrete { --cor-tipo: #d98a0b }
+.tipo-informacao { --cor-tipo: #2f6fd6 }
+@media (prefers-color-scheme: dark) { .tipo-lembrete { --cor-tipo: #f2b544 } .tipo-informacao { --cor-tipo: #6ea2f5 } }
+.selo-aviso { display: grid; place-items: center; flex: none; border-radius: 50%; color: var(--cor-tipo); background: color-mix(in srgb, var(--cor-tipo) 12%, transparent) }
+.aviso .aviso-tipo, .lembrete-destaque .atalho-rotulo { color: var(--cor-tipo) }
+.lembrete-destaque { border-left-color: var(--cor-tipo) }
+.aviso h2 { font-size: 20px }

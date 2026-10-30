@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import { AVATARES, lerAvatar } from '../lib/avatar.js'
-import Avatar from './Avatar.jsx'
+import Avatar, { IconeAvatar } from './Avatar.jsx'
 
 // Recorta o meio da foto em quadrado e reduz (avatar não precisa de mais que 400px).
 async function fotoQuadrada(arquivo, lado = 400) {
@@ -77,8 +77,8 @@ export default function EditarAvatar({ aluno, onMudou }) {
       <div>
         <div className="meta" style={{ marginBottom: 6 }}>Ou escolha um avatar pronto:</div>
         <div className="avatares-prontos" role="group" aria-label="Avatares prontos">
-          {AVATARES.map(([emoji, cor], i) => (
-            <button key={i} type="button" aria-label={`Avatar ${emoji}`} aria-pressed={avatar === `p:${i}`} disabled={ocupado} onClick={() => salvar(`p:${i}`)} style={{ background: cor }}>{emoji}</button>
+          {AVATARES.map(([nome, icone], i) => (
+            <button key={i} type="button" aria-label={`Avatar ${nome}`} title={nome} aria-pressed={avatar === `p:${i}`} disabled={ocupado} onClick={() => salvar(`p:${i}`)}><IconeAvatar chave={icone} tamanho={46} /></button>
           ))}
         </div>
       </div>

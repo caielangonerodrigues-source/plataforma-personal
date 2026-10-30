@@ -9,6 +9,7 @@ import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { ofensiva } from '../lib/semana.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
 import Corpo from './Corpo.jsx'
+import { SeloAviso } from './NovidadesAcademia.jsx'
 import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
@@ -71,8 +72,8 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   return (
     <div className="inicio">
       {aviso && (
-        <button type="button" className="lembrete-destaque" onClick={() => irPara('novidades')}>
-          <IconeLinha d={ICONES.aviso} tamanho={34} />
+        <button type="button" className={`lembrete-destaque tipo-${aviso.tipo in TIPOS_AVISO ? aviso.tipo : 'novidade'}`} onClick={() => irPara('novidades')}>
+          <SeloAviso tipo={aviso.tipo} tamanho={42} />
           <div style={{ minWidth: 0, flex: 1 }}>
             <span className="atalho-rotulo">{TIPOS_AVISO[aviso.tipo]?.[0] || 'Aviso'} da academia{academia.novos > 1 ? ` · ${academia.novos} novas` : ''}</span>
             <h3>{aviso.titulo}</h3>
@@ -174,6 +175,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             </>
           ) : <p className="meta" style={{ margin: 0 }}>{treinos ? 'Seu personal ainda está montando sua ficha.' : 'Carregando…'}</p>}
         </div>
+        {!online && <CartaoConsultoria />}
       </div>
 
       <aside className="stack inicio-dir">
@@ -232,7 +234,6 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             <p>Treinar junto é melhor. Mande seu link e ganhe desconto na mensalidade.</p>
           </Atalho>
         )}
-        {!online && <CartaoConsultoria />}
       </aside>
     </div>
   )

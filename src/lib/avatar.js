@@ -1,15 +1,16 @@
-// Avatares prontos ("p:0" a "p:11"): emoji sobre um círculo colorido.
+// Avatares prontos ("p:0" a "p:11"): ícone de traço laranja num círculo claro, no padrão do site.
+// [nome, chave do ícone em ICONES (components/IconeLinha.jsx)]
 export const AVATARES = [
-  ['🏋️', '#fc4c02'], ['🏃', '#2f80ed'], ['🚴', '#27ae60'], ['🧘', '#9b51e0'], ['🥊', '#eb5757'], ['⚽', '#219653'],
-  ['🏊', '#2d9cdb'], ['🤸', '#f2994a'], ['💪', '#242428'], ['🔥', '#e2541b'], ['⚡', '#c99a06'], ['🦁', '#a0522d'],
+  ['Musculação', 'haltere'], ['Corrida', 'correr'], ['Pedal', 'bike'], ['Foco', 'alvo'], ['Força', 'raio'], ['Campeão', 'trofeu'],
+  ['Natação', 'onda'], ['Trilha', 'montanha'], ['Coração', 'coracao'], ['Fogo', 'chama'], ['Sol', 'sol'], ['Medalha', 'medalha'],
 ]
 
-// { tipo: 'pronto', emoji, cor } | { tipo: 'foto', caminho } | null
+// { tipo: 'pronto', nome, icone } | { tipo: 'foto', caminho } | null
 export function lerAvatar(valor) {
   const pronto = /^p:(\d{1,2})$/.exec(valor || '')
   if (pronto) {
     const a = AVATARES[Number(pronto[1])]
-    return a ? { tipo: 'pronto', emoji: a[0], cor: a[1] } : null
+    return a ? { tipo: 'pronto', nome: a[0], icone: a[1] } : null
   }
   if (/^[0-9a-f-]{36}\/[A-Za-z0-9-]+\.jpg$/.test(valor || '')) return { tipo: 'foto', caminho: valor }
   return null
