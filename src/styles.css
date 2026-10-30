@@ -781,3 +781,9 @@ tr.em-bloco { border-left: 0 } tr.em-bloco td:first-child { box-shadow: inset 3p
 .col-carga { display: flex; flex-direction: column; align-items: flex-end; gap: 4px }
 .musculos-semana { display: flex; flex-direction: column; gap: 8px }
 .musculos-semana h3 { margin: 0 }
+
+/* Política de privacidade */
+.privacidade { max-width: 680px; margin: 0 auto; padding: 28px 16px 48px; line-height: 1.55 }
+.privacidade h1 { margin: 22px 0 4px }
+.privacidade h2 { font-size: 18px; margin: 24px 0 6px }
+.privacidade ul { padding-left: 20px }

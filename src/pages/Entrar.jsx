@@ -177,6 +177,7 @@ export default function Entrar() {
         <strong>Corpo Atlético<i>.</i></strong>
         <span>Academia & Fitness</span>
         <Link to="/consultoria">Consultoria online</Link>
+        <Link to="/privacidade">Privacidade</Link>
       </footer>
     </div>
   )
