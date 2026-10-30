@@ -281,7 +281,8 @@ const quando = ({ data, em }) => (em === 0 ? 'Hoje' : em === 1 ? 'Amanhã' : em 
 // Aluno da academia: a consultoria online como opção para quando viajar ou mudar de cidade (só com a página no ar).
 function CartaoConsultoria() {
   const [ativa, setAtiva] = useState(false)
-  useEffect(() => { supabase.rpc('indicacao_do_personal').then(({ data }) => setAtiva(!!data?.[0]?.venda_ativa)) }, [])
+  // Mesma regra da página /consultoria: aparece quando alguma página de venda está no ar (não só a do personal do aluno).
+  useEffect(() => { supabase.rpc('pagina_vendas').then(({ data }) => setAtiva(!!data?.length)) }, [])
   if (!ativa) return null
   return (
     <BannerAcademia tipo="consultoria" href="/consultoria" />
