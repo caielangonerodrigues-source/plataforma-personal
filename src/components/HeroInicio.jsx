@@ -34,7 +34,7 @@ export default function HeroInicio({ nome, foto, fezHoje }) {
 
 // Fotos fixas dos banners: fileira de bikes de spinning (Pexels) e turma com barra (pump).
 export const FOTO_SPINNING = 'https://images.pexels.com/photos/35567435/pexels-photo-35567435.jpeg?auto=compress&cs=tinysrgb&w=1200'
-export const FOTO_CONSULTORIA = unsplash('1758599881072-62facc386445')
+export const FOTO_CONSULTORIA = unsplash('1590487988256-9ed24133863e')
 export const FOTO_AULAS = unsplash('1554284126-aa88f22d8b74')
 
 const BANNERS = {
