@@ -6,7 +6,7 @@ import Anthropic from 'npm:@anthropic-ai/sdk@1'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const CHAVE = Deno.env.get('ANTHROPIC_API_KEY')
-const MODELO = Deno.env.get('IA_MODELO') || 'claude-opus-5-5'
+const MODELO = Deno.env.get('IA_MODELO') || 'claude-haiku-5-5' // o mais barato; troque com o secret IA_MODELO
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -98,8 +98,8 @@ Deno.serve(async (req) => {
     const r = await client.beta.messages.create({
       model: MODELO,
       max_tokens: 16000,
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
+      // O Haiku não tem fallback no servidor; os outros modelos trocam de modelo sozinhos se recusarem.
+      ...(MODELO.includes('haiku') ? {} : { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' }),
       system: SISTEMA,
       output_config: { effort: 'medium', format: { type: 'json_schema', schema: { treino: ESQUEMA_TREINO, dieta: ESQUEMA_DIETA, relatorio: ESQUEMA_RELATORIO }[tipo] } },
       messages: [{ role: 'user', content: contexto }],

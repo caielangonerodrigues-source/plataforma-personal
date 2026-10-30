@@ -139,7 +139,7 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 2. Para a IA: em [console.anthropic.com](https://console.anthropic.com), crie a conta, coloque créditos em **Billing** e crie uma chave em **API Keys** (começa com `sk-ant-`). Não mostre essa chave para ninguém.
 3. No Supabase, em **Edge Functions > Secrets**, adicione `ANTHROPIC_API_KEY` com a chave.
 4. Em **Edge Functions > Deploy a new function > Via Editor**, dê o nome `ia-assistente`, cole o conteúdo de [`supabase/functions/ia-assistente/index.ts`](supabase/functions/ia-assistente/index.ts) e clique em **Deploy**. Deixe **Enforce JWT verification** ligado.
-5. Teste em **Assistente IA**. Cada sugestão custa cerca de US$ 0,10 a US$ 0,30 na conta da Anthropic.
+5. Teste em **Assistente IA**. Usa o modelo mais barato (Claude Haiku): cada sugestão custa menos de 1 centavo de dólar na conta da Anthropic. Para um modelo mais caprichado, adicione o secret `IA_MODELO` (ex.: `claude-sonnet-5-5`).
 
 ### 8. Agenda, relatório, indicação, periodização e notificações
 1. No Supabase, abra **SQL Editor > New query**, cole o conteúdo de [`supabase/migracao-melhorias.sql`](supabase/migracao-melhorias.sql) e clique em **Run** (pode rodar mais de uma vez).
