@@ -25,3 +25,15 @@ export const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency',
 
 // "1 ficha", "3 fichas"; `muitos` para plurais irregulares ("1 aluno ativo" / "2 alunos ativos").
 export const plural = (n, um, muitos = `${um}s`) => `${n} ${n === 1 ? um : muitos}`
+
+// Data digitada (dd/mm/aaaa): põe as barras sozinho e converte para AAAA-MM-DD ('' enquanto incompleta ou inválida).
+export const mascaraData = (t) => String(t).replace(/\D/g, '').slice(0, 8).replace(/^(\d{2})(\d)/, '$1/$2').replace(/^(\d{2}\/\d{2})(\d)/, '$1/$2')
+export function dataBRparaISO(t) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(t || '')
+  if (!m) return ''
+  const [, d, mes, a] = m
+  const dt = new Date(Date.UTC(+a, +mes - 1, +d))
+  if (dt.getUTCDate() !== +d || dt.getUTCMonth() !== +mes - 1 || +a < 1900) return ''
+  return `${a}-${mes}-${d}`
+}
+export const dataISOparaBR = (iso) => (/^\d{4}-\d{2}-\d{2}$/.test(iso || '') ? iso.split('-').reverse().join('/') : '')
