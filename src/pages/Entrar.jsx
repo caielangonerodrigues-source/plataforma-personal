@@ -25,7 +25,9 @@ export default function Entrar() {
   const [enviando, setEnviando] = useState(false)
   const [provedores, setProvedores] = useState({})
 
+  const [consultoria, setConsultoria] = useState(false) // a página de vendas só aparece quando o personal deixa "Página no ar"
   useEffect(() => { provedoresLigados().then(setProvedores) }, [])
+  useEffect(() => { supabase.rpc('pagina_vendas').then(({ data }) => setConsultoria(!!data?.length)) }, [])
 
   // Google e Apple: o Supabase cria a conta na primeira vez; o cadastro de aluno sai com o nome da conta.
   async function social(provider) {
@@ -139,6 +141,12 @@ export default function Entrar() {
           <span><strong>Aula de spinning</strong><br /><span className="meta">Reserve sua bike, sem precisar de conta</span></span>
           <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Reservar ›</span>
         </Link>
+        {consultoria && (
+          <Link to="/consultoria" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
+            <span><strong>Consultoria online</strong><br /><span className="meta">Treine com acompanhamento de onde estiver</span></span>
+            <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Conhecer ›</span>
+          </Link>
+        )}
       </div>
       </section>
 
@@ -176,7 +184,7 @@ export default function Entrar() {
         <SimboloCA size={44} />
         <strong>Corpo Atlético<i>.</i></strong>
         <span>Academia & Fitness</span>
-        <Link to="/consultoria">Consultoria online</Link>
+        {consultoria && <Link to="/consultoria">Consultoria online</Link>}
         <Link to="/privacidade">Privacidade</Link>
       </footer>
     </div>
