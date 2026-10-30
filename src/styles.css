@@ -894,4 +894,5 @@ body { background: var(--surface) }
 .monte-item.ativo { border-left: 3px solid var(--accent); padding-left: 10px }
 .monte-nome { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: none; border: 0; padding: 0; text-align: left; font: inherit; font-weight: 400; color: inherit; cursor: pointer }
 .monte-item .link { flex: none }
+.monte-mini { flex: none; width: 40px; display: flex; justify-content: center }
 .monte-treino .chips { margin-bottom: 6px }
