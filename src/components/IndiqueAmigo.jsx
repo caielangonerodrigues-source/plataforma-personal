@@ -9,7 +9,9 @@ export default function IndiqueAmigo({ aluno }) {
   const [copiado, setCopiado] = useState(false)
 
   useEffect(() => {
-    supabase.rpc('indicacao_do_personal').then(({ data }) => setInfo(data?.[0] || null))
+    // O desconto é o do personal do aluno; o link aparece quando alguma página de venda está no ar (como o banner do Início).
+    Promise.all([supabase.rpc('indicacao_do_personal'), supabase.rpc('pagina_vendas')])
+      .then(([ind, pag]) => setInfo({ desconto: ind.data?.[0]?.desconto ?? null, venda_ativa: !!pag.data?.length }))
     supabase.from('descontos').select('competencia, valor, motivo').eq('aluno_id', aluno.id).then(({ data }) => setGanhos(data || []))
   }, [aluno.id])
 
