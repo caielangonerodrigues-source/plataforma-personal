@@ -230,6 +230,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-avatar-equipe.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. A foto que cada personal da equipe coloca em **Configurações › Seu avatar** passa a aparecer para ele, para a equipe e para os alunos.
 
+### 20. Aluno edita o próprio nome
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-nome-aluno.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Na aba **Conta**, o aluno toca em **Editar** ao lado do nome, corrige e salva. O nome novo aparece para você, na comunidade e no ranking.
+
 ## Desenvolvimento
 
 ```bash
