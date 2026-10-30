@@ -16,9 +16,12 @@ export const DOBRA_NOME = Object.fromEntries([...DOBRAS, ...DOBRAS_EXTRAS])
 // Perímetros da avaliação, em cm (coluna medidas). Cintura, quadril, braço e coxa também vão nas colunas antigas.
 export const PERIMETROS = [
   ['pescoco', 'Pescoço'], ['ombros', 'Ombros'], ['peitoral', 'Peitoral'], ['cintura', 'Cintura'], ['abdomen', 'Abdômen'],
-  ['quadril', 'Quadril'], ['braco_d', 'Braço dir.'], ['braco_e', 'Braço esq.'], ['coxa_d', 'Coxa dir.'], ['coxa_e', 'Coxa esq.'],
-  ['panturrilha_d', 'Panturrilha dir.'], ['panturrilha_e', 'Panturrilha esq.'],
+  ['quadril', 'Quadril'], ['braco_d', 'Braço dir.'], ['braco_e', 'Braço esq.'], ['antebraco_d', 'Antebraço dir.'], ['antebraco_e', 'Antebraço esq.'],
+  ['coxa_d', 'Coxa dir.'], ['coxa_e', 'Coxa esq.'], ['panturrilha_d', 'Panturrilha dir.'], ['panturrilha_e', 'Panturrilha esq.'],
 ]
+// Tronco numa coluna só; membros em direito e esquerdo.
+export const PERIMETROS_TRONCO = ['pescoco', 'ombros', 'peitoral', 'cintura', 'abdomen', 'quadril']
+export const PERIMETROS_PARES = [['braco', 'Braço'], ['antebraco', 'Antebraço'], ['coxa', 'Coxa'], ['panturrilha', 'Panturrilha']]
 export const PERIMETRO_NOME = Object.fromEntries(PERIMETROS)
 
 // Perímetros de uma avaliação: os da coluna medidas ou, nas antigas, os das colunas cintura/quadril/braço/coxa.
@@ -75,3 +78,38 @@ export function classificacao(sexo, gordura) {
 export const imc = (a) => (a?.peso && a?.altura ? a.peso / (a.altura * a.altura) : null)
 export const massaMagra = (a) => (a?.peso && a?.gordura != null ? a.peso * (1 - a.gordura / 100) : null)
 export const massaGorda = (a) => (a?.peso && a?.gordura != null ? (a.peso * a.gordura) / 100 : null)
+
+// Faixa ideal de % de gordura por sexo e idade (referência da média saudável para a faixa etária, ACSM).
+const FAIXA_IDEAL = {
+  M: [[30, 11, 15], [40, 15, 19], [50, 17, 21], [60, 19, 22], [Infinity, 20, 23]],
+  F: [[30, 16, 20], [40, 17, 21], [50, 20, 24], [60, 23, 27], [Infinity, 24, 28]],
+}
+export function faixaIdeal(sexo, idade) {
+  if (!idade || !FAIXA_IDEAL[sexo]) return null
+  const [, min, max] = FAIXA_IDEAL[sexo].find(([ate]) => idade < ate)
+  return { min, max }
+}
+
+// Peso ideal mantendo a massa magra de hoje: massa magra / (1 - % ideal).
+export function pesoIdeal(a, faixa) {
+  const mm = massaMagra(a)
+  if (mm == null || !faixa) return null
+  return { min: mm / (1 - faixa.min / 100), max: mm / (1 - faixa.max / 100) }
+}
+
+// Resultado da gordura comparada com a faixa ideal da idade.
+export function resultadoGordura(gordura, faixa) {
+  if (gordura == null || !faixa) return null
+  const g = Number(gordura)
+  if (g < faixa.min) return 'Abaixo do ideal'
+  if (g <= faixa.max) return 'Ideal'
+  if (g <= faixa.max + 3) return 'Na média'
+  return 'Acima da média'
+}
+
+// Idade do aluno: pela data de nascimento quando houver, senão a idade do cadastro.
+export function idadeDoAluno(aluno, hoje = new Date().toISOString().slice(0, 10)) {
+  const n = aluno?.data_nascimento
+  if (!/^\d{4}-\d{2}-\d{2}/.test(n || '')) return aluno?.idade || null
+  return Number(hoje.slice(0, 4)) - Number(n.slice(0, 4)) - (hoje.slice(5, 10) < n.slice(5, 10) ? 1 : 0)
+}
