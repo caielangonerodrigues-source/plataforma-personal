@@ -7,6 +7,7 @@ import { reduzirFoto } from '../../lib/foto.js'
 import { DIAS_LONGOS, dividirEquipes, TIPOS_AVISO, fmtHora, limparLinkGrupo, linkCheckinQR, ordenarAvisos, placarEquipes } from '../../lib/academia.js'
 import { quandoFoi } from '../../lib/comunidade.js'
 import { hojeISO } from '../../lib/formato.js'
+import { posicaoAtual } from '../../lib/localizacao.js'
 import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 const CORES_EQUIPE = ['#fc4c02', '#161618', '#1a7f37', '#3d5a80', '#b5523b', '#7a3ea8']
@@ -56,6 +57,7 @@ export default function Academia() {
         <div className="stack">
           <QrRecepcao personal={d.personal} recarregar={carregar} />
           <GrupoWhatsApp personal={d.personal} recarregar={carregar} />
+          <LocalAcademia personal={d.personal} recarregar={carregar} />
           <Equipes equipes={d.equipes} alunos={d.alunos} mes={d.mes} recarregar={carregar} />
           {d.fotos && <FotosEntrada fotos={d.fotos} personalId={d.personal?.user_id} recarregar={carregar} />}
         </div>
@@ -204,6 +206,44 @@ function QrRecepcao({ personal, recarregar }) {
         <button className="small" onClick={() => window.print()}>Imprimir</button>
         <button className="ghost small" onClick={novoCodigo}>Gerar novo código</button>
       </div>
+    </div>
+  )
+}
+
+// Ponto da academia para a localização do check-in: check-in feito perto dele aparece como "Corpo Atlético".
+function LocalAcademia({ personal, recarregar }) {
+  const [msg, setMsg] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  if (!personal || !('academia_lat' in personal)) {
+    return (
+      <div className="panel stack" style={{ gap: 8 }}>
+        <h2>Localização da academia</h2>
+        <p className="meta" style={{ margin: 0 }}>Para o check-in mostrar onde o aluno treinou, rode o arquivo <code>supabase/migracao-equipe-localizacao.sql</code> no Supabase (SQL Editor).</p>
+      </div>
+    )
+  }
+  const salva = personal.academia_lat != null
+  async function salvar() {
+    setSalvando(true); setMsg('')
+    try {
+      const p = await posicaoAtual()
+      const { error } = await supabase.from('personais').update({ academia_lat: p.lat, academia_lng: p.lng }).eq('user_id', personal.user_id)
+      setMsg(error ? `Não foi possível salvar: ${error.message}` : 'Salvo. Check-in feito aqui aparece como "Corpo Atlético".')
+      if (!error) recarregar()
+    } catch (e) {
+      setMsg(e.message)
+    }
+    setSalvando(false)
+  }
+  return (
+    <div className="panel stack" style={{ gap: 10 }}>
+      <h2>Localização da academia</h2>
+      <p className="meta" style={{ margin: 0 }}>
+        No check-in, o aluno pode mostrar onde treinou. Perto da academia aparece "Corpo Atlético"; em outro lugar, o bairro e a cidade.
+        {salva ? ' A localização da academia já está salva.' : ' Salve estando dentro da academia.'}
+      </p>
+      {msg && <p className="meta" style={{ margin: 0 }}>{msg}</p>}
+      <div><button className="small" disabled={salvando} onClick={salvar}>{salvando ? 'Pegando a localização…' : salva ? 'Atualizar com a localização atual' : 'Salvar a localização atual'}</button></div>
     </div>
   )
 }

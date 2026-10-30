@@ -879,3 +879,7 @@ body { background: var(--surface) }
 .musculos-lista li { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 12px; font-size: 14px }
 .musculos-lista i { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden }
 .musculos-lista b { display: block; height: 100%; background: var(--accent); border-radius: 2px }
+/* Localização no check-in */
+.checkin-local { display: flex; flex-direction: column; gap: 4px }
+.checkin-local .meta, .post-local { display: inline-flex; align-items: center; gap: 4px }
+.post-local { display: flex; font-size: 12px }

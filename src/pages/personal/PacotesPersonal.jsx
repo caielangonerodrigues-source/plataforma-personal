@@ -135,8 +135,7 @@ function FormVenda({ pacotes, onFechar, onSalvo }) {
     const p = pacotes.find((x) => x.id === d.pacote)
     if (!p) return setErro('Crie um pacote primeiro.')
     if (d.nome.trim().length < 2 || d.telefone.replace(/\D/g, '').length < 10) return setErro('Informe nome e WhatsApp com DDD.')
-    const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('creditos_spinning').insert({ pacote_id: p.id, personal_id: user.id, nome: d.nome.trim(), telefone: d.telefone.trim(), aulas: p.aulas, valor: p.valor, status: 'pago' })
+    const { error } = await supabase.from('creditos_spinning').insert({ pacote_id: p.id, personal_id: p.personal_id, nome: d.nome.trim(), telefone: d.telefone.trim(), aulas: p.aulas, valor: p.valor, status: 'pago' })
     if (error) return setErro(`Não foi possível salvar: ${error.message}`)
     onSalvo()
   }

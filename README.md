@@ -204,6 +204,12 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-avatar-personal.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Em **Configurações**, o personal escolhe uma foto ou um avatar pronto. Ele aparece nas fotos e comentários do personal na comunidade.
 
+### 15. Mais personais com os mesmos alunos e localização no check-in
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-equipe-localizacao.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Todo personal liberado (passo 4) passa a ver e editar os mesmos alunos, treinos, agenda, academia e financeiro do primeiro personal, como se fosse uma conta só.
+3. Em **Academia › Localização da academia**, toque em **Salvar a localização atual** estando dentro da academia. No check-in, o aluno escolhe **Mostrar onde treinei**: perto da academia aparece "Corpo Atlético"; em outro lugar, o bairro e a cidade.
+
 ## Desenvolvimento
 
 ```bash

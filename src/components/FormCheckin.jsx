@@ -3,9 +3,13 @@ import Modal from './Modal.jsx'
 import { supabase } from '../supabase.js'
 import { hojeISO } from '../lib/formato.js'
 import { reduzirFoto } from '../lib/foto.js'
+import { lugarDoCheckin, posicaoAtual } from '../lib/localizacao.js'
+import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, resumoCardio, resumoMusculacao, resumoTreino, ritmo, tituloMusculacao } from '../lib/social.js'
 
 const OUTRO = 'outro'
+const CHAVE_LOCAL = 'checkin-local' // o aluno escolhe uma vez se mostra onde treinou
+const lerLocalLigado = () => { try { return localStorage.getItem(CHAVE_LOCAL) !== '0' } catch { return true } }
 const MUSCULACAO = 'musculacao'
 
 // O post ganha um card sozinho: do treino da ficha (exercícios, volume, recordes), de musculação livre (grupos e duração)
@@ -22,8 +26,23 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
   const [preview, setPreview] = useState('')
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
+  const [comLocal, setComLocal] = useState(lerLocalLigado)
+  const [local, setLocal] = useState({ estado: 'buscando' }) // buscando | ok (nome) | erro (msg)
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview])
+
+  // Localização: perto da academia vira "Corpo Atlético"; fora, bairro e cidade. Busca ao abrir, para o aluno ver antes de postar.
+  useEffect(() => {
+    try { localStorage.setItem(CHAVE_LOCAL, comLocal ? '1' : '0') } catch { /* sem armazenamento */ }
+    if (!comLocal) return
+    let ativo = true
+    setLocal({ estado: 'buscando' })
+    Promise.all([posicaoAtual(), supabase.rpc('local_da_academia')])
+      .then(([ponto, academia]) => lugarDoCheckin(ponto, academia.data?.[0]))
+      .then((nome) => ativo && setLocal(nome ? { estado: 'ok', nome } : { estado: 'erro', msg: 'Não achamos o nome deste lugar.' }))
+      .catch((e) => ativo && setLocal({ estado: 'erro', msg: e.message }))
+    return () => { ativo = false }
+  }, [comLocal])
 
   function escolherFoto(e) {
     const f = e.target.files?.[0]
@@ -56,7 +75,9 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
         titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : musculacao ? tituloMusculacao(musculacao.grupos) : esporte ? `${ESPORTES[esporte][0]} · ${String(cardio.km).replace('.', ',')} km` : atividade.trim(),
         comentario: comentario.trim() || null, foto: caminho,
       }
+      if (comLocal && local.estado === 'ok') post.local = local.nome
       let { error } = await supabase.from('checkins').insert(resumo ? { ...post, resumo } : post)
+      if (error && post.local && /local/.test(error.message)) { delete post.local; ({ error } = await supabase.from('checkins').insert(resumo ? { ...post, resumo } : post)) } // SQL da localização ainda não rodou
       if (error && resumo && /resumo/.test(error.message)) ({ error } = await supabase.from('checkins').insert(post)) // SQL novo ainda não rodou
       if (error) throw error
       onFeito()
@@ -107,6 +128,15 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
         </label>
       </div>
       {preview && <img className="foto-preview full" src={preview} alt="Prévia da foto" />}
+      <div className="full checkin-local">
+        <label className="checkbox"><input id="checkin-com-local" type="checkbox" checked={comLocal} onChange={(e) => setComLocal(e.target.checked)} />Mostrar onde treinei</label>
+        {comLocal && (
+          <span className="meta">
+            <IconeLinha d={ICONES.pino} tamanho={16} traco={1.8} />
+            {local.estado === 'buscando' ? 'Buscando sua localização…' : local.estado === 'ok' ? local.nome : local.msg}
+          </span>
+        )}
+      </div>
       <label className="full">Comentário (opcional)<textarea id="checkin-comentario" rows={3} maxLength={280} placeholder="Como foi o treino?" value={comentario} onChange={(e) => setComentario(e.target.value)} /></label>
       <p className="meta full" style={{ margin: 0 }}>Seu check-in aparece no feed da turma e conta para o ranking do mês.</p>
     </Modal>
