@@ -27,7 +27,7 @@ export default function Avaliacoes({ aluno, recarregar }) {
         <button className="primary small" onClick={() => setNova(true)}>Nova avaliação</button>
       </div>
       <div className="stack">
-        {u && <Composicao avaliacao={u} sexo={aluno.sexo} />}
+        {u && <Composicao avaliacao={u} anterior={av.at(-2)} sexo={aluno.sexo} />}
         <div className="panel"><Grafico avaliacoes={av} /></div>
         {av.length > 0 && (
           <div className="panel tablewrap">

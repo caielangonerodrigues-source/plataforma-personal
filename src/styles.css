@@ -896,3 +896,19 @@ body { background: var(--surface) }
 .monte-item .link { flex: none }
 .monte-mini { flex: none; width: 40px; display: flex; justify-content: center }
 .monte-treino .chips { margin-bottom: 6px }
+
+/* Dobras e medidas da avaliação: uma por linha, nome à esquerda e valor à direita */
+.medidas-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 32px; margin-top: 18px }
+.medidas h3 { font-size: 15px; margin: 0 0 4px; display: flex; align-items: baseline; gap: 6px }
+.medidas ul { list-style: none; margin: 0; padding: 0 }
+.medidas li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px }
+.medidas li .v { display: flex; align-items: baseline; gap: 8px; font-variant-numeric: tabular-nums }
+.medidas li .v strong { font-size: 16px }
+.medidas li.total { border-bottom: 0; font-weight: 700 }
+.medidas li.total strong { color: var(--accent) }
+.medidas > .meta { margin: 6px 0 0 }
+.dif { font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; text-transform: none; letter-spacing: 0 }
+.dif.bom { color: #1f9d55 }
+.dif.ruim { color: #d64545 }
+@media (max-width: 720px) { .medidas-grid { grid-template-columns: 1fr } }
+@media (max-width: 720px) { .medidas ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px } .medidas li { font-size: 14px } .medidas li.total { grid-column: 1 / -1 } }
