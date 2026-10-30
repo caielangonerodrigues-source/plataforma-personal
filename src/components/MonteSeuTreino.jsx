@@ -7,20 +7,39 @@ import { MUSCULOS, cargaPorMusculo, faltouNaSemana, musculosDoExercicio, nomeMus
 // os músculos que cada um trabalha. É só para aprender os grupos: fica no aparelho e não muda a ficha do personal.
 const CHAVE = 'monte-seu-treino'
 const MAXIMO = 15
-const ler = () => { try { return JSON.parse(localStorage.getItem(CHAVE)) || [] } catch { return [] } }
+const LETRAS = 'ABCDEFGH'
+const novo = (i) => ({ letra: LETRAS[i] || String(i + 1), nome: '', exercicios: [] })
+// Treinos separados (A, B, C…), cada um com o nome que o aluno der. A versão antiga guardava só uma lista.
+export function lerTreinos(bruto) {
+  if (Array.isArray(bruto) && bruto.every((x) => typeof x === 'string')) return [{ ...novo(0), exercicios: bruto }]
+  if (Array.isArray(bruto) && bruto.length) return bruto
+  return [novo(0)]
+}
+const ler = () => { try { return lerTreinos(JSON.parse(localStorage.getItem(CHAVE))) } catch { return [novo(0)] } }
 const nomes = (l) => l.map(nomeMusculo).join(', ')
 // Bonequinho pequeno com os músculos do exercício, para o aluno se achar na lista.
 const Mini = ({ nome, onClick }) => <span className="monte-mini">{<CorpoMini {...musculosDoExercicio(nome)} tamanho={40} onClick={onClick} />}</span>
 
 export default function MonteSeuTreino() {
-  const [lista, setLista] = useState(ler)
+  const [treinos, setTreinos] = useState(ler)
+  const [atual, setAtual] = useState(0)
+  const treino = treinos[Math.min(atual, treinos.length - 1)]
+  const lista = treino.exercicios
+  const mudar = (f) => setTreinos((ts) => ts.map((t) => (t === treino ? f(t) : t)))
+  const setLista = (f) => mudar((t) => ({ ...t, exercicios: f(t.exercicios) }))
+  const criar = () => { setTreinos((ts) => [...ts, novo(ts.length)]); setAtual(treinos.length); setOlhando(null) }
+  const apagar = () => {
+    if (lista.length && !window.confirm(`Apagar o Treino ${treino.letra}?`)) return
+    setTreinos((ts) => (ts.length === 1 ? [novo(0)] : ts.filter((t) => t !== treino).map((t, i) => ({ ...t, letra: LETRAS[i] || String(i + 1) }))))
+    setAtual(0); setOlhando(null)
+  }
   const [busca, setBusca] = useState('')
   const [grupo, setGrupo] = useState('Peito')
   const [olhando, setOlhandoEstado] = useState(null) // exercício que o bonequinho mostra sozinho
   const boneco = useRef(null)
   // Ao escolher um exercício lá embaixo, sobe até o bonequinho para o aluno ver o músculo acender.
   const setOlhando = (nome) => { setOlhandoEstado(nome); if (nome) boneco.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
-  useEffect(() => { try { localStorage.setItem(CHAVE, JSON.stringify(lista)) } catch { /* sem armazenamento */ } }, [lista])
+  useEffect(() => { try { localStorage.setItem(CHAVE, JSON.stringify(treinos)) } catch { /* sem armazenamento */ } }, [treinos])
 
   const opcoes = filtrarExercicios(BIBLIOTECA, { busca, grupo: busca ? '' : grupo }).slice(0, 40)
   const adicionar = (nome) => { setLista((l) => (l.includes(nome) || l.length >= MAXIMO ? l : [...l, nome])); setOlhando(nome) }
@@ -37,6 +56,19 @@ export default function MonteSeuTreino() {
       <div className="panel">
         <h2>Monte seu treino</h2>
         <p className="meta" style={{ margin: '4px 0 0' }}>Escolha exercícios e veja no bonequinho os músculos que eles trabalham. É só para aprender: a sua ficha continua a do personal.</p>
+        <div className="chips monte-treinos" role="tablist" aria-label="Seus treinos">
+          {treinos.map((t, i) => (
+            <button key={t.letra} type="button" role="tab" aria-selected={t === treino} className={`chip${t === treino ? ' on' : ''}`} onClick={() => { setAtual(i); setOlhando(null) }}>
+              Treino {t.letra}{t.nome ? ` · ${t.nome}` : ''}
+            </button>
+          ))}
+          {treinos.length < LETRAS.length && <button type="button" className="chip" onClick={criar}>+ Novo treino</button>}
+        </div>
+        <div className="row monte-nome-treino">
+          <input aria-label={`Nome do Treino ${treino.letra}`} placeholder="Grupos do treino (ex.: Peito e tríceps)" maxLength={40} value={treino.nome}
+            onChange={(e) => mudar((t) => ({ ...t, nome: e.target.value }))} />
+          <button type="button" className="link" onClick={apagar}>Apagar</button>
+        </div>
       </div>
 
       <section className="panel musculos-semana" ref={boneco}>
@@ -52,7 +84,7 @@ export default function MonteSeuTreino() {
           </>
         ) : (
           <>
-            <span className="atalho-rotulo">Seu treino</span>
+            <span className="atalho-rotulo">Treino {treino.letra}{treino.nome ? ` · ${treino.nome}` : ''}</span>
             <h2>{lista.length ? `${lista.length} ${lista.length === 1 ? 'exercício' : 'exercícios'}` : 'Comece escolhendo abaixo'}</h2>
             <Corpo intensidade={Object.fromEntries(treinados.map(([m, n]) => [m, Math.min(1, n / 2)]))} tamanho={104} />
             {treinados.length > 0 && (
@@ -69,7 +101,7 @@ export default function MonteSeuTreino() {
 
       {lista.length > 0 && (
         <div className="panel">
-          <div className="row between"><h2>Exercícios escolhidos</h2><button className="link" onClick={() => { setLista([]); setOlhando(null) }}>Limpar</button></div>
+          <div className="row between"><h2>Exercícios do Treino {treino.letra}</h2><button className="link" onClick={() => { setLista([]); setOlhando(null) }}>Limpar</button></div>
           {lista.map((nome) => {
             const m = musculosDoExercicio(nome)
             return (
