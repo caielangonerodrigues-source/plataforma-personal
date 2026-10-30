@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { consumoDoDia, consumoPrevisto, faltando, metasDaDieta, situacaoDoDia, sugestoes } from './diario.js'
+import { consumoDoDia, consumoPrevisto, faltando, itensEditados, macrosEditados, metasDaDieta, rascunhoDaRefeicao, situacaoDoDia, sugestoes } from './diario.js'
 
 const dieta = {
   calorias: 2000, proteina: 150, carboidrato: 200, gordura: 60,
@@ -54,4 +54,29 @@ test('previsto conta as refeições do plano que faltam marcar', () => {
 test('duas porções usam o plural certo', () => {
   const s = sugestoes({ kcal: 900, proteina: 60, carboidrato: 0, gordura: 0 })
   assert.doesNotMatch(s[0].texto, /2×/)
+})
+
+test('refeição editada pelo aluno conta o que ele comeu de verdade', () => {
+  const rascunho = rascunhoDaRefeicao(dieta.refeicoes[0], null)
+  rascunho[1].gramas = '25' // metade do pão
+  rascunho.splice(0, 1) // não comeu o ovo
+  rascunho.push({ alimento: 'Banana prata', gramas: '100' })
+  const itens = itensEditados(rascunho)
+  assert.equal(itens.length, 2)
+  const c = consumoDoDia(dieta, [{ refeicao: 0, itens }])
+  assert.equal(c.kcal, itens[0].kcal + itens[1].kcal)
+  assert.ok(c.kcal < 146 + 150)
+})
+
+test('alimento do plano fora da tabela usa os macros do personal na proporção', () => {
+  const base = { alimento: 'Marmita da casa', gramas: 300, kcal: 450, proteina: 30, carboidrato: 50, gordura: 12 }
+  assert.deepEqual(macrosEditados({ alimento: 'Marmita da casa', gramas: 150, base }), { kcal: 225, proteina: 15, carboidrato: 25, gordura: 6 })
+  assert.equal(macrosEditados({ alimento: 'Coisa inventada', gramas: 100 }), null)
+  const [x] = itensEditados([{ alimento: 'Coisa inventada', gramas: '100' }])
+  assert.equal(x.fora, true)
+})
+
+test('sem a coluna itens, a refeição editada conta pelos macros gravados', () => {
+  const c = consumoDoDia(dieta, [{ refeicao: 1, macros: { kcal: 300, proteina: 20, carboidrato: 30, gordura: 5 } }])
+  assert.equal(c.kcal, 300)
 })

@@ -18,7 +18,9 @@ export function consumoDoDia(dieta, diario) {
   const refeicoes = dieta?.refeicoes || []
   const itens = []
   for (const d of diario || []) {
-    if (d.refeicao != null) itens.push(...(refeicoes[d.refeicao]?.itens || []).map(doItem))
+    if (d.refeicao != null && Array.isArray(d.itens)) itens.push(...d.itens.map(doItem)) // o aluno editou o que comeu
+    else if (d.refeicao != null && d.macros) itens.push(d.macros) // editou, sem a coluna itens no banco
+    else if (d.refeicao != null) itens.push(...(refeicoes[d.refeicao]?.itens || []).map(doItem))
     else if (d.macros) itens.push(d.macros)
   }
   return somarItens(itens)
@@ -83,3 +85,30 @@ export function situacaoDoDia(faltam, feitas, total) {
 
 // Macros de um extra digitado pelo aluno (só se o alimento estiver na tabela).
 export const macrosDoExtra = (alimento, gramas) => (acharAlimento(alimento) ? macrosDoItem(alimento, gramas) : null)
+
+// Uma linha da refeição que o aluno editou ("comi diferente"). Alimento da tabela: macros pelo peso.
+// Alimento do plano fora da tabela: os macros que o personal gravou, na proporção dos gramas.
+export function macrosEditados({ alimento, gramas, base }) {
+  const g = Number(gramas)
+  const tabela = macrosDoItem(alimento, g)
+  if (tabela) return tabela
+  if (!base || base.alimento !== alimento) return null
+  const m = doItem(base)
+  const f = g && Number(base.gramas) ? g / Number(base.gramas) : 1
+  return { kcal: Math.round((Number(m.kcal) || 0) * f), proteina: r1((Number(m.proteina) || 0) * f), carboidrato: r1((Number(m.carboidrato) || 0) * f), gordura: r1((Number(m.gordura) || 0) * f) }
+}
+
+// Rascunho para editar uma refeição: o que já foi editado ou os itens do plano.
+export const rascunhoDaRefeicao = (refeicao, registro) =>
+  (Array.isArray(registro?.itens) ? registro.itens : refeicao.itens || []).map((it) => ({ alimento: it.alimento, gramas: it.gramas ?? '', quantidade: it.quantidade || '', base: it }))
+
+// Itens para gravar no diário (só o que importa, para caber no banco).
+export function itensEditados(rascunho) {
+  return rascunho.filter((it) => String(it.alimento || '').trim()).map((it) => {
+    const alimento = String(it.alimento).trim().slice(0, 80)
+    const gramas = Number(String(it.gramas).replace(',', '.')) || null
+    const igual = it.base?.alimento === alimento && Number(it.base?.gramas) === gramas
+    const m = macrosEditados({ alimento, gramas, base: it.base })
+    return { alimento, gramas, ...(igual && it.quantidade ? { quantidade: String(it.quantidade).slice(0, 40) } : {}), ...(m || { kcal: 0, proteina: 0, carboidrato: 0, gordura: 0, fora: true }) }
+  })
+}

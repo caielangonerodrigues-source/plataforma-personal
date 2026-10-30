@@ -2207,6 +2207,13 @@ drop trigger if exists personais_proteger_dono on public.personais;
 create trigger personais_proteger_dono before update on public.personais
   for each row execute function public.proteger_cadastro_do_dono();
 
+-- Diário da dieta: o aluno edita o que comeu de verdade numa refeição do plano (tirou, trocou ou mudou os gramas).
+-- Os itens editados ficam nesta coluna e o contador de macros usa eles no lugar do plano. Pode rodar mais de uma vez.
+alter table public.diario_dieta add column if not exists itens jsonb;
+alter table public.diario_dieta drop constraint if exists diario_dieta_itens_check;
+alter table public.diario_dieta add constraint diario_dieta_itens_check
+  check (itens is null or (jsonb_typeof(itens) = 'array' and jsonb_array_length(itens) <= 30 and pg_column_size(itens) < 8000));
+
 -- Para liberar um personal novo (a pessoa precisa ter criado a conta no site antes):
 -- insert into personais (user_id, nome)
 -- select id, 'Nome da pessoa' from auth.users where email = 'email.da.pessoa@gmail.com';

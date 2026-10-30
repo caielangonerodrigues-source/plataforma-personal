@@ -215,6 +215,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-perfil-equipe.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Em **Configurações**, cada personal muda a própria foto, nome e WhatsApp. A chave Pix das mensalidades é da academia: só o primeiro personal (o dono) vê e muda.
 
+### 17. Aluno edita o que comeu na dieta
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-dieta-editavel.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Na aba **Dieta**, o aluno toca em **Editar o que comi** numa refeição: cada linha é editável (alimento e gramas), dá para trocar, tirar e adicionar alimentos, e os macros do dia se recalculam. Você vê o resultado no diário da dieta do aluno.
+
 ## Desenvolvimento
 
 ```bash
