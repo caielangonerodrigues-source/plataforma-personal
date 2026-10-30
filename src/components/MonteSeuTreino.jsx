@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import Corpo from './Corpo.jsx'
-import { BIBLIOTECA, GRUPOS, filtrarExercicios } from '../lib/exercicios.js'
+import Corpo, { CorpoMini } from './Corpo.jsx'
+import { BIBLIOTECA, GRUPOS, buscaVideo, filtrarExercicios } from '../lib/exercicios.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana, musculosDoExercicio } from '../lib/musculos.js'
 
 // "Monte seu treino": o aluno brinca de montar um treino com os exercícios da biblioteca e vê no bonequinho
@@ -9,6 +9,8 @@ const CHAVE = 'monte-seu-treino'
 const MAXIMO = 15
 const ler = () => { try { return JSON.parse(localStorage.getItem(CHAVE)) || [] } catch { return [] } }
 const nomes = (l) => l.map((m) => MUSCULOS[m]).join(', ')
+// Bonequinho pequeno com os músculos do exercício, para o aluno se achar na lista.
+const Mini = ({ nome, onClick }) => <span className="monte-mini">{<CorpoMini {...musculosDoExercicio(nome)} tamanho={40} onClick={onClick} />}</span>
 
 export default function MonteSeuTreino() {
   const [lista, setLista] = useState(ler)
@@ -43,7 +45,10 @@ export default function MonteSeuTreino() {
             <span className="atalho-rotulo">Exercício</span>
             <h2>{olhando}</h2>
             <Corpo principais={um.principais} secundarios={um.secundarios} ativo={um.ativo} foco={um.foco} tamanho={104} />
-            <button className="link" onClick={() => setOlhando(null)}>{lista.length ? 'Ver o treino todo ›' : 'Voltar ›'}</button>
+            <div className="row" style={{ gap: 16, justifyContent: 'center' }}>
+              <a className="link" href={buscaVideo(olhando)} target="_blank" rel="noreferrer">Como fazer ›</a>
+              <button className="link" onClick={() => setOlhando(null)}>{lista.length ? 'Ver o treino todo ›' : 'Voltar ›'}</button>
+            </div>
           </>
         ) : (
           <>
@@ -69,6 +74,7 @@ export default function MonteSeuTreino() {
             const m = musculosDoExercicio(nome)
             return (
               <div key={nome} className={`monte-item${olhando === nome ? ' ativo' : ''}`}>
+                <Mini nome={nome} onClick={() => setOlhando(nome)} />
                 <button className="monte-nome" onClick={() => setOlhando(nome)}>
                   <span className="name">{nome}</span>
                   <span className="meta">{m.principais.length ? `Trabalha: ${nomes(m.principais)}${m.secundarios.length ? ` · ajuda: ${nomes(m.secundarios)}` : ''}` : 'Toque para ver'}</span>
@@ -94,6 +100,7 @@ export default function MonteSeuTreino() {
           const escolhido = lista.includes(e.nome)
           return (
             <div key={e.nome} className={`monte-item${olhando === e.nome ? ' ativo' : ''}`}>
+              <Mini nome={e.nome} onClick={() => setOlhando(e.nome)} />
               <button className="monte-nome" onClick={() => setOlhando(e.nome)}>
                 <span className="name">{e.nome}</span>
                 <span className="meta">{e.grupo}{e.equipamento ? ` · ${e.equipamento}` : ''}</span>
