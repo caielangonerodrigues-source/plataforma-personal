@@ -836,3 +836,12 @@ body { background: var(--surface) }
 .ofensiva, .aviso-ficha, .dica-macro { background: none; border: 0; border-left: 3px solid var(--accent); border-radius: 0; padding: 4px 0 4px 12px }
 .relato.pendente, .post.conquista { background: none !important }
 .post { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding-bottom: 8px }
+
+/* Ajustes finos do padrão clean */
+.botao-whatsapp:not(.redondo) { background: none !important; color: #1a9e4b !important; border: 0 !important; box-shadow: none !important; padding: 6px 0 !important; justify-content: flex-start; width: auto; font-weight: 600 }
+.botao-whatsapp:not(.redondo)::after { content: ' ›' }
+.panel.cartao-whatsapp { border-color: var(--line) }
+.inicio-atalho { align-items: flex-start; text-align: left; padding: 22px 0 }
+.inicio-atalho .bar { max-width: none }
+.rank.eu { background: none }
+.rank.eu .name { color: var(--accent) }

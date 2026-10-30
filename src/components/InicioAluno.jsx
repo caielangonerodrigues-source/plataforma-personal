@@ -141,7 +141,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="name">{p.titulo}</div>
                     <div className="meta">{p.texto}</div>
-                    <button className="primary small" style={{ marginTop: 8 }} onClick={p.acao}>{p.botao}</button>
+                    <button className="link" style={{ marginTop: 6 }} onClick={p.acao}>{p.botao} ›</button>
                   </div>
                 </div>
               ))}
