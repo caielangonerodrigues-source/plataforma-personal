@@ -7,6 +7,7 @@ import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, ordenarAvisos, proximaAula } from '.
 import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { Moeda } from './Medalhas.jsx'
+import HeroInicio, { BannerAcademia, FOTO_TOPO, TituloSecao, fotoDoDia, useFotosAcademia } from './HeroInicio.jsx'
 import { ofensiva } from '../lib/semana.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
 import Corpo from './Corpo.jsx'
@@ -68,10 +69,14 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const desafio = (dados?.desafios || []).find((d) => d.inicio <= hoje && d.fim >= hoje)
   const aula = !online && academia?.aulas && proximaAula(academia.aulas)
   const aviso = academia && ordenarAvisos(academia.avisos)[0]
+  const fotos = useFotosAcademia()
+  const ic = (d) => <IconeLinha d={d} tamanho={22} traco={1.7} />
   const feitosHoje = ficha ? ficha.exercicios.filter((e) => registros.some((r) => r.exercicio_id === e.id && r.data === hoje)).length : 0
 
   return (
-    <div className="inicio">
+    <>
+    <HeroInicio nome={aluno.nome} foto={FOTO_TOPO} fezHoje={dias.includes(hoje)} />
+    <div className="inicio com-hero">
       {aviso && (
         <button type="button" className={`lembrete-destaque tipo-${aviso.tipo in TIPOS_AVISO ? aviso.tipo : 'novidade'}`} onClick={() => irPara('novidades')}>
           <SeloAviso tipo={aviso.tipo} tamanho={42} />
@@ -165,7 +170,8 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         )}
 
         <div className="panel stack" style={{ gap: 10 }}>
-          <div className="row between"><h2 style={{ margin: 0 }}>Treino de hoje</h2>{agenda && <span className="meta">Com o personal: {agenda.data === hoje ? 'hoje' : fmtData(agenda.data).slice(0, 5)} às {agenda.hora}</span>}</div>
+          <TituloSecao icone={ic(ICONES.haltere)} titulo="Treino de hoje" acao={ficha ? 'Ver ficha' : null} onClick={() => irPara('treino')} />
+          {agenda && <span className="meta">Com o personal: {agenda.data === hoje ? 'hoje' : fmtData(agenda.data).slice(0, 5)} às {agenda.hora}</span>}
           {fichaVencida && <div className="aviso-ficha" style={{ margin: 0 }}><strong>Hora de trocar a ficha</strong><span className="meta" style={{ color: 'inherit' }}>{fichaVencida.semanas} semanas na mesma ficha. Seu personal já foi avisado.</span></div>}
           {ficha ? (
             <>
@@ -176,13 +182,14 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             </>
           ) : <p className="meta" style={{ margin: 0 }}>{treinos ? 'Seu personal ainda está montando sua ficha.' : 'Carregando…'}</p>}
         </div>
+        <BannerAcademia foto={fotoDoDia(fotos, hoje)} online={online} />
         {!online && <CartaoConsultoria />}
       </div>
 
       <aside className="stack inicio-dir">
         {(datas.avaliacao || datas.troca) && (
           <div className="panel stack" style={{ gap: 10 }}>
-            <h2 style={{ margin: 0 }}>Suas datas</h2>
+            <TituloSecao icone={ic(ICONES.calendario)} titulo="Suas datas" />
             <div className="datas-aluno">
               {datas.avaliacao && <div><span className="meta">Última avaliação</span><strong>{fmtData(datas.avaliacao.data)}</strong></div>}
               {datas.reavaliacao && (
@@ -206,7 +213,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         {!online && academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
         {aluno.comunidade && dados && (
           <div className="panel stack" style={{ gap: 10 }}>
-            <div className="row between"><h2 style={{ margin: 0 }}>Comunidade</h2><button className="link" onClick={() => irPara('comunidade')}>Ver feed ›</button></div>
+            <TituloSecao icone={ic(ICONES.trofeu)} titulo="Comunidade" acao="Ver feed" onClick={() => irPara('comunidade')} />
             <div className="meta">Ranking do mês · {online ? 'consultoria online' : 'academia'}</div>
             {tabela.map((r, i) => (
               <div key={r.id} className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
@@ -226,7 +233,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         )}
         {proxima && (
           <button type="button" className="inicio-conquista" onClick={() => irPara('voce')}>
-            <div className="topo"><h2>Minhas conquistas</h2><span className="atalho-acao" style={{ marginTop: 0 }}>Ver todas ›</span></div>
+            <div className="topo"><h2 className="titulo-icone">{ic(ICONES.medalha)}Minhas conquistas</h2><span className="link-sublinhado">Ver todas</span></div>
             <Moeda m={proxima} estado="proxima" tamanho={56} />
             <div className="linha">
               <strong>{proxima.grupo}</strong>
@@ -243,6 +250,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         )}
       </aside>
     </div>
+    </>
   )
 }
 
