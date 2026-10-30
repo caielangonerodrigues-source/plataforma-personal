@@ -29,8 +29,14 @@ export const ICONES = {
   onda: 'M3 15c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5 1.5-1.5 3-1.5 1.5 1.5 3 1.5 1.5-1.5 3-1.5 1.5 1.5 3 1.5M3 19c1.5 0 1.5-1.5 3-1.5s1.5 1.5 3 1.5 1.5-1.5 3-1.5 1.5 1.5 3 1.5 1.5-1.5 3-1.5 1.5 1.5 3 1.5M8 10l4-4 3 3M15 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
   montanha: 'M2.5 20 9 9l4 6 2.5-3.5L21.5 20zM7 12.5l2 1.5 2-1.5',
   coracao: 'M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z',
+  brilho: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z',
+  relogio: 'M12 21a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 9v4l2.5 2M5 4 2.5 6.5M19 4l2.5 2.5',
+  info: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 11v6M12 7.5h.01',
   chama: 'M12 21c-3.9 0-6.5-2.6-6.5-6.2 0-3.6 3-5.6 3.5-9.3 2 1.3 3 3 3 5 .8-.6 1.5-1.8 1.5-3 2.6 1.9 5 4.6 5 7.6 0 3.4-2.6 5.9-6.5 5.9z',
 }
 
 // Ícone de cada grupo de medalhas (desenhado dentro do selo laranja).
 export const ICONE_MEDALHA = { Treinos: ICONES.marcar, 'Dias seguidos': ICONES.chama, 'Semanas firmes': ICONES.calendario, 'Mês forte': ICONES.marcar, 'Fim de semana': ICONES.sol, Força: ICONES.haltere, Avaliação: ICONES.regua, Desafios: ICONES.trofeu }
+
+// Ícone de cada tipo de aviso da academia (a cor vem do CSS: .tipo-novidade, .tipo-lembrete, .tipo-informacao).
+export const ICONE_AVISO = { novidade: ICONES.brilho, lembrete: ICONES.relogio, informacao: ICONES.info }
