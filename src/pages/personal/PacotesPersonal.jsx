@@ -4,6 +4,9 @@ import Modal from '../../components/Modal.jsx'
 import { brl, fmtData, hojeISO, num, primeiroNome } from '../../lib/formato.js'
 import { linkWhatsApp } from '../../lib/whatsapp.js'
 
+// Pacote pronto do Caiê: 10 aulas por R$ 200 (avulsa é R$ 25).
+const PACOTE_SUGERIDO = { nome: 'Pacote 10 aulas', aulas: 10, valor: 200, validade_dias: 90 }
+
 // Pacotes de aulas de spinning: o que está à venda e quem comprou (com saldo).
 export default function PacotesPersonal() {
   const [pacotes, setPacotes] = useState(null)
@@ -57,7 +60,13 @@ export default function PacotesPersonal() {
             <button className="small" style={{ alignSelf: 'flex-start' }} onClick={() => acao(supabase.from('pacotes_spinning').update({ ativo: !p.ativo }).eq('id', p.id))}>{p.ativo ? 'Tirar da venda' : 'Voltar à venda'}</button>
           </div>
         ))}
-        {pacotes.length === 0 && <div className="panel empty">Crie seu primeiro pacote, por exemplo 10 aulas por R$ 250.</div>}
+        {pacotes.length === 0 && (
+          <div className="panel stack" style={{ gap: 10 }}>
+            <p className="empty" style={{ margin: 0 }}>Nenhum pacote à venda ainda.</p>
+            <p className="meta" style={{ margin: 0 }}>Sugestão: 10 aulas por R$ 200 (R$ 20 por aula, contra R$ 25 da avulsa), válido por 90 dias. O Pix usa a chave das Configurações.</p>
+            <div><button className="primary" onClick={() => acao(supabase.from('pacotes_spinning').insert(PACOTE_SUGERIDO))}>Criar pacote de 10 aulas</button></div>
+          </div>
+        )}
       </div>
 
       <div className="panel tablewrap">
