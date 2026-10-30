@@ -72,8 +72,10 @@ Deno.serve(async (req) => {
     })
     const { data: { user } } = await db.auth.getUser()
     if (!user) return resposta({ erro: 'Entre na sua conta.' }, 401)
-    const { data: personal } = await db.from('personais').select('user_id').eq('user_id', user.id).maybeSingle()
-    if (!personal) return resposta({ erro: 'Só o personal usa o assistente.' }, 403)
+    // Qualquer personal da academia (equipe, supabase/migracao-equipe-localizacao.sql) usa o assistente.
+    const eq = await db.rpc('eh_personal')
+    const ehPersonal = eq.error ? !!(await db.from('personais').select('user_id').eq('user_id', user.id).maybeSingle()).data : eq.data === true
+    if (!ehPersonal) return resposta({ erro: 'Só o personal usa o assistente.' }, 403)
     const { data: aluno } = await db.from('alunos')
       .select('nome, sexo, idade, objetivo, modalidade, avaliacoes(data, peso, altura, gordura, cintura, quadril, braco, coxa), treinos(nome, foco, exercicios(nome, series, reps))')
       .eq('id', String(aluno_id)).maybeSingle()

@@ -291,7 +291,6 @@ async function nomeDe(userId: string) {
   const { data: a } = await admin.from('alunos').select('nome').eq('user_id', userId).limit(1).maybeSingle()
   return { nome: (a?.nome || 'Alguém').split(' ')[0], personal: false }
 }
-// deno-lint-ignore no-explicit-any
 async function interacao(db: any, eu: string, corpo: any) {
   const desde = new Date(Date.now() - 2 * 60 * 1000).toISOString()
   const quem = await nomeDe(eu)
@@ -322,6 +321,15 @@ async function interacao(db: any, eu: string, corpo: any) {
   return { erro: 'Tipo desconhecido.' }
 }
 
+// Personal logado (ou da equipe da academia, supabase/migracao-equipe-localizacao.sql): devolve o dono dos alunos.
+// Sem o SQL da equipe, cai na conferência antiga (cadastro próprio em personais).
+async function donoDosAlunos(db: any, userId: string): Promise<string | null> {
+  const eq = await db.rpc('dono_da_equipe')
+  if (!eq.error) return (eq.data as string | null) ?? null
+  const { data } = await db.from('personais').select('user_id').eq('user_id', userId).maybeSingle()
+  return data?.user_id ?? null
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -338,14 +346,14 @@ Deno.serve(async (req) => {
     const { data: { user } } = await db.auth.getUser()
     if (!user) return resposta({ erro: 'Entre na sua conta.' }, 401)
     if (corpo.acao === 'interacao') return resposta(await interacao(db, user.id, corpo))
-    const { data: personal } = await db.from('personais').select('user_id').eq('user_id', user.id).maybeSingle()
-    if (!personal) return resposta({ erro: 'Só o personal envia notificações.' }, 403)
+    const dono = await donoDosAlunos(db, user.id)
+    if (!dono) return resposta({ erro: 'Só o personal envia notificações.' }, 403)
 
-    if (corpo.acao === 'lembretes') return resposta(await lembretes(user.id))
-    if (corpo.acao === 'fichas') return resposta(await fichas(user.id))
-    if (corpo.acao === 'mensalidades') return resposta(await mensalidades(user.id))
-    if (corpo.acao === 'motivacao') return resposta(await motivacao(user.id))
-    if (corpo.acao === 'semana') return resposta(await semana(user.id))
+    if (corpo.acao === 'lembretes') return resposta(await lembretes(dono))
+    if (corpo.acao === 'fichas') return resposta(await fichas(dono))
+    if (corpo.acao === 'mensalidades') return resposta(await mensalidades(dono))
+    if (corpo.acao === 'motivacao') return resposta(await motivacao(dono))
+    if (corpo.acao === 'semana') return resposta(await semana(dono))
     if (corpo.acao === 'enviar') {
       const ids = Array.isArray(corpo.aluno_ids) ? corpo.aluno_ids.slice(0, 500).map(String) : []
       if (!ids.length || !corpo.titulo || !corpo.corpo) return resposta({ erro: 'Faltou aluno, título ou texto.' }, 400)
