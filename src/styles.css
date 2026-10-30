@@ -1008,3 +1008,12 @@ body { background: var(--surface) }
   .hero-chamada { bottom: 92px }
   .hero-pontos { bottom: 56px }
 }
+.conquistas-todas { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px }
+.conquistas-todas h3 { margin: 0; font-size: 17px }
+.conquistas-grupo { margin-top: 14px }
+.conquistas-grupo > .meta { font-weight: 600; margin-bottom: 6px }
+.conquistas-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 12px 8px }
+.conquistas-grade button { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 2px; font: inherit; color: inherit; text-align: center }
+.conquistas-grade button span { font-size: 12px; line-height: 1.25; font-weight: 600 }
+.conquistas-grade button small { font-size: 11px; color: var(--muted) }
+.conquistas-grade button.foco span { color: var(--accent) }
