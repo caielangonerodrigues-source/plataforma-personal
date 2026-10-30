@@ -20,6 +20,7 @@ import ReservaSpinning from './pages/spinning/ReservaSpinning.jsx'
 import PacotesSpinning from './pages/spinning/PacotesSpinning.jsx'
 import PacoteSpinning from './pages/spinning/PacoteSpinning.jsx'
 import PaginaVendas from './pages/PaginaVendas.jsx'
+import Privacidade from './pages/Privacidade.jsx'
 import Modelos from './pages/personal/Modelos.jsx'
 import Vendas from './pages/personal/Vendas.jsx'
 import Exercicios from './pages/personal/Exercicios.jsx'
@@ -69,6 +70,7 @@ export default function App() {
   }
   // Reserva de spinning e página de vendas são públicas: abrem com ou sem login.
   if (pathname === '/consultoria') return <PaginaVendas />
+  if (pathname === '/privacidade') return <Privacidade />
   if (pathname.startsWith('/spinning')) {
     return (
       <Routes>
