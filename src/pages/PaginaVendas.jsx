@@ -7,8 +7,10 @@ import { DIAS_SEMANA, diaDaSemana } from '../lib/agenda.js'
 
 const PASSOS = [
   ['Conversa inicial', 'Você conta seu objetivo, sua rotina e seu histórico de saúde (anamnese e PAR-Q pelo app).'],
+  ['Avaliação física', 'Por fotos e medidas enviadas pelo app ou, no plano com avaliação presencial, pessoalmente na academia.'],
   ['Treino no celular', 'Sua ficha fica no app, com vídeo de cada exercício e as cargas da última vez já preenchidas.'],
-  ['Acompanhamento', 'Você envia peso, medidas e fotos pelo app e recebe a análise e os ajustes do treino.'],
+  ['Acompanhamento', 'Você envia peso, medidas e fotos pelo app, tira dúvidas por mensagem e recebe os ajustes do treino conforme evolui.'],
+  ['Reavaliação', 'No fim de cada ciclo a gente reavalia, você vê sua evolução em números e decide se renova o plano.'],
   ['Comunidade', 'Check-in a cada treino, sequência de dias, ranking e desafios com a turma.'],
 ]
 
@@ -89,11 +91,12 @@ export default function PaginaVendas() {
 
         {planos.length > 0 && (
           <>
-            <h2 style={{ margin: '36px 0 12px' }}>Planos</h2>
+            <h2 style={{ margin: '36px 0 4px' }}>Planos</h2>
+            <p className="meta" style={{ margin: '0 0 12px' }}>Sem fidelidade: no fim de cada mês você vê sua evolução e decide se renova.</p>
             <div className="planos">
               {planos.map((pl) => (
                 <div key={pl.id} className={`panel plano${pl.destaque ? ' destaque' : ''}`}>
-                  {pl.destaque && <span className="pill pendente" style={{ alignSelf: 'flex-start' }}>Mais escolhido</span>}
+                  {pl.destaque && <span className="pill pendente" style={{ alignSelf: 'flex-start' }}>Minha recomendação</span>}
                   <h3 style={{ fontSize: 20 }}>{pl.nome}</h3>
                   <div><span className="preco">{brl(pl.preco)}</span> <span className="meta">/ {pl.periodo}</span></div>
                   {pl.itens && <ul>{pl.itens.split('\n').filter((x) => x.trim()).map((x, i) => <li key={i}>{x.trim()}</li>)}</ul>}

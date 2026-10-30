@@ -202,7 +202,7 @@ function FormPlano({ plano, onFechar, onSalvo }) {
       <label>Por<input maxLength={20} placeholder="mês, trimestre…" {...campo('periodo')} /></label>
       <label className="full">O que inclui (um item por linha)<textarea rows={5} maxLength={1000} placeholder={'Treino no app com vídeos\nAvaliação online a cada 15 dias\nSuporte no WhatsApp'} {...campo('itens')} /></label>
       <label className="full" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, textTransform: 'none', letterSpacing: 0, fontSize: 14, color: 'var(--ink)' }}>
-        <input type="checkbox" style={{ width: 18, height: 18 }} checked={d.destaque} onChange={(e) => setD({ ...d, destaque: e.target.checked })} /> Destacar como "mais escolhido"
+        <input type="checkbox" style={{ width: 18, height: 18 }} checked={d.destaque} onChange={(e) => setD({ ...d, destaque: e.target.checked })} /> Destacar como "minha recomendação"
       </label>
     </Modal>
   )
