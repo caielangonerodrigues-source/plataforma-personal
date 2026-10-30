@@ -108,6 +108,88 @@ export const BIBLIOTECA = [
     ['Alongamento de flexor de quadril (afundo)', 'Peso do corpo'], ['Alongamento de peitoral na parede', 'Peso do corpo'], ['Postura da criança', 'Peso do corpo'],
     ['Liberação miofascial com rolo (coxa)', 'Rolo'], ['Liberação miofascial com rolo (costas)', 'Rolo'], ['Rotação de ombro com bastão', 'Bastão'],
   ]),
+  // Mais variações (2026-10): equipamentos comuns em academia, elástico, kettlebell e peso do corpo.
+  ...g('Peito', [
+    ['Supino reto com pegada fechada nos halteres', 'Halteres'], ['Supino com kettlebell no solo', 'Kettlebell'], ['Supino no banco com elástico', 'Elástico'],
+    ['Crucifixo declinado com halteres', 'Halteres'], ['Crucifixo na polia (banco reto)', 'Polia'], ['Crossover unilateral na polia', 'Polia'],
+    ['Chest press sentado na máquina', 'Máquina'], ['Flexão de braço com pés elevados', 'Peso do corpo'], ['Flexão de braço explosiva', 'Peso do corpo'],
+    ['Flexão de braço com elástico', 'Elástico'], ['Supino com pausa', 'Barra'],
+  ]),
+  ...g('Costas', [
+    ['Puxada frontal com pegada neutra', 'Polia'], ['Puxada na máquina articulada', 'Máquina'], ['Puxada com elástico', 'Elástico'],
+    ['Barra fixa pegada neutra', 'Peso do corpo'], ['Barra fixa australiana', 'Peso do corpo'], ['Remada baixa unilateral na polia', 'Polia'],
+    ['Remada com halteres no banco inclinado', 'Halteres'], ['Remada Pendlay', 'Barra'], ['Remada no Smith', 'Smith'],
+    ['Remada curvada com halteres', 'Halteres'], ['Remada com elástico', 'Elástico'], ['Remada unilateral com kettlebell', 'Kettlebell'],
+    ['Pullover na polia alta', 'Polia'], ['Hiperextensão lombar na máquina', 'Máquina'], ['Encolhimento no Smith', 'Smith'],
+  ]),
+  ...g('Ombros', [
+    ['Desenvolvimento unilateral com halter', 'Halteres'], ['Desenvolvimento com kettlebell', 'Kettlebell'], ['Desenvolvimento com elástico', 'Elástico'],
+    ['Elevação lateral unilateral na polia', 'Polia'], ['Elevação lateral inclinada com halter', 'Halteres'], ['Elevação lateral com elástico', 'Elástico'],
+    ['Elevação frontal com anilha', 'Anilha'], ['Elevação em Y no banco inclinado', 'Halteres'], ['Crucifixo inverso na polia', 'Polia'],
+    ['Remada alta com halteres', 'Halteres'], ['Landmine press', 'Barra'], ['Pike push-up (flexão para ombro)', 'Peso do corpo'],
+  ]),
+  ...g('Bíceps', [
+    ['Rosca direta com halteres', 'Halteres'], ['Rosca martelo na polia com corda', 'Polia'], ['Rosca martelo alternada', 'Halteres'],
+    ['Rosca Zottman', 'Halteres'], ['Rosca na máquina', 'Máquina'], ['Rosca com elástico', 'Elástico'],
+    ['Rosca unilateral na polia', 'Polia'], ['Rosca Scott com halteres', 'Halteres'], ['Rosca bayesian na polia', 'Polia'],
+  ]),
+  ...g('Tríceps', [
+    ['Tríceps na polia com barra V', 'Polia'], ['Tríceps pegada invertida na polia', 'Polia'], ['Tríceps testa na polia', 'Polia'],
+    ['Tríceps francês com barra W', 'Barra'], ['Tríceps coice com elástico', 'Elástico'], ['Tríceps com elástico acima da cabeça', 'Elástico'],
+    ['Mergulho na máquina', 'Máquina'], ['Tríceps banco com pés elevados', 'Peso do corpo'], ['Tríceps JM press', 'Barra'],
+  ]),
+  ...g('Antebraço', [
+    ['Rosca punho com halteres', 'Halteres'], ['Pegada estática na barra (dead hang)', 'Peso do corpo'], ['Rosca punho na polia', 'Polia'],
+    ['Pinça de anilhas', 'Anilha'],
+  ]),
+  ...g('Quadríceps', [
+    ['Agachamento com halteres', 'Halteres'], ['Agachamento com kettlebell', 'Kettlebell'], ['Agachamento com elástico', 'Elástico'],
+    ['Agachamento box (sentar e levantar do banco)', 'Barra'], ['Agachamento pistol assistido', 'Peso do corpo'], ['Agachamento sumô no Smith', 'Smith'],
+    ['Agachamento búlgaro no Smith', 'Smith'], ['Hack squat invertido', 'Máquina'], ['Leg press 45° pés baixos', 'Máquina'],
+    ['Afundo com barra', 'Barra'], ['Afundo lateral', 'Halteres'], ['Avanço cruzado (curtsy lunge)', 'Halteres'],
+    ['Subida no banco com barra', 'Barra'], ['Cadeira extensora com isometria', 'Máquina'],
+  ]),
+  ...g('Posterior de coxa', [
+    ['Mesa flexora unilateral', 'Máquina'], ['Stiff no Smith', 'Smith'], ['Stiff com kettlebell', 'Kettlebell'],
+    ['Flexora com elástico', 'Elástico'], ['Flexora na polia com caneleira', 'Polia'], ['Levantamento terra com halteres', 'Halteres'],
+    ['Ponte de posterior com pés no banco', 'Peso do corpo'], ['Levantamento terra com trap bar', 'Barra'],
+  ]),
+  ...g('Glúteos', [
+    ['Elevação pélvica no Smith', 'Smith'], ['Elevação pélvica com halter', 'Halteres'], ['Elevação pélvica com elástico', 'Elástico'],
+    ['Ponte de glúteo unilateral', 'Peso do corpo'], ['Ponte de glúteo com mini band', 'Mini band'], ['Abdução de quadril sentada com mini band', 'Mini band'],
+    ['Coice com elástico', 'Elástico'], ['Glúteo quatro apoios na polia', 'Polia'], ['Agachamento sumô com kettlebell', 'Kettlebell'],
+    ['Passada longa com halteres (foco glúteo)', 'Halteres'], ['Step-up lateral no banco', 'Peso do corpo'], ['Hiperextensão para glúteo no banco romano', 'Peso do corpo'],
+    ['Frog pump', 'Peso do corpo'], ['Abdução de quadril em pé com caneleira', 'Caneleira'],
+  ]),
+  ...g('Panturrilha', [
+    ['Panturrilha no hack', 'Máquina'], ['Panturrilha sentada com halter', 'Halteres'], ['Panturrilha em pé com barra', 'Barra'],
+    ['Panturrilha unilateral no degrau', 'Peso do corpo'], ['Elevação de ponta de pé (tibial anterior)', 'Peso do corpo'],
+  ]),
+  ...g('Abdômen e core', [
+    ['Abdominal canivete', 'Peso do corpo'], ['Abdominal com anilha', 'Anilha'], ['Abdominal declinado no banco', 'Peso do corpo'],
+    ['Abdominal na bola suíça', 'Bola suíça'], ['Elevação de pernas no solo', 'Peso do corpo'], ['Elevação de joelhos no graviton (paralelas)', 'Peso do corpo'],
+    ['Prancha com elevação de perna', 'Peso do corpo'], ['Prancha lateral com rotação', 'Peso do corpo'], ['Hollow hold (canoa)', 'Peso do corpo'],
+    ['Lenhador na polia (wood chop)', 'Polia'], ['Abdominal tesoura', 'Peso do corpo'], ['Toque no calcanhar', 'Peso do corpo'],
+    ['Stir the pot na bola suíça', 'Bola suíça'], ['Mountain climber cruzado', 'Peso do corpo'],
+  ]),
+  ...g('Cardio', [
+    ['Bicicleta horizontal', 'Bicicleta'], ['Air bike', 'Bicicleta'], ['Simulador de escada (subida contínua)', 'Simulador'],
+    ['Caminhada ao ar livre', 'Peso do corpo'], ['Corrida ao ar livre', 'Peso do corpo'], ['Trote leve (regenerativo)', 'Peso do corpo'],
+    ['Natação', 'Piscina'], ['Corda dupla (double under)', 'Corda'], ['Polichinelo com agachamento', 'Peso do corpo'],
+  ]),
+  ...g('Funcional', [
+    ['Kettlebell swing unilateral', 'Kettlebell'], ['Kettlebell clean', 'Kettlebell'], ['Kettlebell snatch', 'Kettlebell'],
+    ['Agachamento com desenvolvimento (halteres)', 'Halteres'], ['Arremesso de medicine ball na parede (rotação)', 'Medicine ball'], ['Sled push (empurrar trenó)', 'Trenó'],
+    ['Bear crawl (caminhada do urso)', 'Peso do corpo'], ['Saltos laterais no banco', 'Peso do corpo'], ['Burpee com salto na caixa', 'Caixa'],
+    ['Man maker', 'Halteres'], ['Clean com barra', 'Barra'], ['Remada renegada', 'Halteres'],
+    ['Saco de areia (sandbag) agachamento', 'Sandbag'], ['Corrida com mudança de direção (cones)', 'Cones'],
+  ]),
+  ...g('Mobilidade e alongamento', [
+    ['Alongamento de panturrilha na parede', 'Peso do corpo'], ['Alongamento de glúteo (figura 4)', 'Peso do corpo'], ['Alongamento de dorsal na barra', 'Peso do corpo'],
+    ['Alongamento de tríceps acima da cabeça', 'Peso do corpo'], ['Alongamento de adutores (borboleta)', 'Peso do corpo'], ['Cobra (extensão de coluna)', 'Peso do corpo'],
+    ['Maior alongamento do mundo', 'Peso do corpo'], ['Deslocamento de ombro com elástico', 'Elástico'], ['Liberação miofascial com bolinha (pé)', 'Bolinha'],
+    ['Liberação miofascial com rolo (glúteo)', 'Rolo'], ['Mobilidade de punho', 'Peso do corpo'], ['Respiração diafragmática deitado', 'Peso do corpo'],
+  ]),
 ]
 
 // Busca sem acento e sem diferenciar maiúsculas.

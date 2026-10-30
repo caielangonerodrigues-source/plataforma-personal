@@ -228,7 +228,7 @@ export default function AreaAluno({ aluno }) {
   const rotuloBarra = { comunidade: 'Turma', consultoria: 'Relato' }
   const textos = { montar: 'Escolha exercícios e veja os músculos no bonequinho', aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
   const whatsapp = online ? null : academia.whatsapp
-  const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) })
+  const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k || (k === 'treino' && aba === 'montar'), badge: badgeAba(k), onClick: () => irPara(k) })
   const badgeAba = (k) => (aba === k ? 0 : k === 'novidades' ? academia.novos : k === 'mensagens' ? naoLidas : 0)
 
   return (
@@ -282,6 +282,12 @@ export default function AreaAluno({ aluno }) {
       )}
 
       {aba === 'dieta' && <DietaAluno aluno={aluno} hoje={hoje} />}
+      {(aba === 'treino' || aba === 'montar') && (
+        <div className="subabas duas" role="tablist" aria-label="Treino">
+          <button role="tab" aria-selected={aba === 'treino'} onClick={() => irPara('treino')}>Meu treino</button>
+          <button role="tab" aria-selected={aba === 'montar'} onClick={() => irPara('montar')}>Monte seu treino</button>
+        </div>
+      )}
       {aba === 'montar' && <MonteSeuTreino />}
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
@@ -294,7 +300,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['inicio', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['inicio', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades', 'montar'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">
@@ -317,7 +323,6 @@ export default function AreaAluno({ aluno }) {
               )}
               {proximaFase && <div className="meta" style={{ marginBottom: 10 }}>Nova fase do treino ({proximaFase.nome}) começa em {fmtCurta(proximaFase.inicio)}.</div>}
               <MusculosDoTreino nomes={ficha.exercicios.map((e) => trocaDe(e.id) || e.nome)} />
-              <button className="link" style={{ margin: '-4px 0 12px' }} onClick={() => irPara('montar')}>Brincar de montar um treino ›</button>
               <div className="meta" style={{ marginBottom: 6 }}>{ficha.foco} · {qtdFeitos} de {ficha.exercicios.length} feitos</div>
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
               {erro && <p className="erro" style={{ marginTop: 10 }}>{erro}</p>}
@@ -403,7 +408,7 @@ export default function AreaAluno({ aluno }) {
           ...principais.slice(0, 3).map(itemBarra),
           { chave: 'checkin', rotulo: 'Check-in', icone: 'gravar', centro: true, onClick: () => setCheckinAberto(true) },
           itemBarra(quarta),
-          { ...itemBarra('voce'), ativo: aba === 'voce' || !principais.includes(aba), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
+          { ...itemBarra('voce'), ativo: aba === 'voce' || (!principais.includes(aba) && aba !== 'montar'), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
         ]}
       />
 
