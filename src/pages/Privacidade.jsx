@@ -1,14 +1,11 @@
 import { Link } from 'react-router-dom'
-import { SimboloCA } from '../components/Logo.jsx'
+import Logo from '../components/Logo.jsx'
 
 // Política de privacidade (pública). O Google pede o link dela para liberar o "Entrar com Google".
 export default function Privacidade() {
   return (
     <div className="privacidade">
-      <header className="row" style={{ gap: 10 }}>
-        <SimboloCA size={36} />
-        <strong style={{ fontFamily: 'var(--display)', fontSize: 20 }}>Corpo Atlético<span style={{ color: 'var(--accent)' }}>.</span></strong>
-      </header>
+      <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}><Logo /></Link>
       <h1>Política de privacidade</h1>
       <p className="meta">Atualizada em 30 de outubro de 2026.</p>
 

@@ -4,6 +4,7 @@ import { supabase } from '../../supabase.js'
 import Status from '../../components/Status.jsx'
 import FormAluno from './FormAluno.jsx'
 import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
+import { plural } from '../../lib/formato.js'
 
 export default function Alunos() {
   const navigate = useNavigate()
@@ -26,7 +27,7 @@ export default function Alunos() {
   return (
     <>
       <div className="row between">
-        <div><h1>Alunos</h1><p className="sub">{alunos.length} cadastrado(s)</p></div>
+        <div><h1>Alunos</h1><p className="sub">{plural(alunos.length, 'aluno cadastrado', 'alunos cadastrados')}</p></div>
         <button className="primary" onClick={() => setNovo(true)}>Novo aluno</button>
       </div>
       <AjudaDaPagina />
@@ -42,7 +43,7 @@ export default function Alunos() {
             <Link className="item" key={a.id} to={`/alunos/${a.id}`}>
               <div>
                 <div className="name">{a.nome}</div>
-                <div className="meta">{[a.modalidade === 'online' && 'Online', a.objetivo, a.plano, `${a.treinos.length} ficha(s)`, a.user_id ? 'acesso ativo' : 'ainda sem login'].filter(Boolean).join(' · ')}</div>
+                <div className="meta">{[a.modalidade === 'online' && 'Online', a.objetivo, a.plano, plural(a.treinos.length, 'ficha'), a.user_id ? 'acesso ativo' : 'ainda sem login'].filter(Boolean).join(' · ')}</div>
               </div>
               <Status status={a.status} />
             </Link>

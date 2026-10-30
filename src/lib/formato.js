@@ -22,3 +22,6 @@ export const primeiroNome = (nome) => (nome || '').trim().split(/\s+/)[0]
 
 export const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 export const brl = (v) => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+
+// "1 ficha", "3 fichas"; `muitos` para plurais irregulares ("1 aluno ativo" / "2 alunos ativos").
+export const plural = (n, um, muitos = `${um}s`) => `${n} ${n === 1 ? um : muitos}`

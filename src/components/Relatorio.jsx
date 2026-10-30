@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase.js'
-import { f1, hojeISO, primeiroNome } from '../lib/formato.js'
+import { f1, hojeISO, plural, primeiroNome } from '../lib/formato.js'
 import { linkWhatsApp } from '../lib/whatsapp.js'
 import { pedirIA } from '../lib/ia.js'
 import { avisarNoApp } from '../lib/push.js'
@@ -141,8 +141,8 @@ export default function Relatorio({ aluno }) {
           <>
             <ul className="meta" style={{ margin: 0, paddingLeft: 18, color: 'var(--ink)' }}>
               {linhasDosNumeros(numeros).map((l) => <li key={l}>{l}</li>)}
-              {numeros.fotos > 0 && <li>{numeros.fotos} foto(s) de evolução no mês</li>}
-              {numeros.trocas > 0 && <li>{numeros.trocas} troca(s) de exercício</li>}
+              {numeros.fotos > 0 && <li>{plural(numeros.fotos, 'foto')} de evolução no mês</li>}
+              {numeros.trocas > 0 && <li>{plural(numeros.trocas, 'troca')} de exercício</li>}
               {!numeros.avaliacao?.noMes && <li>Sem avaliação física neste mês</li>}
             </ul>
             <label>O que a IA deve destacar? <span className="meta">(opcional)</span>

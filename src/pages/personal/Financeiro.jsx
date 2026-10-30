@@ -74,9 +74,9 @@ export default function Financeiro() {
       </div>
       <AjudaDaPagina />
       {!temPix && <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)' }}>Cadastre sua chave Pix em <Link to="/configuracoes">Configurações</Link> para os alunos verem o QR Code da mensalidade.</div>}
-      <div className="kpis" style={{ marginBottom: 20, gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-        <div className="panel kpi"><div className="n" style={{ fontSize: 32 }}>{brl(recebido)}</div><div className="l">Recebido</div></div>
-        <div className="panel kpi"><div className="n" style={{ fontSize: 32 }}>{brl(aReceber)}</div><div className="l">A receber</div></div>
+      <div className="kpis" style={{ marginBottom: 20, gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
+        <div className="panel kpi"><div className="n" style={{ fontSize: 28 }}>{brl(recebido)}</div><div className="l">Recebido</div></div>
+        <div className="panel kpi"><div className="n" style={{ fontSize: 28 }}>{brl(aReceber)}</div><div className="l">A receber</div></div>
         <div className="panel kpi"><div className="n" style={{ fontSize: 32, color: atrasados ? 'var(--warn)' : undefined }}>{atrasados}</div><div className="l">Atrasados</div></div>
       </div>
       {erro && <p className="erro">{erro}</p>}

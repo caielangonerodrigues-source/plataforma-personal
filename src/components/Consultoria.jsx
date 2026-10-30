@@ -4,7 +4,7 @@ import Modal from './Modal.jsx'
 import { FormAvaliacao } from '../pages/personal/Avaliacoes.jsx'
 import { reduzirFoto } from '../lib/foto.js'
 import { COMO_MEDIR, MEDIDAS, NOTAS, compararMedidas, limparMedidas, paraAvaliacao } from '../lib/consultoria.js'
-import { f1, fmtData, hojeISO, num, primeiroNome } from '../lib/formato.js'
+import { f1, fmtData, hojeISO, num, plural, primeiroNome } from '../lib/formato.js'
 import { linkWhatsApp } from '../lib/whatsapp.js'
 
 const ANGULOS = [['frente', 'Frente'], ['lado', 'Lado'], ['costas', 'Costas']]
@@ -77,12 +77,13 @@ function Envio({ envio: e, anterior, aberto, onAbrir, fotos, urls, aluno, person
   }
   const zap = personal && e.resposta && linkWhatsApp(aluno.telefone, `Oi, ${primeiroNome(aluno.nome)}! Respondi sua atualização de ${fmtData(e.data)} na plataforma, na aba Consultoria.`)
 
+  const resumo = [e.peso != null && `${f1(e.peso)} kg${dPeso != null ? ` (${dPeso > 0 ? '+' : ''}${f1(dPeso)})` : ''}`, linhas.length && plural(linhas.length, 'medida'), doDia.length && plural(doDia.length, 'foto')].filter(Boolean).join(' · ')
   return (
     <div className="panel stack" style={{ gap: 12 }}>
       <button className="row between" onClick={onAbrir} aria-expanded={aberto} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left' }}>
         <span>
           <strong style={{ fontSize: 17 }}>{fmtData(e.data)}</strong>
-          <span className="meta"> · {[e.peso != null && `${f1(e.peso)} kg${dPeso != null ? ` (${dPeso > 0 ? '+' : ''}${f1(dPeso)})` : ''}`, linhas.length && `${linhas.length} medidas`, doDia.length && `${doDia.length} fotos`].filter(Boolean).join(' · ')}</span>
+          {resumo && <span className="meta"> · {resumo}</span>}
         </span>
         <span className={`pill ${e.resposta ? 'ativo' : 'pendente'}`}>{e.resposta ? 'Respondido' : personal ? 'Responder' : 'Aguardando resposta'}</span>
       </button>

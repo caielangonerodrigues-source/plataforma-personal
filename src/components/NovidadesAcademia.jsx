@@ -13,7 +13,7 @@ export default function NovidadesAcademia({ academia }) {
     <div className="stack">
       {whatsapp && (
         <div className="panel cartao-whatsapp">
-          <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ minWidth: 0, flex: '1 1 200px' }}>
             <div className="name">Grupo da academia no WhatsApp</div>
             <div className="meta">Avisos rápidos, mudanças de horário e a turma toda junta.</div>
           </div>
