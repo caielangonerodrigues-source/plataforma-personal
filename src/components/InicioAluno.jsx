@@ -174,6 +174,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             </>
           ) : <p className="meta" style={{ margin: 0 }}>{treinos ? 'Seu personal ainda está montando sua ficha.' : 'Carregando…'}</p>}
         </div>
+        {!online && <CartaoConsultoria />}
       </div>
 
       <aside className="stack inicio-dir">
@@ -232,7 +233,6 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             <p>Treinar junto é melhor. Mande seu link e ganhe desconto na mensalidade.</p>
           </Atalho>
         )}
-        {!online && <CartaoConsultoria />}
       </aside>
     </div>
   )

@@ -852,3 +852,7 @@ body { background: var(--surface) }
 .rank.eu { background: none }
 .rank.eu .name { color: var(--accent) }
 .postar-foto { display: flex; gap: 14px; align-items: flex-start; padding: 20px 0; border-bottom: 1px solid var(--line) }
+/* Avatares no padrão do site: círculo claro, iniciais em grafite e ícone de traço laranja nos avatares prontos */
+.avatar { background: color-mix(in srgb, var(--ink) 7%, var(--surface)); color: var(--ink) }
+.avatares-prontos button { background: color-mix(in srgb, var(--ink) 7%, var(--surface)) }
+.avatares-prontos button[aria-pressed="true"] { border-color: var(--accent) }
