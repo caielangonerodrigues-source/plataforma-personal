@@ -9,6 +9,7 @@ import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { ofensiva } from '../lib/semana.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
 import Corpo from './Corpo.jsx'
+import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
 import { situacaoRelato } from '../lib/consultoria.js'
@@ -52,11 +53,11 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const maxSemana = Math.max(3, ...ultimasSemanas)
 
   const passos = [
-    { feito: !!avatar, icone: '🙂', titulo: 'Escolha seu avatar', texto: 'Tire uma foto ou escolha um avatar pronto para aparecer na comunidade.', botao: 'Escolher avatar', acao: () => irPara('conta') },
-    { feito: temAnamnese, icone: '📋', titulo: 'Preencha sua anamnese', texto: 'Seu histórico de saúde e o PAR-Q ajudam seu personal a montar um treino seguro.', botao: 'Preencher', acao: () => irPara('conta') },
-    { feito: notificacoes || (!suportado() && !ehIphone()), icone: '🔔', titulo: 'Ative as notificações', texto: 'Lembrete do treino, aviso de ficha nova e relatório do mês no celular.', botao: 'Ativar', acao: () => irPara('conta') },
-    { feito: instalado(), icone: '📱', titulo: 'Instale o app', texto: comoInstalar ? 'No iPhone: Compartilhar › "Adicionar à Tela de Início". No Android: menu ⋮ › "Instalar app".' : 'Abra o Corpo Atlético direto pelo ícone, como um aplicativo.', botao: 'Como instalar', acao: () => setComoInstalar(true) },
-    { feito: dias.length > 0, icone: '📸', titulo: 'Faça seu primeiro check-in', texto: 'Registre o treino com uma foto e comece sua sequência de dias.', botao: 'Fazer check-in', acao: onCheckin },
+    { feito: !!avatar, icone: ICONES.rosto, titulo: 'Escolha seu avatar', texto: 'Tire uma foto ou escolha um avatar pronto para aparecer na comunidade.', botao: 'Escolher avatar', acao: () => irPara('conta') },
+    { feito: temAnamnese, icone: ICONES.prancheta, titulo: 'Preencha sua anamnese', texto: 'Seu histórico de saúde e o PAR-Q ajudam seu personal a montar um treino seguro.', botao: 'Preencher', acao: () => irPara('conta') },
+    { feito: notificacoes || (!suportado() && !ehIphone()), icone: ICONES.sino, titulo: 'Ative as notificações', texto: 'Lembrete do treino, aviso de ficha nova e relatório do mês no celular.', botao: 'Ativar', acao: () => irPara('conta') },
+    { feito: instalado(), icone: ICONES.instalar, titulo: 'Instale o app', texto: comoInstalar ? 'No iPhone: Compartilhar › "Adicionar à Tela de Início". No Android: menu ⋮ › "Instalar app".' : 'Abra o Corpo Atlético direto pelo ícone, como um aplicativo.', botao: 'Como instalar', acao: () => setComoInstalar(true) },
+    { feito: dias.length > 0, icone: ICONES.camera, titulo: 'Faça seu primeiro check-in', texto: 'Registre o treino com uma foto e comece sua sequência de dias.', botao: 'Fazer check-in', acao: onCheckin },
   ]
   const faltam = passos.filter((p) => !p.feito)
 
@@ -85,7 +86,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           <div className="secao" style={{ marginTop: 0 }}>Esta semana</div>
           <div className="semana-num"><strong>{naSemana}</strong> {naSemana === 1 ? 'treino' : 'treinos'}</div>
           <div className={`ofensiva${of.emRisco ? ' risco' : of.garantida ? ' ok' : ''}`}>
-            <span aria-hidden="true">🔥</span>
+            <IconeLinha d={ICONES.chama} tamanho={28} traco={1.6} />
             <div>
               <strong>{of.semanas} {of.semanas === 1 ? 'semana seguida' : 'semanas seguidas'}</strong>
               <span className="meta">
@@ -125,7 +126,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             <div className="passos">
               {faltam.map((p) => (
                 <div className="passo" key={p.titulo}>
-                  <span className="passo-icone" aria-hidden="true">{p.icone}</span>
+                  <span className="passo-icone"><IconeLinha d={p.icone} tamanho={30} /></span>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="name">{p.titulo}</div>
                     <div className="meta">{p.texto}</div>
@@ -139,7 +140,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
 
         {online && relato && (
           <div className={`panel stack relato${relato.pendente ? ' pendente' : ''}`} style={{ gap: 8 }}>
-            <div className="meta">📲 Consultoria online</div>
+            <div className="meta">Consultoria online</div>
             <h2 style={{ margin: 0 }}>{relato.pendente ? 'Hora do relato da semana' : 'Relato da semana enviado'}</h2>
             <div className="meta">
               {relato.primeiro ? 'Mande seu peso, medidas, fotos e como foi a semana. Seu personal ajusta o treino a partir daí.'
@@ -152,7 +153,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
 
         <div className="panel stack" style={{ gap: 10 }}>
           <div className="row between"><h2 style={{ margin: 0 }}>Treino de hoje</h2>{agenda && <span className="meta">Com o personal: {agenda.data === hoje ? 'hoje' : fmtData(agenda.data).slice(0, 5)} às {agenda.hora}</span>}</div>
-          {fichaVencida && <div className="aviso-ficha" style={{ margin: 0 }}><strong>Hora de trocar a ficha 💪</strong><span className="meta" style={{ color: 'inherit' }}>{fichaVencida.semanas} semanas na mesma ficha. Seu personal já foi avisado.</span></div>}
+          {fichaVencida && <div className="aviso-ficha" style={{ margin: 0 }}><strong>Hora de trocar a ficha</strong><span className="meta" style={{ color: 'inherit' }}>{fichaVencida.semanas} semanas na mesma ficha. Seu personal já foi avisado.</span></div>}
           {ficha ? (
             <>
               <div><span className="name">{ficha.nome}</span>{ficha.foco && <span className="meta"> · {ficha.foco}</span>}</div>
@@ -167,7 +168,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
       <aside className="stack inicio-dir">
         {(datas.avaliacao || datas.troca) && (
           <div className="panel stack" style={{ gap: 10 }}>
-            <h2 style={{ margin: 0 }}>📅 Suas datas</h2>
+            <h2 style={{ margin: 0 }}>Suas datas</h2>
             <div className="datas-aluno">
               {datas.avaliacao && <div><span className="meta">Última avaliação</span><strong>{fmtData(datas.avaliacao.data)}</strong></div>}
               {datas.reavaliacao && (
@@ -184,18 +185,15 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         )}
         <DietaDeHoje aluno={aluno} hoje={hoje} irPara={irPara} />
         {aula && (
-          <button className="panel stack cartao-link" style={{ gap: 4 }} onClick={() => irPara('aulas')}>
-            <div className="meta">🗓️ Próxima aula</div>
-            <div className="name">{aula.nome}</div>
-            <div className="meta">{aula.emDias === 0 ? 'Hoje' : aula.emDias === 1 ? 'Amanhã' : DIAS_LONGOS[aula.dia_semana]} às {fmtHora(aula.hora)} · ver a grade ›</div>
-          </button>
+          <Atalho icone={ICONES.bike} rotulo="Próxima aula" titulo={aula.nome} acao="Ver a grade" onClick={() => irPara('aulas')}>
+            <p>{aula.emDias === 0 ? 'Hoje' : aula.emDias === 1 ? 'Amanhã' : DIAS_LONGOS[aula.dia_semana]} às {fmtHora(aula.hora)}</p>
+          </Atalho>
         )}
         {aviso && (
-          <button className="panel stack cartao-link" style={{ gap: 4 }} onClick={() => irPara('novidades')}>
-            <div className="meta">{TIPOS_AVISO[aviso.tipo]?.[1]} {TIPOS_AVISO[aviso.tipo]?.[0]}{academia.novos > 0 ? ` · ${academia.novos} ${academia.novos === 1 ? 'nova' : 'novas'}` : ''}</div>
-            <div className="name">{aviso.titulo}</div>
-            {aviso.texto && <div className="meta" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{aviso.texto}</div>}
-          </button>
+          <Atalho icone={ICONES.aviso} rotulo={`${TIPOS_AVISO[aviso.tipo]?.[0] || 'Aviso'}${academia.novos > 0 ? ` · ${academia.novos} ${academia.novos === 1 ? 'nova' : 'novas'}` : ''}`}
+            titulo={aviso.titulo} acao="Ver novidades" onClick={() => irPara('novidades')}>
+            {aviso.texto && <p style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{aviso.texto}</p>}
+          </Atalho>
         )}
         {!online && academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
         {aluno.comunidade && dados && (
@@ -213,31 +211,42 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           </div>
         )}
         {desafio && (
-          <div className="panel stack" style={{ gap: 6 }}>
-            <div className="meta">🏆 Desafio</div>
-            <div className="name">{desafio.titulo}</div>
-            <div className="meta">{Math.min(progressoDesafio(desafio, dias), desafio.meta_dias)} de {desafio.meta_dias} dias · até {fmtData(desafio.fim).slice(0, 5)}</div>
+          <Atalho icone={ICONES.trofeu} rotulo="Desafio" titulo={desafio.titulo}>
+            <p>{Math.min(progressoDesafio(desafio, dias), desafio.meta_dias)} de {desafio.meta_dias} dias · até {fmtData(desafio.fim).slice(0, 5)}</p>
             <div className="bar"><i style={{ width: `${Math.min(100, Math.round((progressoDesafio(desafio, dias) / desafio.meta_dias) * 100))}%` }} /></div>
-          </div>
+          </Atalho>
         )}
         {proxima && (
-          <button className="panel stack cartao-link" style={{ gap: 6 }} onClick={() => irPara('voce')}>
-            <div className="meta">{proxima.icone} Próxima medalha</div>
-            <div className="name">{proxima.titulo}</div>
-            <div className="meta">{proxima.descricao} · faltam {proxima.meta - proxima.valor}</div>
+          <Atalho icone={ICONES.medalha} rotulo="Próxima medalha" titulo={proxima.titulo} acao="Ver medalhas" onClick={() => irPara('voce')}>
+            <p>{proxima.descricao} · faltam {proxima.meta - proxima.valor}</p>
             <div className="bar"><i style={{ width: `${Math.round((proxima.valor / proxima.meta) * 100)}%` }} /></div>
-          </button>
+          </Atalho>
         )}
         {aluno.codigo_indicacao && (
-          <button className="panel stack cartao-link" style={{ gap: 4 }} onClick={() => irPara('conta')}>
-            <div className="name">🎁 Indique um amigo</div>
-            <div className="meta">Treinar junto é melhor. Mande seu link e ganhe desconto na mensalidade.</div>
-          </button>
+          <Atalho icone={ICONES.presente} titulo="Indique um amigo" acao="Mandar meu link" onClick={() => irPara('conta')}>
+            <p>Treinar junto é melhor. Mande seu link e ganhe desconto na mensalidade.</p>
+          </Atalho>
         )}
         {!online && <CartaoConsultoria />}
       </aside>
     </div>
   )
+}
+
+// Atalho sem caixa, no padrão da tela de entrada: ícone de traço, título, texto e ação em laranja.
+function Atalho({ icone, rotulo, titulo, acao, onClick, href, children }) {
+  const conteudo = (
+    <>
+      <IconeLinha d={icone} tamanho={36} />
+      {rotulo && <span className="atalho-rotulo">{rotulo}</span>}
+      <h3>{titulo}</h3>
+      {children}
+      {acao && <span className="atalho-acao">{acao} ›</span>}
+    </>
+  )
+  if (href) return <a href={href} className="inicio-atalho">{conteudo}</a>
+  if (onClick) return <button type="button" className="inicio-atalho" onClick={onClick}>{conteudo}</button>
+  return <div className="inicio-atalho">{conteudo}</div>
 }
 
 const quando = ({ data, em }) => (em === 0 ? 'Hoje' : em === 1 ? 'Amanhã' : em < 0 ? `Atrasada ${-em} ${-em === 1 ? 'dia' : 'dias'}` : `Em ${em} dias · ${fmtData(data).slice(0, 5)}`)
@@ -249,10 +258,9 @@ function CartaoConsultoria() {
   useEffect(() => { supabase.rpc('indicacao_do_personal').then(({ data }) => setAtiva(!!data?.[0]?.venda_ativa)) }, [])
   if (!ativa) return null
   return (
-    <a href="/consultoria" className="panel stack cartao-link" style={{ gap: 4, textDecoration: 'none', color: 'inherit' }}>
-      <div className="name">📲 Consultoria online</div>
-      <div className="meta">Vai viajar ou mudar de cidade? Continue treinando comigo pelo app, de onde estiver.</div>
-    </a>
+    <Atalho icone={ICONES.celular} titulo="Consultoria online" acao="Ver planos" href="/consultoria">
+      <p>Vai viajar ou mudar de cidade? Continue treinando comigo pelo app, de onde estiver.</p>
+    </Atalho>
   )
 }
 
@@ -264,7 +272,7 @@ function DietaDeHoje({ aluno, hoje, irPara }) {
   const feitas = diario.itens.filter((d) => d.refeicao != null).length
   return (
     <button className="panel stack cartao-link" style={{ gap: 10 }} onClick={() => irPara('dieta')}>
-      <div className="row between"><div className="meta">🍽️ Dieta de hoje</div><span className="meta">{feitas} de {total} refeições ›</span></div>
+      <div className="row between"><div className="meta">Dieta de hoje</div><span className="meta">{feitas} de {total} refeições ›</span></div>
       <ContadorMacros metas={metasDaDieta(dieta)} consumo={consumoDoDia(dieta, diario.itens)} compacto />
     </button>
   )
@@ -284,7 +292,7 @@ function MusculosDaSemana({ registros, treinos, desde }) {
       <p className="meta" style={{ margin: 0 }}>
         {!feitos.length ? 'Marque os exercícios no treino e o bonequinho vai acendendo.'
           : faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.`
-            : 'Corpo todo treinado nesta semana 💪'}
+            : 'Corpo todo treinado nesta semana'}
       </p>
     </div>
   )

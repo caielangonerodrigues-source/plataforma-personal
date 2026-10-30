@@ -13,7 +13,7 @@ export default function CardTreino({ resumo }) {
       <div className="card-treino card-musculacao">
         <Corpo principais={grupos.flatMap((g) => GRUPOS_MUSCULACAO[g][1])} tamanho={34} legenda={false} />
         <div className="card-treino-nums">
-          <div><span>Treino</span><strong>🏋️ Musculação</strong></div>
+          <div><span>Treino</span><strong>Musculação</strong></div>
           {resumo.minutos && <div><span>Duração</span><strong>{resumo.minutos} min</strong></div>}
           {grupos.length > 0 && <div><span>Grupos</span><strong>{grupos.map((g) => GRUPOS_MUSCULACAO[g][0]).join(', ')}</strong></div>}
         </div>
@@ -21,7 +21,7 @@ export default function CardTreino({ resumo }) {
     )
   }
   if (resumo.tipo === 'cardio') {
-    const [nome, icone] = ESPORTES[resumo.esporte] || ['Cardio', '🏃']
+    const [nome] = ESPORTES[resumo.esporte] || ['Cardio']
     return (
       <div className="card-treino">
         <div className="card-treino-nums">
@@ -29,7 +29,7 @@ export default function CardTreino({ resumo }) {
           <div><span>Tempo</span><strong>{fmtTempo(resumo.segundos)}</strong></div>
           <div><span>{resumo.esporte === 'bike' ? 'Média' : 'Ritmo'}</span><strong>{ritmo(resumo.esporte, resumo.km, resumo.segundos)}</strong></div>
         </div>
-        <div className="card-treino-esporte" aria-hidden="true">{icone} {nome}</div>
+        <div className="card-treino-esporte" aria-hidden="true">{nome}</div>
       </div>
     )
   }
@@ -41,7 +41,7 @@ export default function CardTreino({ resumo }) {
         <div><span>Volume</span><strong>{resumo.volume ? kg(resumo.volume) : '—'}</strong></div>
       </div>
       {resumo.recordes?.map((r) => (
-        <div key={r.nome} className="card-treino-recorde">🏆 Recorde: <b>{r.nome}</b> · {kg(r.carga)}</div>
+        <div key={r.nome} className="card-treino-recorde">Recorde: <b>{r.nome}</b> · {kg(r.carga)}</div>
       ))}
     </div>
   )

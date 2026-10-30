@@ -1,11 +1,12 @@
 import { medalhas, proximaMedalha } from '../lib/medalhas.js'
+import IconeLinha, { ICONES, ICONE_MEDALHA } from './IconeLinha.jsx'
 
-function Icone({ ganhou, emoji }) {
+function Icone({ ganhou, grupo }) {
   return (
     <svg width="34" height="40" viewBox="0 0 34 40" aria-hidden="true">
       <path d="M8 0h7l3 9h-7zM26 0h-7l-3 9h7z" fill={ganhou ? 'var(--chart2)' : 'var(--line)'} />
       <circle cx="17" cy="25" r="13" fill={ganhou ? 'var(--accent)' : 'var(--line)'} />
-      <text x="17" y="30" textAnchor="middle" fontSize="14" style={{ filter: ganhou ? 'none' : 'grayscale(1)' }}>{emoji}</text>
+      <svg x="9" y="17" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ganhou ? '#fff' : 'var(--muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={ICONE_MEDALHA[grupo] || ICONES.medalha} /></svg>
     </svg>
   )
 }
@@ -21,7 +22,7 @@ export default function Medalhas({ datas, registros = [], avaliacoes = 0, desafi
       <div className="row between"><h2>Medalhas</h2><span className="meta">{ganhas} de {lista.length}</span></div>
       {proxima && (
         <div className="medalha-proxima">
-          <span aria-hidden="true" style={{ fontSize: 22 }}>{proxima.icone}</span>
+          <IconeLinha d={ICONE_MEDALHA[proxima.grupo] || ICONES.medalha} tamanho={30} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 600 }}>Próxima: {proxima.titulo}</div>
             <div className="meta">{proxima.descricao} · faltam {proxima.meta - proxima.valor}</div>
@@ -35,7 +36,7 @@ export default function Medalhas({ datas, registros = [], avaliacoes = 0, desafi
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 12 }}>
             {lista.filter((m) => m.grupo === g).map((m) => (
               <div key={m.id} title={m.descricao} style={{ textAlign: 'center', opacity: m.ganhou ? 1 : 0.6 }}>
-                <Icone ganhou={m.ganhou} emoji={m.icone} />
+                <Icone ganhou={m.ganhou} grupo={m.grupo} />
                 <div className="meta" style={{ color: m.ganhou ? 'var(--ink)' : undefined, fontWeight: m.ganhou ? 600 : 400, lineHeight: 1.3 }}>{m.titulo}</div>
                 {!m.ganhou && <div className="meta" style={{ fontSize: 11 }}>{m.valor}/{m.meta}</div>}
               </div>

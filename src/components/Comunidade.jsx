@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { doGrupo, grupoDe, nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
@@ -87,7 +88,7 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
             {equipes.map((e, i) => (
               <div key={e.id} className={`equipe${e.id === minhaEquipe ? ' eu' : ''}`}>
                 <div className="row between" style={{ flexWrap: 'nowrap' }}>
-                  <span className="name"><span className="equipe-cor" style={{ background: e.cor }} />{i === 0 && e.pontos > 0 ? '👑 ' : ''}{e.nome}{e.id === minhaEquipe && <span className="meta"> (sua)</span>}</span>
+                  <span className="name"><span className="equipe-cor" style={{ background: e.cor }} />{e.nome}{e.id === minhaEquipe && <span className="meta"> (sua)</span>}</span>
                   <span><span className="dias">{e.pontos}</span> <span className="meta">pts</span></span>
                 </div>
                 <div className="bar" style={{ marginTop: 6 }}><i style={{ width: `${Math.round((e.pontos / maxPontos) * 100)}%`, background: e.cor }} /></div>
@@ -141,7 +142,7 @@ function Conquista({ q, dados, autor, reagir, abrirPerfil }) {
         </button>
       </div>
       <div className="conquista-corpo">
-        <span className="conquista-icone" aria-hidden="true">{q.icone || '🏅'}</span>
+        <span className="conquista-icone"><IconeLinha d={q.tipo === 'recorde' ? ICONES.haltere : ICONES.medalha} tamanho={30} /></span>
         <div style={{ minWidth: 0 }}><strong>{q.titulo}</strong>{q.texto && q.texto !== q.titulo && <span className="meta">{q.texto}</span>}</div>
       </div>
       <div className="kudos">

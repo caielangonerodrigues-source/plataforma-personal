@@ -56,14 +56,14 @@ export default function PerfilAluno({ membro, dados, equipe, onFechar, onAbrirPo
               <>
                 <div className="secao">Medalhas ({medalhas.length})</div>
                 <div className="perfil-medalhas">
-                  {medalhas.map((m) => <span key={m.id} title={m.texto || m.titulo}><i aria-hidden="true">{m.icone}</i>{m.titulo}</span>)}
+                  {medalhas.map((m) => <span key={m.id} title={m.texto || m.titulo}>{m.titulo}</span>)}
                 </div>
               </>
             )}
             {recordes.length > 0 && (
               <>
                 <div className="secao">Últimos recordes</div>
-                {recordes.map((r) => <div key={r.id} className="meta" style={{ color: 'var(--ink)' }}>💪 {r.titulo.replace(/^Recorde no /, '')} · {r.texto?.replace(/^Nova melhor carga: /, '')} <span className="meta">· {quandoFoi(r.created_at)}</span></div>)}
+                {recordes.map((r) => <div key={r.id} className="meta" style={{ color: 'var(--ink)' }}>{r.titulo.replace(/^Recorde no /, '')} · {r.texto?.replace(/^Nova melhor carga: /, '')} <span className="meta">· {quandoFoi(r.created_at)}</span></div>)}
               </>
             )}
             <div className="secao">Fotos</div>

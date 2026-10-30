@@ -4,6 +4,7 @@ import { definirLembrar, lembrarLogin, provedoresLigados, supabase } from '../su
 import CampoSenha from '../components/CampoSenha.jsx'
 import HeroEntrada from '../components/HeroEntrada.jsx'
 import { SimboloCA } from '../components/Logo.jsx'
+import IconeLinha from '../components/IconeLinha.jsx'
 
 const MENSAGENS = {
   'Invalid login credentials': 'E-mail ou senha incorretos.',
@@ -216,12 +217,6 @@ export default function Entrar() {
     </div>
   )
 }
-
-// Ícones de traço (24×24) dos recursos, no estilo do site do Strava.
-// Ícone de traço fino, igual aos da seção "Tudo o que você precisa".
-const IconeLinha = ({ d }) => (
-  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
-)
 
 const RECURSOS = [
   ['M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12', 'Treine e registre', 'Sua ficha no celular, cargas de cada série, cronômetro de descanso e o histórico de tudo o que você levantou.'],
