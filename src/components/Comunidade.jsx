@@ -184,6 +184,7 @@ function Post({ c, dados, membro, autor, comunidade, meu, podeApagarTudo, reagir
           <span style={{ minWidth: 0 }}>
             <span className="name" style={{ display: 'block' }}>{nomeCurto(autor.nome)}{autor.personal && <span className="post-tag" style={{ marginLeft: 6 }}>Personal</span>}</span>
             <span className="meta">{quandoFoi(c.created_at)}{!autor.personal && c.data !== hojeISO() && c.data !== c.created_at.slice(0, 10) ? ` · treino de ${c.data.slice(8)}/${c.data.slice(5, 7)}` : ''}</span>
+            {c.local && <span className="meta post-local"><IconeLinha d={ICONES.pino} tamanho={14} traco={1.8} />{c.local}</span>}
           </span>
         </button>
       </div>

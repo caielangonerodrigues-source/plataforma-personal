@@ -107,11 +107,13 @@ export function useComunidade() {
   }
 
   // Foto do personal no feed: não é check-in, só motivação. Fica na pasta do personal no bucket dos check-ins.
+  // Personal da equipe posta na turma do dono (meu_grupo), na pasta dele.
   async function postarFoto(foto, legenda) {
-    const caminho = `${dados.eu}/${crypto.randomUUID()}.jpg`
+    const grupo = (await supabase.rpc('meu_grupo')).data || dados.eu
+    const caminho = `${grupo}/${crypto.randomUUID()}.jpg`
     const envio = await supabase.storage.from('checkins').upload(caminho, await reduzirFoto(foto), { contentType: 'image/jpeg' })
     if (envio.error) return `Não foi possível enviar a foto: ${envio.error.message}`
-    const { error } = await supabase.from('checkins').insert({ personal_id: dados.eu, data: hojeISO(), comentario: legenda.trim() || null, foto: caminho })
+    const { error } = await supabase.from('checkins').insert({ personal_id: grupo, data: hojeISO(), comentario: legenda.trim() || null, foto: caminho })
     if (error) {
       await supabase.storage.from('checkins').remove([caminho])
       return /personal_id/.test(error.message) ? 'Falta rodar o SQL das fotos do personal (veja o README, passo 13).' : `Não foi possível postar: ${error.message}`

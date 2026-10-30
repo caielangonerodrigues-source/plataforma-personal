@@ -53,8 +53,13 @@ export default function App() {
     if (!uid) { setPerfil(null); return }
     let ativo = true
     ;(async () => {
-      const { data: p } = await supabase.from('personais').select('user_id, nome').eq('user_id', uid).maybeSingle()
-      if (p) { if (ativo) setPerfil({ tipo: 'personal', nome: p.nome }); return }
+      // Personal da equipe enxerga só o cadastro do dono da academia (supabase/migracao-equipe.sql): o nome vem da conta Google/e-mail.
+      const { data: p } = await supabase.from('personais').select('user_id, nome').maybeSingle()
+      if (p) {
+        const meta = sessao.user.user_metadata || {}
+        if (ativo) setPerfil({ tipo: 'personal', nome: p.user_id === uid ? p.nome : meta.full_name || meta.name || '' })
+        return
+      }
       const { data: a } = await supabase.from('alunos').select('*').eq('user_id', uid).maybeSingle()
       if (ativo) setPerfil(a ? { tipo: 'aluno', aluno: a } : { tipo: 'nenhum' })
     })()
