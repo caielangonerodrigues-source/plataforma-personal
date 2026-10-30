@@ -194,6 +194,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
    - **Check-in de musculação**: o aluno marca os grupos treinados e a duração; o post mostra o bonequinho.
    - **Métodos de treino** no exercício (rest-pause, drop set, bi-set, tri-set, superset, série gigante, pirâmide, cluster, FST-7...): escolha em **Editar** no exercício. Para bi-set e afins, marque o mesmo método nos exercícios seguidos (use ↑ para mudar a ordem).
 
+### 13. Fotos do personal na comunidade
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-posts-personal.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Em **Comunidade**, o personal ganha o bloco **Postar foto**: a foto entra no feed dos alunos com a marca "Personal", recebe reações e comentários e não conta como check-in nem entra no ranking.
+
 ## Desenvolvimento
 
 ```bash

@@ -24,7 +24,7 @@ export default function Academia() {
       supabase.from('equipes').select('*').order('nome'),
       supabase.from('alunos').select('*').neq('status', 'pausado').order('nome'),
       supabase.from('fotos_entrada').select('*').order('ordem').order('created_at'),
-      supabase.from('checkins').select('aluno_id, data').gte('data', `${hojeISO().slice(0, 7)}-01`),
+      supabase.from('checkins').select('aluno_id, data').not('aluno_id', 'is', null).gte('data', `${hojeISO().slice(0, 7)}-01`),
     ])
     if (aulas.error || avisos.error || equipes.error) return setSemSql(true)
     setD({ personal: p.data, aulas: aulas.data, avisos: avisos.data, equipes: equipes.data, alunos: alunos.data || [], fotos: fotos.error ? null : fotos.data, mes: mes.data || [] })

@@ -33,7 +33,9 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   const meuGrupo = visoesRanking.some(([k]) => k === grupo) ? grupo : temOnline && eu ? grupoDe(eu) : 'geral'
   const tabela = ranking(dados.mes, meuGrupo === 'geral' ? dados.membros : meuGrupo === 'equipe' ? dados.membros.filter((m) => m.equipe_id === equipeMinha.id) : doGrupo(dados.membros, meuGrupo))
   const legenda = { geral: 'Todos os alunos', academia: 'Quem treina na academia', online: 'Alunos da consultoria online', equipe: `Quem é da ${equipeMinha?.nome || 'sua equipe'}` }[meuGrupo]
-  const feed = dados.feed.filter((c) => membro[c.aluno_id])
+  // Fotos do personal entram no feed assinadas com o nome dele e a marca "Personal".
+  const autorDe = (c) => (c.personal_id ? { nome: dados.personal || 'Personal', personal: true } : membro[c.aluno_id])
+  const feed = dados.feed.filter((c) => c.personal_id || membro[c.aluno_id])
   const comFoto = feed.filter((c) => c.foto && dados.fotos[c.foto])
   const equipes = placarEquipes(dados.equipes || [], dados.membros, dados.mes)
   const maxPontos = Math.max(1, ...equipes.map((e) => e.pontos))
@@ -62,7 +64,7 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
           comFoto.length ? (
             <div className="grade-fotos">
               {comFoto.map((c) => (
-                <button key={c.id} onClick={() => abrirPost(c.id)} aria-label={`Abrir check-in de ${nomeCurto(membro[c.aluno_id].nome)}`}>
+                <button key={c.id} onClick={() => abrirPost(c.id)} aria-label={`Abrir post de ${nomeCurto(autorDe(c).nome)}`}>
                   <img src={dados.fotos[c.foto]} alt="" loading="lazy" />
                 </button>
               ))}
@@ -70,9 +72,10 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
           ) : <div className="panel empty">Nenhum check-in com foto ainda. Tire uma foto no próximo treino!</div>
         )}
 
+        {podeApagarTudo && visao === 'feed' && <PostarFoto postar={comunidade.postarFoto} />}
         {visao === 'feed' && itens.map((c) => (c.tipoItem === 'conquista'
           ? <Conquista key={`q${c.id}`} q={c} dados={dados} autor={membro[c.aluno_id]} reagir={comunidade.reagirConquista} abrirPerfil={abrirPerfil} />
-          : <Post key={c.id} c={c} dados={dados} membro={membro} comunidade={comunidade} abrirPerfil={abrirPerfil}
+          : <Post key={c.id} c={c} dados={dados} membro={membro} autor={autorDe(c)} comunidade={comunidade} abrirPerfil={abrirPerfil}
             meu={c.aluno_id === meuAlunoId} podeApagarTudo={podeApagarTudo} reagir={reagir} apagar={apagar} />
         ))}
         {visao === 'feed' && !feed.length && <div className="panel empty">Nenhum check-in ainda. O primeiro a treinar abre o feed!</div>}
@@ -152,8 +155,7 @@ function Conquista({ q, dados, autor, reagir, abrirPerfil }) {
   )
 }
 
-function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, reagir, apagar, abrirPerfil }) {
-  const autor = membro[c.aluno_id]
+function Post({ c, dados, membro, autor, comunidade, meu, podeApagarTudo, reagir, apagar, abrirPerfil }) {
   const curtidas = dados.curtidas.filter((k) => k.checkin_id === c.id)
   const foto = c.foto && dados.fotos[c.foto]
   const comentarios = dados.comentarios ? dados.comentarios.filter((k) => k.checkin_id === c.id) : null
@@ -180,8 +182,8 @@ function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, reagir, apaga
         <button className="abre-perfil" onClick={() => abrirPerfil(c.aluno_id)} aria-label={`Ver perfil de ${nomeCurto(autor.nome)}`}>
           <Avatar nome={autor.nome} avatar={autor.avatar} fotos={dados.fotos} />
           <span style={{ minWidth: 0 }}>
-            <span className="name" style={{ display: 'block' }}>{nomeCurto(autor.nome)}</span>
-            <span className="meta">{quandoFoi(c.created_at)}{c.data !== hojeISO() && c.data !== c.created_at.slice(0, 10) ? ` · treino de ${c.data.slice(8)}/${c.data.slice(5, 7)}` : ''}</span>
+            <span className="name" style={{ display: 'block' }}>{nomeCurto(autor.nome)}{autor.personal && <span className="post-tag" style={{ marginLeft: 6 }}>Personal</span>}</span>
+            <span className="meta">{quandoFoi(c.created_at)}{!autor.personal && c.data !== hojeISO() && c.data !== c.created_at.slice(0, 10) ? ` · treino de ${c.data.slice(8)}/${c.data.slice(5, 7)}` : ''}</span>
           </span>
         </button>
       </div>
@@ -189,7 +191,7 @@ function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, reagir, apaga
       <CardTreino resumo={c.resumo} />
       {foto && (
         <div className="post-foto-caixa" onDoubleClick={() => !curtidas.some((k) => k.user_id === dados.eu) && reagir(c.id, '❤️')}>
-          <img className="post-foto" src={foto} alt={`Foto do check-in de ${nomeCurto(autor.nome)}`} loading="lazy" />
+          <img className="post-foto" src={foto} alt={`Foto de ${nomeCurto(autor.nome)}`} loading="lazy" />
           {c.titulo && <span className="post-tag sobre-foto">{c.titulo}</span>}
         </div>
       )}
@@ -240,5 +242,38 @@ function Post({ c, dados, membro, comunidade, meu, podeApagarTudo, reagir, apaga
         </div>
       )}
     </article>
+  )
+}
+
+// Personal: posta uma foto no feed de todos os alunos (não conta como check-in).
+function PostarFoto({ postar }) {
+  const [foto, setFoto] = useState(null)
+  const [legenda, setLegenda] = useState('')
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [chave, setChave] = useState(0) // limpa o campo do arquivo depois de postar
+
+  async function enviar(e) {
+    e.preventDefault()
+    if (!foto) return setErro('Escolha uma foto.')
+    setEnviando(true); setErro('')
+    const falha = await postar(foto, legenda)
+    setEnviando(false)
+    if (falha) return setErro(falha)
+    setFoto(null); setLegenda(''); setChave((k) => k + 1)
+  }
+
+  return (
+    <form className="postar-foto" onSubmit={enviar}>
+      <IconeLinha d={ICONES.camera} tamanho={30} />
+      <div className="stack" style={{ gap: 8, flex: 1, minWidth: 0 }}>
+        <strong>Postar foto para os alunos</strong>
+        <span className="meta">Aparece no feed de todos, com a marca Personal. Não conta como check-in.</span>
+        <input key={chave} type="file" accept="image/*" aria-label="Foto" onChange={(e) => setFoto(e.target.files?.[0] || null)} />
+        <textarea rows={2} maxLength={280} placeholder="Escreva algo para motivar a turma (opcional)" value={legenda} onChange={(e) => setLegenda(e.target.value)} />
+        {erro && <p className="erro" style={{ margin: 0 }}>{erro}</p>}
+        <div><button className="primary" disabled={enviando || !foto}>{enviando ? 'Postando…' : 'Postar'}</button></div>
+      </div>
+    </form>
   )
 }

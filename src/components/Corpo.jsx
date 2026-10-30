@@ -1,7 +1,7 @@
 // Bonequinho de frente e de costas com os músculos acesos em laranja.
-// Base: ilustração 3D em cinza (public/corpo/<vista>.webp). Cada músculo aceso é a versão laranja
-// da mesma ilustração recortada pela máscara do músculo (public/corpo/<vista>-<músculo>.png);
-// o mais ativo usa a versão em laranja escuro (<vista>-escuro.webp).
+// Estilo chapado (minimalista): a silhueta da ilustração (public/corpo/<vista>.webp) vira um cinza claro só com
+// um traço leve dos músculos, e cada músculo aceso é laranja chapado recortado pela máscara
+// (public/corpo/<vista>-<músculo>.png); o mais ativo fica no laranja mais escuro.
 // `principais`/`secundarios`: ids de MUSCULOS, com `ativo` (o mais ativo) aceso mais forte e brilhando;
 // ou `intensidade`: { id: 0..1 } para o mapa da semana.
 import { MUSCULOS } from '../lib/musculos.js'
@@ -19,13 +19,14 @@ function Vista({ lado, titulo, nivel, ativo, tamanho }) {
   return (
     <figure className="corpo-vista">
       <div className="corpo-img" style={{ width: largura, height: altura }}>
-        <img src={`/corpo/${lado}.webp`} alt="" draggable="false" />
+        <span className="corpo-silhueta" style={{ WebkitMaskImage: `url(/corpo/${lado}.webp)`, maskImage: `url(/corpo/${lado}.webp)` }} />
+        <img className="corpo-detalhe" src={`/corpo/${lado}.webp`} alt="" draggable="false" />
         {v.musculos.map((m) => {
           const n = nivel(m)
           if (!n) return null
           const mascara = `url(/corpo/${lado}-${m}.png)`
-          const forte = m === ativo // o mais ativo usa o laranja escuro, para o aluno achar o músculo de cara
-          return <img key={m} className={forte ? 'ativo' : undefined} src={`/corpo/${lado}-${forte ? 'escuro' : 'laranja'}.webp`} alt="" draggable="false" style={{ opacity: forte ? 1 : 0.3 + 0.7 * n, WebkitMaskImage: mascara, maskImage: mascara }} />
+          const forte = m === ativo // o mais ativo fica no laranja mais escuro, para o aluno achar o músculo de cara
+          return <span key={m} className={`corpo-musculo${forte ? ' ativo' : ''}`} style={{ opacity: forte ? 1 : 0.3 + 0.7 * n, WebkitMaskImage: mascara, maskImage: mascara }} />
         })}
       </div>
       {titulo && <figcaption>{titulo}</figcaption>}

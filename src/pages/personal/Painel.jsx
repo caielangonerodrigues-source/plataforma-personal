@@ -58,7 +58,7 @@ export default function Painel() {
     supabase.from('interessados').select('id').eq('status', 'novo').then(({ data }) => setNovos(data?.length || 0))
     Promise.all([
       supabase.from('registros').select('aluno_id, data').gte('data', desde),
-      supabase.from('checkins').select('aluno_id, data').gte('data', desde),
+      supabase.from('checkins').select('aluno_id, data').not('aluno_id', 'is', null).gte('data', desde),
     ]).then(([r, c]) => {
       const todas = [...(r.data || []), ...(c.data || [])]
       setAtividades(todas)
