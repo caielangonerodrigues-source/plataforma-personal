@@ -1052,3 +1052,9 @@ body { background: var(--surface) }
 .regua-faixas b span { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 800; white-space: nowrap; color: var(--ink) }
 .regua-legenda { position: relative; height: 16px; margin-top: 8px; font-size: 11px; color: var(--muted) }
 .regua-legenda span { position: absolute; transform: translateX(-50%); white-space: nowrap }
+
+/* Monte seu treino: treinos A, B, C… com nome dos grupos */
+.monte-treinos { margin-top: 12px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none }
+.monte-treinos .chip { flex: none }
+.monte-nome-treino { gap: 12px; margin-top: 10px; align-items: center }
+.monte-nome-treino input { flex: 1; min-width: 0 }

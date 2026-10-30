@@ -3,7 +3,7 @@ import { medalhas, proximaMedalha } from '../lib/medalhas.js'
 import { ICONES, ICONE_MEDALHA } from './IconeLinha.jsx'
 
 // Unidade que vai embaixo do número da medalha.
-const UNIDADE = { Treinos: 'treinos', 'Dias seguidos': 'dias', 'Semanas firmes': 'semanas', 'Mês forte': 'no mês', 'Fim de semana': 'fins de sem.', Força: 'recordes', Avaliação: 'avaliações', Desafios: 'dias' }
+const UNIDADE = { Treinos: 'treinos', 'Dias seguidos': 'dias', 'Semanas firmes': 'semanas', 'Mês forte': 'no mês', 'Fim de semana': 'fins de sem.', Força: 'recordes', Avaliação: 'avaliações', Desafios: 'dias', Toneladas: 'toneladas', Variedade: 'exercícios', 'Meses ativos': 'meses', 'Tempo de casa': 'dias', 'Volta por cima': 'volta' }
 
 // Moeda da medalha: laranja cheia quando ganha, contorno laranja na próxima, cinza nas bloqueadas.
 export function Moeda({ m, tamanho = 120, estado }) {
