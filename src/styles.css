@@ -1058,3 +1058,9 @@ body { background: var(--surface) }
 .monte-treinos .chip { flex: none }
 .monte-nome-treino { gap: 12px; margin-top: 10px; align-items: center }
 .monte-nome-treino input { flex: 1; min-width: 0 }
+
+/* /consultoria: escolha do personal */
+.personais-consultoria { display: grid; gap: 10px }
+.personais-consultoria button { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; font: inherit; color: var(--ink); cursor: pointer; border: 1.5px solid var(--line); border-radius: 16px; padding: 14px }
+.personais-consultoria button.on { border-color: var(--accent) }
+.personais-consultoria button > span:nth-child(2) { display: flex; flex-direction: column; flex: 1; min-width: 0 }

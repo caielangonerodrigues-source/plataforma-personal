@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabase.js'
 import { brl, primeiroNome } from '../lib/formato.js'
 import { linkWhatsApp } from '../lib/whatsapp.js'
+import Avatar from '../components/Avatar.jsx'
 
 const PASSOS = [
   ['Conversa inicial', 'Você conta seu objetivo, sua rotina e seu histórico de saúde (anamnese e PAR-Q pelo app).'],
@@ -15,7 +16,8 @@ const PASSOS = [
 
 // Página pública de vendas da consultoria online, com formulário de interesse.
 export default function PaginaVendas() {
-  const [p, setP] = useState(undefined)
+  const [personais, setPersonais] = useState(undefined) // todos com a página no ar
+  const [escolhido, setEscolhido] = useState(() => new URLSearchParams(window.location.search).get('personal') || '')
   const [planos, setPlanos] = useState([])
   const [d, setD] = useState({ nome: '', telefone: '', email: '', objetivo: '', plano: '', mensagem: '' })
   const [erro, setErro] = useState('')
@@ -24,19 +26,23 @@ export default function PaginaVendas() {
   // Link de indicação de um aluno: /consultoria?indicacao=ABC123
   const [indicacao] = useState(() => new URLSearchParams(window.location.search).get('indicacao')?.slice(0, 12) || '')
   const [quemIndicou, setQuemIndicou] = useState('')
+  const p = personais?.find((x) => x.personal_id === escolhido) || personais?.[0] || null
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.rpc('pagina_vendas')
-      const pessoal = data?.[0] || null
+      // Sem o SQL novo (README, passo 21), cai na página de um personal só.
+      let r = await supabase.rpc('personais_consultoria')
+      if (r.error) r = await supabase.rpc('pagina_vendas')
       if (indicacao) supabase.rpc('quem_indicou', { p_codigo: indicacao }).then(({ data: nome }) => setQuemIndicou(nome || ''))
-      setP(pessoal)
-      if (pessoal) {
-        const { data: pl } = await supabase.from('planos_consultoria').select('*').eq('personal_id', pessoal.personal_id).order('ordem').order('preco')
-        setPlanos(pl || [])
-      }
+      setPersonais(r.data || [])
     })()
   }, [])
+
+  useEffect(() => {
+    if (!p) return
+    setPlanos([]); setD((x) => ({ ...x, plano: '' }))
+    supabase.from('planos_consultoria').select('*').eq('personal_id', p.personal_id).order('ordem').order('preco').then(({ data }) => setPlanos(data || []))
+  }, [p?.personal_id])
 
   const campo = (k) => ({ id: `lead-${k}`, value: d[k], onChange: (e) => setD({ ...d, [k]: e.target.value }) })
   async function enviar(e) {
@@ -55,7 +61,7 @@ export default function PaginaVendas() {
     document.getElementById('quero')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  if (p === undefined) return <div className="centro carregando">Carregando…</div>
+  if (personais === undefined) return <div className="centro carregando">Carregando…</div>
   if (!p) return <div className="centro"><div className="panel empty">Página em construção. <Link to="/">Área do aluno</Link></div></div>
   const zap = linkWhatsApp(p.telefone, `Oi, ${primeiroNome(p.nome)}! Vim pela página da consultoria online e queria saber mais.`)
 
@@ -82,9 +88,21 @@ export default function PaginaVendas() {
           ))}
         </div>
 
+        <h2 style={{ margin: '36px 0 4px' }}>Escolha seu personal</h2>
+        <p className="meta" style={{ margin: '0 0 12px' }}>{personais.length > 1 ? 'Toque no personal com quem você quer treinar.' : `Por enquanto, a consultoria online é com ${p.nome}.`}</p>
+        <div className="personais-consultoria" role="radiogroup" aria-label="Personal">
+          {personais.map((x) => (
+            <button key={x.personal_id} type="button" role="radio" aria-checked={x === p} className={`panel${x === p ? ' on' : ''}`} onClick={() => setEscolhido(x.personal_id)}>
+              <Avatar nome={x.nome} avatar={x.avatar?.startsWith('p:') ? x.avatar : null} tamanho={48} />
+              <span><strong>{x.nome}</strong><span className="meta">{[x.cref && `CREF ${x.cref}`, x.instagram && `@${x.instagram.replace(/^@/, '')}`].filter(Boolean).join(' · ') || 'Personal trainer'}</span></span>
+              {x === p && <span className="pill">Escolhido</span>}
+            </button>
+          ))}
+        </div>
+
         {planos.length > 0 && (
           <>
-            <h2 style={{ margin: '36px 0 4px' }}>Planos</h2>
+            <h2 style={{ margin: '36px 0 4px' }}>Planos {personais.length > 1 && <span className="meta">com {primeiroNome(p.nome)}</span>}</h2>
             <p className="meta" style={{ margin: '0 0 12px' }}>Sem fidelidade: no fim de cada mês você vê sua evolução e decide se renova.</p>
             <div className="planos">
               {planos.map((pl) => (
@@ -109,7 +127,7 @@ export default function PaginaVendas() {
             </>
           ) : (
             <>
-              <h2>Quero fazer a consultoria</h2>
+              <h2>Quero fazer a consultoria{personais.length > 1 ? ` com ${primeiroNome(p.nome)}` : ''}</h2>
               <div className="form">
                 <label>Nome<input required minLength={2} maxLength={80} autoComplete="name" {...campo('nome')} /></label>
                 <label>WhatsApp com DDD<input required type="tel" autoComplete="tel" placeholder="(11) 98765-4321" {...campo('telefone')} /></label>
