@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Modal from '../../components/Modal.jsx'
+import CampoData from '../../components/CampoData.jsx'
 import { supabase } from '../../supabase.js'
 import { hojeISO, num } from '../../lib/formato.js'
 
@@ -42,7 +43,7 @@ export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
       <label>E-mail de acesso<input type="email" placeholder="o aluno entra com ele" {...campo('email')} /></label>
       <label>WhatsApp<input {...campo('telefone')} /></label>
       <label>Sexo<select {...campo('sexo')}><option value="F">Feminino</option><option value="M">Masculino</option></select></label>
-      <label>Data de nascimento<input type="date" {...campo('data_nascimento')} /></label>
+      <label>Data de nascimento<CampoData id="aluno-data_nascimento" value={d.data_nascimento} onChange={(v) => setD((x) => ({ ...x, data_nascimento: v }))} /></label>
       <label>Idade<input type="number" min="5" max="110" placeholder={d.data_nascimento ? 'calculada pela data' : ''} disabled={!!d.data_nascimento} {...campo('idade')} value={d.data_nascimento ? idadeEm(d.data_nascimento) ?? '' : d.idade} /></label>
       <label>Objetivo<input placeholder="Ex.: Hipertrofia" {...campo('objetivo')} /></label>
       <label>Plano<input placeholder="Ex.: 3x por semana" {...campo('plano')} /></label>

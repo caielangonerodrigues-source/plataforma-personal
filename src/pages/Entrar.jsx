@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { definirLembrar, lembrarLogin, provedoresLigados, supabase } from '../supabase.js'
 import CampoSenha from '../components/CampoSenha.jsx'
+import CampoData from '../components/CampoData.jsx'
 import HeroEntrada from '../components/HeroEntrada.jsx'
 import { SimboloCA } from '../components/Logo.jsx'
 import IconeLinha from '../components/IconeLinha.jsx'
@@ -58,7 +59,7 @@ export default function Entrar() {
         if (error) throw error
       } else if (modo === 'criar') {
         if (ficha.nome.trim().split(/\s+/).length < 2) throw new Error('Informe seu nome completo.')
-        if (!ficha.nascimento) throw new Error('Informe sua data de nascimento.')
+        if (!ficha.nascimento) throw new Error('Informe sua data de nascimento completa (dd/mm/aaaa).')
         if (ficha.telefone.replace(/\D/g, '').length < 10) throw new Error('Informe seu WhatsApp com DDD.')
         if (senha.length < 8) throw new Error('A senha precisa ter pelo menos 8 caracteres.')
         const dados = { ...ficha, nome: ficha.nome.trim(), objetivo: ficha.objetivo.trim() }
@@ -151,7 +152,7 @@ export default function Entrar() {
             <>
               <p className="meta" style={{ margin: 0 }}>Preencha seus dados para criar sua conta de aluno.</p>
               <label>Nome completo<input autoComplete="name" required {...campo('nome')} /></label>
-              <label>Data de nascimento<input type="date" required max={new Date().toISOString().slice(0, 10)} {...campo('nascimento')} /></label>
+              <label>Data de nascimento<CampoData id="cad-nascimento" required autoComplete="bday" max={new Date().toLocaleDateString('sv-SE')} value={ficha.nascimento} onChange={(v) => setFicha({ ...ficha, nascimento: v })} /></label>
               <label>WhatsApp<input type="tel" autoComplete="tel" placeholder="(11) 99999-9999" required {...campo('telefone')} /></label>
               <label>Sexo<select {...campo('sexo')}><option value="F">Feminino</option><option value="M">Masculino</option></select></label>
               <label>Objetivo<input placeholder="Ex.: Emagrecer, ganhar massa" {...campo('objetivo')} /></label>
