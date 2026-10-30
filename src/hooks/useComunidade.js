@@ -5,6 +5,7 @@ import { inicioDoMes } from '../lib/comunidade.js'
 import { EMOJIS, acaoReacao } from '../lib/reacoes.js'
 import { avisarInteracao } from '../lib/push.js'
 import { reduzirFoto } from '../lib/foto.js'
+import { assinarFotos } from '../lib/fotosAssinadas.js'
 
 // Nome e avatar do personal da turma, para as fotos e comentários dele no feed.
 // Sem o SQL do avatar do personal, cai no nome (cadastro próprio ou o do personal do aluno).
@@ -52,9 +53,9 @@ export function useComunidade() {
     const idsConquistas = conquistas.error ? [] : conquistas.data.map((c) => c.id)
     const [curtidas, fotos, comentarios, fotosAvatar, reacoesConquistas] = await Promise.all([
       ids.length ? lerCurtidas(ids) : { data: [] },
-      caminhos.length ? supabase.storage.from('checkins').createSignedUrls(caminhos, 3600) : { data: [] },
+      caminhos.length ? assinarFotos('checkins', caminhos) : { data: [] },
       ids.length ? supabase.from('comentarios_checkin').select('*').in('checkin_id', ids).order('created_at') : { data: [] },
-      avatares.length ? supabase.storage.from('avatares').createSignedUrls(avatares, 3600) : { data: [] },
+      avatares.length ? assinarFotos('avatares', avatares) : { data: [] },
       idsConquistas.length ? supabase.from('reacoes_conquista').select('conquista_id, user_id, emoji').in('conquista_id', idsConquistas) : { data: [] },
     ])
     setErro('')
