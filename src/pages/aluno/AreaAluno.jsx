@@ -3,7 +3,7 @@ import IconeLinha, { ICONES } from '../../components/IconeLinha.jsx'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Grafico from '../../components/Grafico.jsx'
-import Composicao from '../../components/Composicao.jsx'
+import HistoricoAvaliacoes from '../../components/HistoricoAvaliacoes.jsx'
 import Comunidade from '../../components/Comunidade.jsx'
 import FormCheckin from '../../components/FormCheckin.jsx'
 import InstalarApp from '../../components/InstalarApp.jsx'
@@ -393,7 +393,7 @@ export default function AreaAluno({ aluno }) {
           itens={abas.filter(([k]) => !principais.includes(k) && k !== 'treino').map(([k, l]) => ({ chave: k, rotulo: l, icone: k, texto: textos[k], badge: badgeAba(k), onClick: () => irPara(k) }))}
           progresso={
         <div className="stack">
-          {ultima ? <Composicao avaliacao={ultima} anterior={avaliacoes.at(-2)} sexo={aluno.sexo} titulo="Última avaliação" /> : <div className="panel empty">Seu personal ainda não registrou nenhuma avaliação.</div>}
+          {ultima ? <HistoricoAvaliacoes avaliacoes={avaliacoes} sexo={aluno.sexo} /> : <div className="panel empty">Seu personal ainda não registrou nenhuma avaliação.</div>}
           {avaliacoes.length > 0 && <div className="panel"><h2 style={{ marginBottom: 10 }}>Peso e gordura</h2><Grafico avaliacoes={avaliacoes} /></div>}
           <div className="panel"><h2 style={{ marginBottom: 10 }}>Evolução das cargas</h2><Progressao treinos={todosTreinos} registros={registros} /></div>
           <CompartilharStory aluno={aluno} hoje={hoje} dias={diasCheckin} registros={registros} avaliacoes={avaliacoes.length} treinos={todosTreinos} desafios={comunidade.dados?.desafios || []} />
