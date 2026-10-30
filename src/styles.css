@@ -787,3 +787,22 @@ tr.em-bloco { border-left: 0 } tr.em-bloco td:first-child { box-shadow: inset 3p
 .privacidade h1 { margin: 22px 0 4px }
 .privacidade h2 { font-size: 18px; margin: 24px 0 6px }
 .privacidade ul { padding-left: 20px }
+
+/* Atalhos da tela de entrada: spinning, consultoria online e aula experimental, logo abaixo da foto */
+.entrada-atalhos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; max-width: 1040px; margin: 0 auto; padding: 28px clamp(16px, 5vw, 40px) 8px }
+.atalho { display: flex; flex-direction: column; gap: 10px; padding: 22px; border-radius: 20px; text-decoration: none; color: var(--ink); background: var(--surface); border: 2px solid var(--accent); box-shadow: 0 10px 30px rgba(252, 76, 2, .12); transition: transform .15s }
+.atalho:hover { transform: translateY(-2px) }
+.atalho.forte { background: linear-gradient(135deg, #fc4c02, #ff7a3d); border-color: transparent; color: #fff }
+.atalho.forte.escuro { background: linear-gradient(135deg, #e04300, #fc4c02 60%, #ff9a5c) }
+.atalho-icone { font-size: 34px; line-height: 1 }
+.atalho-texto { display: flex; flex-direction: column; gap: 4px }
+.atalho-texto strong { font-family: var(--display); font-size: 24px; letter-spacing: -.02em; line-height: 1.1 }
+.atalho-texto span { font-size: 15px; opacity: .9 }
+.atalho-acao { margin-top: auto; align-self: flex-start; font-weight: 700; padding: 8px 14px; border-radius: 999px; background: var(--accent); color: #fff }
+.atalho.forte .atalho-acao { background: #fff; color: var(--accent) }
+@media (max-width: 640px) {
+  .entrada-atalhos { padding-top: 20px; gap: 12px }
+  .atalho { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 14px; row-gap: 12px; padding: 18px }
+  .atalho-texto strong { font-size: 21px }
+  .atalho-acao { grid-column: 1 / -1; justify-self: stretch; text-align: center }
+}

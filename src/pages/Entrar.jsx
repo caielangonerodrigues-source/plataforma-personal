@@ -97,6 +97,28 @@ export default function Entrar() {
 
       <HeroEntrada onComecar={() => irPara('criar')} onEntrar={() => irPara('entrar')} />
 
+      <nav className="entrada-atalhos" aria-label="Para quem ainda não é aluno">
+        <Link to="/spinning" className="atalho forte">
+          <span className="atalho-icone" aria-hidden="true">🚴</span>
+          <span className="atalho-texto"><strong>Aula de spinning</strong><span>Reserve sua bike, sem precisar de conta</span></span>
+          <span className="atalho-acao">Reservar ›</span>
+        </Link>
+        {consultoria && (
+          <Link to="/consultoria" className="atalho forte escuro">
+            <span className="atalho-icone" aria-hidden="true">📲</span>
+            <span className="atalho-texto"><strong>Consultoria online</strong><span>Treino e acompanhamento comigo, de onde você estiver</span></span>
+            <span className="atalho-acao">Ver planos ›</span>
+          </Link>
+        )}
+        {experimental && (
+          <Link to="/experimental" className="atalho">
+            <span className="atalho-icone" aria-hidden="true">🏋️</span>
+            <span className="atalho-texto"><strong>Aula experimental</strong><span>Venha conhecer a academia: escolha um horário</span></span>
+            <span className="atalho-acao">Marcar ›</span>
+          </Link>
+        )}
+      </nav>
+
       <section className="entrada-secao entrada-acesso" id="acesso">
       <div style={{ width: '100%', maxWidth: 420, margin: '0 auto' }}>
         <form className="panel stack" onSubmit={enviar}>
@@ -145,22 +167,6 @@ export default function Entrar() {
             {modo !== 'esqueci' && <button type="button" className="link" onClick={() => setModo('esqueci')}>Esqueci a senha</button>}
           </div>
         </form>
-        <Link to="/spinning" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
-          <span><strong>Aula de spinning</strong><br /><span className="meta">Reserve sua bike, sem precisar de conta</span></span>
-          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Reservar ›</span>
-        </Link>
-        {experimental && (
-          <Link to="/experimental" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
-            <span><strong>Aula experimental</strong><br /><span className="meta">Venha conhecer a academia: escolha um horário</span></span>
-            <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Marcar ›</span>
-          </Link>
-        )}
-        {consultoria && (
-          <Link to="/consultoria" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
-            <span><strong>Consultoria online</strong><br /><span className="meta">Treine com acompanhamento de onde estiver</span></span>
-            <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Conhecer ›</span>
-          </Link>
-        )}
       </div>
       </section>
 
