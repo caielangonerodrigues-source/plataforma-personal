@@ -40,6 +40,7 @@ export function paraAvaliacao(envio) {
     quadril: m.quadril ?? '',
     braco: m.braco_d ?? m.braco_e ?? '',
     coxa: m.coxa_d ?? m.coxa_e ?? '',
+    medidas: { ...m, ...(m.panturrilha != null ? { panturrilha_d: m.panturrilha } : {}) },
   }
 }
 

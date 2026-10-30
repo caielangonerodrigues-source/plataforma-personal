@@ -220,6 +220,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-dieta-editavel.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Na aba **Dieta**, o aluno toca em **Editar o que comi** numa refeição: cada linha é editável (alimento e gramas), dá para trocar, tirar e adicionar alimentos, e os macros do dia se recalculam. Você vê o resultado no diário da dieta do aluno.
 
+### 18. Avaliação com todas as medidas
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-avaliacao-medidas.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Em **Nova avaliação** aparecem pescoço, ombros, peitoral, abdômen, panturrilha e os lados direito e esquerdo de braço, coxa e panturrilha, além de dobras extras (bíceps, panturrilha e as que não entram no protocolo escolhido).
+
 ## Desenvolvimento
 
 ```bash

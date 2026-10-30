@@ -2214,6 +2214,13 @@ alter table public.diario_dieta drop constraint if exists diario_dieta_itens_che
 alter table public.diario_dieta add constraint diario_dieta_itens_check
   check (itens is null or (jsonb_typeof(itens) = 'array' and jsonb_array_length(itens) <= 30 and pg_column_size(itens) < 8000));
 
+-- Avaliação física com todos os perímetros (ombros, peitoral, abdômen, panturrilha, lados direito e esquerdo).
+-- Ficam em cm na coluna medidas; cintura, quadril, braço e coxa continuam também nas colunas antigas. Pode rodar mais de uma vez.
+alter table public.avaliacoes add column if not exists medidas jsonb;
+alter table public.avaliacoes drop constraint if exists avaliacoes_medidas_check;
+alter table public.avaliacoes add constraint avaliacoes_medidas_check
+  check (medidas is null or (jsonb_typeof(medidas) = 'object' and pg_column_size(medidas) < 2000));
+
 -- Para liberar um personal novo (a pessoa precisa ter criado a conta no site antes):
 -- insert into personais (user_id, nome)
 -- select id, 'Nome da pessoa' from auth.users where email = 'email.da.pessoa@gmail.com';

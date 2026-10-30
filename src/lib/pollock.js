@@ -9,7 +9,25 @@ export const DOBRAS = [
   ['suprailiaca', 'Supra-ilíaca'],
   ['coxa', 'Coxa'],
 ]
-export const DOBRA_NOME = Object.fromEntries(DOBRAS)
+// Dobras que não entram nas equações, só para acompanhar.
+export const DOBRAS_EXTRAS = [['biceps', 'Bíceps'], ['panturrilha', 'Panturrilha']]
+export const DOBRA_NOME = Object.fromEntries([...DOBRAS, ...DOBRAS_EXTRAS])
+
+// Perímetros da avaliação, em cm (coluna medidas). Cintura, quadril, braço e coxa também vão nas colunas antigas.
+export const PERIMETROS = [
+  ['pescoco', 'Pescoço'], ['ombros', 'Ombros'], ['peitoral', 'Peitoral'], ['cintura', 'Cintura'], ['abdomen', 'Abdômen'],
+  ['quadril', 'Quadril'], ['braco_d', 'Braço dir.'], ['braco_e', 'Braço esq.'], ['coxa_d', 'Coxa dir.'], ['coxa_e', 'Coxa esq.'],
+  ['panturrilha_d', 'Panturrilha dir.'], ['panturrilha_e', 'Panturrilha esq.'],
+]
+export const PERIMETRO_NOME = Object.fromEntries(PERIMETROS)
+
+// Perímetros de uma avaliação: os da coluna medidas ou, nas antigas, os das colunas cintura/quadril/braço/coxa.
+export function perimetrosDe(a) {
+  if (a?.medidas && Object.keys(a.medidas).length) return a.medidas
+  const out = {}
+  for (const [k, c] of [['cintura', 'cintura'], ['quadril', 'quadril'], ['braco_d', 'braco'], ['coxa_d', 'coxa']]) if (a?.[c] != null) out[k] = Number(a[c])
+  return out
+}
 
 export const PROTOCOLOS = {
   p7: 'Pollock 7 dobras',
