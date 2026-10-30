@@ -27,7 +27,15 @@ export default function Entrar() {
 
   const [consultoria, setConsultoria] = useState(false) // a página de vendas só aparece quando o personal deixa "Página no ar"
   useEffect(() => { provedoresLigados().then(setProvedores) }, [])
-  useEffect(() => { supabase.rpc('pagina_vendas').then(({ data }) => setConsultoria(!!data?.length)) }, [])
+  const [experimental, setExperimental] = useState(false) // horários livres de aula experimental
+  useEffect(() => {
+    supabase.rpc('pagina_vendas').then(async ({ data }) => {
+      setConsultoria(!!data?.length)
+      if (!data?.length) return
+      const { data: hs } = await supabase.rpc('horarios_experimental', { p_personal: data[0].personal_id })
+      setExperimental(!!hs?.length)
+    })
+  }, [])
 
   // Google e Apple: o Supabase cria a conta na primeira vez; o cadastro de aluno sai com o nome da conta.
   async function social(provider) {
@@ -141,6 +149,12 @@ export default function Entrar() {
           <span><strong>Aula de spinning</strong><br /><span className="meta">Reserve sua bike, sem precisar de conta</span></span>
           <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Reservar ›</span>
         </Link>
+        {experimental && (
+          <Link to="/experimental" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
+            <span><strong>Aula experimental</strong><br /><span className="meta">Venha conhecer a academia: escolha um horário</span></span>
+            <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Marcar ›</span>
+          </Link>
+        )}
         {consultoria && (
           <Link to="/consultoria" className="panel row between" style={{ marginTop: 12, textDecoration: 'none', color: 'inherit' }}>
             <span><strong>Consultoria online</strong><br /><span className="meta">Treine com acompanhamento de onde estiver</span></span>
