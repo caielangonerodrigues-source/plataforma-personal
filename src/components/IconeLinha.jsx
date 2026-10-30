@@ -37,7 +37,7 @@ export const ICONES = {
 }
 
 // Ícone de cada grupo de medalhas (desenhado dentro do selo laranja).
-export const ICONE_MEDALHA = { Treinos: ICONES.marcar, 'Dias seguidos': ICONES.chama, 'Semanas firmes': ICONES.calendario, 'Mês forte': ICONES.marcar, 'Fim de semana': ICONES.sol, Força: ICONES.haltere, Avaliação: ICONES.regua, Desafios: ICONES.trofeu }
+export const ICONE_MEDALHA = { Treinos: ICONES.marcar, 'Dias seguidos': ICONES.chama, 'Semanas firmes': ICONES.calendario, 'Mês forte': ICONES.marcar, 'Fim de semana': ICONES.sol, Força: ICONES.haltere, Avaliação: ICONES.regua, Desafios: ICONES.trofeu, Toneladas: ICONES.montanha, Variedade: ICONES.alvo, 'Meses ativos': ICONES.calendario, 'Tempo de casa': ICONES.coracao, 'Volta por cima': ICONES.raio }
 
 // Ícone de cada tipo de aviso da academia (a cor vem do CSS: .tipo-novidade, .tipo-lembrete, .tipo-informacao).
 export const ICONE_AVISO = { novidade: ICONES.brilho, lembrete: ICONES.relogio, informacao: ICONES.info }
