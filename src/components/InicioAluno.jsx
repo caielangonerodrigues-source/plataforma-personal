@@ -6,6 +6,7 @@ import BotaoWhatsApp from './BotaoWhatsApp.jsx'
 import { DIAS_LONGOS, TIPOS_AVISO, fmtHora, ordenarAvisos, proximaAula } from '../lib/academia.js'
 import { ehIphone, inscricaoAtual, instalado, suportado } from '../lib/push.js'
 import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
+import { Moeda } from './Medalhas.jsx'
 import { ofensiva } from '../lib/semana.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
 import Corpo from './Corpo.jsx'
@@ -224,10 +225,16 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           </Atalho>
         )}
         {proxima && (
-          <Atalho icone={ICONES.medalha} rotulo="Próxima medalha" titulo={proxima.titulo} acao="Ver medalhas" onClick={() => irPara('voce')}>
-            <p>{proxima.descricao} · faltam {proxima.meta - proxima.valor}</p>
-            <div className="bar"><i style={{ width: `${Math.round((proxima.valor / proxima.meta) * 100)}%` }} /></div>
-          </Atalho>
+          <button type="button" className="inicio-conquista" onClick={() => irPara('voce')}>
+            <div className="topo"><h2>Minhas conquistas</h2><span className="atalho-acao" style={{ marginTop: 0 }}>Ver todas ›</span></div>
+            <Moeda m={proxima} estado="proxima" tamanho={56} />
+            <div className="linha">
+              <strong>{proxima.grupo}</strong>
+              <span className="conquista-num"><strong>{proxima.valor}</strong> / {proxima.meta}</span>
+            </div>
+            <div className="bar grossa"><i style={{ width: `${Math.round((proxima.valor / proxima.meta) * 100)}%` }} /></div>
+            <div className="nome">Próxima medalha: {proxima.titulo} · falta{proxima.meta - proxima.valor > 1 ? 'm' : ''} {proxima.meta - proxima.valor}</div>
+          </button>
         )}
         {aluno.codigo_indicacao && (
           <Atalho icone={ICONES.presente} titulo="Indique um amigo" acao="Mandar meu link" onClick={() => irPara('conta')}>
