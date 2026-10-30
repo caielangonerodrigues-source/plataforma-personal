@@ -235,6 +235,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-nome-aluno.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Na aba **Conta**, o aluno toca em **Editar** ao lado do nome, corrige e salva. O nome novo aparece para você, na comunidade e no ranking.
 
+### 21. Escolher o personal na consultoria online
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-consultoria-personais.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Na página **/consultoria** aparece **Escolha seu personal** com todos os personais que marcaram **Página no ar** em **Vendas**. Os planos e o contato mudam conforme o personal escolhido.
+
 ## Desenvolvimento
 
 ```bash

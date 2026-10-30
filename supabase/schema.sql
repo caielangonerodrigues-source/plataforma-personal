@@ -2263,3 +2263,13 @@ end;
 $$;
 revoke all on function public.definir_meu_nome(text) from public;
 grant execute on function public.definir_meu_nome(text) to authenticated;
+
+-- Página /consultoria com escolha do personal.
+create or replace function public.personais_consultoria()
+returns table (personal_id uuid, nome text, titulo text, texto text, instagram text, cref text, telefone text, avatar text)
+language sql stable security definer set search_path = public as $$
+  select user_id, nome, venda_titulo, venda_texto, instagram, cref, telefone, avatar
+    from personais where venda_ativa order by created_at
+$$;
+revoke all on function public.personais_consultoria() from public;
+grant execute on function public.personais_consultoria() to anon, authenticated;
