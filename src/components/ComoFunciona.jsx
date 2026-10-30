@@ -1,17 +1,9 @@
-import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-// Explicação curta de cada aba. Aberta na primeira visita; depois que a pessoa fecha, fica fechada naquele aparelho.
-export default function ComoFunciona({ chave, itens }) {
-  const guardada = `ajuda-fechada-${chave}`
-  const [aberta, setAberta] = useState(() => { try { return !localStorage.getItem(guardada) } catch { return true } })
-  function alternar(e) {
-    const abriu = e.currentTarget.open
-    setAberta(abriu)
-    try { if (abriu) localStorage.removeItem(guardada); else localStorage.setItem(guardada, '1') } catch { /* sem armazenamento */ }
-  }
+// Explicação curta de cada aba: um link discreto, sempre fechado; abre só quando a pessoa toca.
+export default function ComoFunciona({ itens }) {
   return (
-    <details className="como-funciona" open={aberta} onToggle={alternar}>
+    <details className="como-funciona">
       <summary>Como funciona</summary>
       <ul>{itens.map((t) => <li key={t}>{t}</li>)}</ul>
     </details>

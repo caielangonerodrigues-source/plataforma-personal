@@ -371,6 +371,13 @@ a.botao-link.primary { background: var(--accent); color: var(--accent-ink); padd
 .inicio-atalho .bar { width: 100%; max-width: 240px; margin-top: 10px }
 .inicio-atalho .atalho-acao { margin-top: 8px; font-size: 14px }
 .atalho-rotulo { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-top: 6px }
+/* Lembrete da academia no topo do Início do aluno: sem caixa, só uma linha laranja à esquerda */
+.lembrete-destaque { grid-column: 1 / -1; display: flex; gap: 14px; align-items: flex-start; width: 100%; text-align: left; padding: 6px 4px 6px 16px; margin: 0; background: none; border: 0; border-left: 3px solid var(--accent); border-radius: 0; font: inherit; font-weight: 400; color: inherit }
+.lembrete-destaque h3 { font-family: var(--display); font-size: 24px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; margin: 4px 0 6px; color: var(--ink) }
+.lembrete-destaque p { margin: 0; color: var(--muted); font-size: 15px; white-space: pre-line }
+.lembrete-destaque .atalho-rotulo { margin-top: 0; color: var(--accent); font-weight: 700 }
+.lembrete-destaque .atalho-acao { display: inline-block; margin-top: 8px; font-size: 14px }
+.lembrete-destaque:hover .atalho-acao,
 button.inicio-atalho:hover .atalho-acao, a.inicio-atalho:hover .atalho-acao { text-decoration: underline; text-underline-offset: 4px }
 .cartao-link { text-align: left; width: 100%; font: inherit; color: inherit; cursor: pointer }
 @media (max-width: 1000px) { .inicio { grid-template-columns: 250px minmax(0, 1fr) } .inicio-dir { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) } }
@@ -509,6 +516,7 @@ aside > .botao-whatsapp { width: 100% }
 @media (max-width: 720px) {
   .inicio-esq { display: contents }
   .inicio .perfil { order: -2 }
+  .inicio .lembrete-destaque { order: -3 }
 }
 .gaveta-item > span:first-child { display: inline-flex; align-items: center; gap: 12px }
 .gaveta-item svg { color: var(--muted) }
@@ -804,3 +812,27 @@ tr.em-bloco { border-left: 0 } tr.em-bloco td:first-child { box-shadow: inset 3p
 .atalho-acao { margin-top: 14px; font-weight: 600; color: var(--accent) }
 .atalho:hover .atalho-acao { text-decoration: underline; text-underline-offset: 4px }
 @media (max-width: 640px) { .entrada-atalhos-grade { gap: 48px } }
+
+/* Padrão clean (pedido do Caiê): nada de caixas. Fundo único e blocos soltos separados só por uma linha fina,
+   como a seção "Tudo o que você precisa" da tela de entrada. Janelas (.modal) e campos continuam como estão. */
+body { background: var(--surface) }
+.subabas { background: var(--surface) }
+.panel, .perfil.panel { background: none !important; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none !important; padding: 22px 0 }
+.panel.cartao-whatsapp { border-bottom: 0 }
+.perfil.panel { color: inherit }
+.perfil-numeros { border-color: var(--line) !important }
+.perfil-numeros span { color: var(--muted) !important }
+.perfil .link { color: var(--accent); text-decoration: none }
+.perfil .meta { color: var(--muted) }
+.perfil > :first-child { box-shadow: none }
+.comecar { overflow: visible }
+.comecar-banner { background: none !important; border-bottom: 0 !important; padding: 0; min-height: 0 }
+.comecar-banner span { color: var(--muted) !important }
+.passos { padding: 6px 0 10px }
+.comecar .row.between { padding: 14px 0 0 !important }
+.como-funciona { background: none; border: 0; border-radius: 0; padding: 0; margin: 4px 0 8px; font-size: 13px }
+.como-funciona summary { width: fit-content; margin-left: auto; font-weight: 500; color: var(--muted) }
+.como-funciona[open] { padding-bottom: 10px; border-bottom: 1px solid var(--line) }
+.ofensiva, .aviso-ficha, .dica-macro { background: none; border: 0; border-left: 3px solid var(--accent); border-radius: 0; padding: 4px 0 4px 12px }
+.relato.pendente, .post.conquista { background: none !important }
+.post { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding-bottom: 8px }

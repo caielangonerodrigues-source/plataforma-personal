@@ -70,6 +70,17 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
 
   return (
     <div className="inicio">
+      {aviso && (
+        <button type="button" className="lembrete-destaque" onClick={() => irPara('novidades')}>
+          <IconeLinha d={ICONES.aviso} tamanho={34} />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <span className="atalho-rotulo">{TIPOS_AVISO[aviso.tipo]?.[0] || 'Aviso'} da academia{academia.novos > 1 ? ` · ${academia.novos} novas` : ''}</span>
+            <h3>{aviso.titulo}</h3>
+            {aviso.texto && <p>{aviso.texto}</p>}
+            <span className="atalho-acao">Ver novidades ›</span>
+          </div>
+        </button>
+      )}
       <aside className="stack inicio-esq">
         <div className="panel perfil">
           <Avatar nome={aluno.nome} avatar={avatar} fotos={dados?.fotos} tamanho={84} />
@@ -187,12 +198,6 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         {aula && (
           <Atalho icone={ICONES.bike} rotulo="Próxima aula" titulo={aula.nome} acao="Ver a grade" onClick={() => irPara('aulas')}>
             <p>{aula.emDias === 0 ? 'Hoje' : aula.emDias === 1 ? 'Amanhã' : DIAS_LONGOS[aula.dia_semana]} às {fmtHora(aula.hora)}</p>
-          </Atalho>
-        )}
-        {aviso && (
-          <Atalho icone={ICONES.aviso} rotulo={`${TIPOS_AVISO[aviso.tipo]?.[0] || 'Aviso'}${academia.novos > 0 ? ` · ${academia.novos} ${academia.novos === 1 ? 'nova' : 'novas'}` : ''}`}
-            titulo={aviso.titulo} acao="Ver novidades" onClick={() => irPara('novidades')}>
-            {aviso.texto && <p style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{aviso.texto}</p>}
           </Atalho>
         )}
         {!online && academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
