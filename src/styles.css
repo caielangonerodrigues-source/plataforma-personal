@@ -1008,3 +1008,47 @@ body { background: var(--surface) }
   .hero-chamada { bottom: 92px }
   .hero-pontos { bottom: 56px }
 }
+.conquistas-todas { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 16px }
+.conquistas-todas h3 { margin: 0; font-size: 17px }
+.conquistas-grupo { margin-top: 14px }
+.conquistas-grupo > .meta { font-weight: 600; margin-bottom: 6px }
+.conquistas-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 12px 8px }
+.conquistas-grade button { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: 0; padding: 4px 2px; font: inherit; color: inherit; text-align: center }
+.conquistas-grade button span { font-size: 12px; line-height: 1.25; font-weight: 600 }
+.conquistas-grade button small { font-size: 11px; color: var(--muted) }
+.conquistas-grade button.foco span { color: var(--accent) }
+
+/* Avaliação detalhada: resultados com faixa ideal + gráfico de barras; membros em direito e esquerdo */
+.aval-resultados { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 32px; margin-top: 18px; align-items: start }
+.grafico-composicao { margin: 0 }
+.grafico-composicao figcaption { font-weight: 700; font-size: 15px; margin-bottom: 6px }
+.grafico-composicao svg { width: 100%; height: auto; display: block }
+.tabela-lados { width: 100%; border-collapse: collapse; font-size: 15px }
+.tabela-lados th { font-size: 12px; font-weight: 600; color: var(--muted); text-align: right; padding: 4px 0; border-bottom: 1px solid var(--line) }
+.tabela-lados td { padding: 9px 0; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+.tabela-lados td:first-child { text-align: left }
+.tabela-lados td .dif { margin-left: 6px; display: inline-block; min-width: 0 }
+@media (max-width: 720px) {
+  .aval-resultados { grid-template-columns: 1fr }
+  .aval-resultados .medidas ul { display: block }
+}
+@media (max-width: 720px) { .medidas.uma-coluna ul { display: block } }
+
+/* Polimento da avaliação */
+.aval-resultados, .medidas-grid { margin-top: 26px }
+.medidas h3 { margin-bottom: 8px }
+.medidas li.total.res-bom strong { color: #1f9d55 }
+.medidas li.total.res-atencao strong { color: #e08a00 }
+.medidas li.total.res-ruim strong { color: #d64545 }
+.aval-meta-texto { margin: 10px 0 0; font-size: 14px; color: var(--ink) }
+.regua-gordura { margin: 30px 0 12px }
+.regua-faixas { position: relative; height: 10px; border-radius: 99px; overflow: visible }
+.regua-faixas i { position: absolute; top: 0; bottom: 0 }
+.regua-faixas .z-abaixo { background: #9cc3e6; border-radius: 99px 0 0 99px }
+.regua-faixas .z-ideal { background: #2f9e62 }
+.regua-faixas .z-media { background: #f2b33d }
+.regua-faixas .z-acima { background: #e06a5a; border-radius: 0 99px 99px 0 }
+.regua-faixas b { position: absolute; top: -6px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--surface) }
+.regua-faixas b span { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 800; white-space: nowrap; color: var(--ink) }
+.regua-legenda { position: relative; height: 16px; margin-top: 8px; font-size: 11px; color: var(--muted) }
+.regua-legenda span { position: absolute; transform: translateX(-50%); white-space: nowrap }

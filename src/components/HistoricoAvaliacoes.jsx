@@ -4,7 +4,7 @@ import { PROTOCOLOS } from '../lib/pollock.js'
 import { f1, fmtData } from '../lib/formato.js'
 
 // Área do aluno: a avaliação escolhida em detalhe (a mais recente, de início) e a lista de todas para abrir as anteriores.
-export default function HistoricoAvaliacoes({ avaliacoes, sexo }) {
+export default function HistoricoAvaliacoes({ avaliacoes, sexo, idade }) {
   const [sel, setSel] = useState(null) // índice na lista em ordem de data; null = a mais recente
   const topo = useRef(null)
   const i = sel ?? avaliacoes.length - 1
@@ -13,7 +13,7 @@ export default function HistoricoAvaliacoes({ avaliacoes, sexo }) {
   return (
     <>
       <span ref={topo} style={{ display: 'block', scrollMarginTop: 120 }} />
-      <Composicao avaliacao={u} anterior={avaliacoes[i - 1]} sexo={sexo} titulo={ultima ? 'Última avaliação' : `Avaliação de ${fmtData(u.data)}`} />
+      <Composicao avaliacao={u} anterior={avaliacoes[i - 1]} sexo={sexo} idade={idade} titulo={ultima ? 'Última avaliação' : `Avaliação de ${fmtData(u.data)}`} />
       {avaliacoes.length > 1 && (
         <div className="panel">
           <h2 style={{ marginBottom: 4 }}>Todas as avaliações</h2>

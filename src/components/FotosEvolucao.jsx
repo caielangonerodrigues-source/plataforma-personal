@@ -56,7 +56,7 @@ export default function FotosEvolucao({ alunoId, podeApagar }) {
   return (
     <div className="panel stack">
       <div className="row between">
-        <h2>Fotos de evolução</h2>
+        <h2>Fotos de antes e depois</h2>
         <div className="row" style={{ gap: 6 }}>
           {ANGULOS.map(([k, l]) => <button key={k} className={`small${k === angulo ? ' primary' : ''}`} onClick={() => setAngulo(k)}>{l}</button>)}
         </div>

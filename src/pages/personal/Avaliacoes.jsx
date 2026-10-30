@@ -3,7 +3,8 @@ import { supabase } from '../../supabase.js'
 import Modal from '../../components/Modal.jsx'
 import Grafico from '../../components/Grafico.jsx'
 import Composicao from '../../components/Composicao.jsx'
-import { DOBRAS, DOBRAS_EXTRAS, PERIMETROS, PROTOCOLOS, calcGordura, classificacao, dobrasDo, imc, massaMagra } from '../../lib/pollock.js'
+import FotosEvolucao from '../../components/FotosEvolucao.jsx'
+import { DOBRAS, DOBRAS_EXTRAS, PERIMETROS, PROTOCOLOS, calcGordura, classificacao, dobrasDo, idadeDoAluno, imc, massaMagra } from '../../lib/pollock.js'
 import { f1, fmtData, hojeISO, num } from '../../lib/formato.js'
 
 const COLUNAS = [['peso', 'Peso kg'], ['gordura', '% gord.'], ['mm', 'M. magra kg'], ['imc', 'IMC'], ['cintura', 'Cintura'], ['quadril', 'Quadril'], ['braco', 'Braço'], ['coxa', 'Coxa']]
@@ -27,8 +28,9 @@ export default function Avaliacoes({ aluno, recarregar }) {
         <button className="primary small" onClick={() => setNova(true)}>Nova avaliação</button>
       </div>
       <div className="stack">
-        {u && <Composicao avaliacao={u} anterior={av.at(-2)} sexo={aluno.sexo} />}
+        {u && <Composicao avaliacao={u} anterior={av.at(-2)} sexo={aluno.sexo} idade={idadeDoAluno(aluno)} />}
         <div className="panel"><Grafico avaliacoes={av} /></div>
+        <FotosEvolucao alunoId={aluno.id} podeApagar />
         {av.length > 0 && (
           <div className="panel tablewrap">
             <table>

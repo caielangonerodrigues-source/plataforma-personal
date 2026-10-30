@@ -78,6 +78,23 @@ export default function Medalhas({ datas, registros = [], avaliacoes = 0, desafi
         </div>
         <div className="bar grossa"><i style={{ width: `${Math.round((m.valor / m.meta) * 100)}%` }} /></div>
       </div>
+      <div className="conquistas-todas">
+        <div className="row between"><h3>Todas as medalhas</h3><span className="meta">{ganhas} de {lista.length} conquistadas</span></div>
+        {grupos.map((g) => (
+          <div key={g} className="conquistas-grupo">
+            <div className="meta">{g}</div>
+            <div className="conquistas-grade">
+              {lista.filter((x) => x.grupo === g).map((x) => (
+                <button key={x.id} className={x.id === m.id ? 'foco' : ''} title={x.descricao} onClick={() => { setGrupo(g); setSel(x.id); trilho.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }}>
+                  <Moeda m={x} estado={x.ganhou ? 'ganhou' : 'bloqueada'} tamanho={64} />
+                  <span>{x.titulo}</span>
+                  {!x.ganhou && <small>{x.valor}/{x.meta}</small>}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
