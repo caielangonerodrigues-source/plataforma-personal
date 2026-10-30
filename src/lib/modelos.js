@@ -31,7 +31,7 @@ export const MODELOS_PRONTOS = [
 export function fichasDoAluno(treinos) {
   return treinos.map((t) => ({
     nome: t.nome, foco: t.foco,
-    exercicios: t.exercicios.map(({ nome, series, reps, carga, descanso, obs, video_url }) => ({ nome, series, reps, carga, descanso, obs, video_url })),
+    exercicios: t.exercicios.map(({ nome, series, reps, carga, descanso, obs, video_url, metodo }) => ({ nome, series, reps, carga, descanso, obs, video_url, ...(metodo ? { metodo } : {}) })),
   }))
 }
 

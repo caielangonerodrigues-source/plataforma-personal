@@ -191,6 +191,8 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
    - **Resumo da semana**: toda segunda, o aluno recebe quantas vezes treinou na semana anterior e a comparação com as outras semanas.
    - **Equipes automáticas**: aluno novo entra sozinho na equipe com menos gente. Em **Academia › Equipes**, o botão "Dividir entre as equipes" distribui quem está sem equipe.
    - **Aula experimental**: em **Vendas › Página e planos**, coloque os horários livres. A pessoa marca pela página de vendas, e a aula aparece em Interessados e na Agenda.
+   - **Check-in de musculação**: o aluno marca os grupos treinados e a duração; o post mostra o bonequinho.
+   - **Métodos de treino** no exercício (rest-pause, drop set, bi-set, tri-set, superset, série gigante, pirâmide, cluster, FST-7...): escolha em **Editar** no exercício. Para bi-set e afins, marque o mesmo método nos exercícios seguidos (use ↑ para mudar a ordem).
 
 ## Desenvolvimento
 

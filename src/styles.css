@@ -764,6 +764,14 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .corpo-legenda .corpo-foco { color: var(--ink) }
 .corpo-legenda .corpo-foco i { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent) }
 .corpo-img img.ativo { filter: drop-shadow(0 0 1.5px rgb(160 40 0 / .9)) }
+.pill.metodo { background: var(--accent-soft); color: var(--accent); border: 0; cursor: pointer; font-family: inherit; margin-top: 3px }
+.pill.metodo span { font-weight: 400; opacity: .8 }
+.metodo-texto { font-size: 13px; line-height: 1.4; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; margin: 4px 0 2px }
+.em-bloco { border-left: 3px solid var(--accent); padding-left: 10px; margin-left: -2px }
+tr.em-bloco { border-left: 0 } tr.em-bloco td:first-child { box-shadow: inset 3px 0 0 var(--accent); padding-left: 12px }
+.em-bloco.bloco-inicio { margin-top: 10px; border-top-left-radius: 6px }
+.em-bloco.bloco-fim { margin-bottom: 10px; border-bottom-left-radius: 6px }
+.bloco-titulo { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .04em; padding-top: 6px }
 .foco-musculo { font-size: 12px; font-weight: 600; color: var(--accent); margin-top: 1px }
 .corpo-mini { background: none; border: 0; padding: 0; cursor: pointer; line-height: 0 }
 .corpo-mini figcaption { display: none }
