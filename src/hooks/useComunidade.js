@@ -6,12 +6,15 @@ import { EMOJIS, acaoReacao } from '../lib/reacoes.js'
 import { avisarInteracao } from '../lib/push.js'
 import { reduzirFoto } from '../lib/foto.js'
 
-// Nome do personal: o próprio cadastro (quando quem abre é o personal) ou o do personal do aluno.
-async function nomeDoPersonal() {
+// Nome e avatar do personal da turma, para as fotos e comentários dele no feed.
+// Sem o SQL do avatar do personal, cai no nome (cadastro próprio ou o do personal do aluno).
+async function personalDoGrupo() {
+  const r = await supabase.rpc('personal_do_grupo')
+  if (!r.error && r.data?.[0]) return { nome: r.data[0].nome || 'Personal', avatar: r.data[0].avatar }
   const { data: eu } = await supabase.from('personais').select('nome').limit(1)
-  if (eu?.[0]?.nome) return eu[0].nome
+  if (eu?.[0]?.nome) return { nome: eu[0].nome }
   const { data } = await supabase.rpc('pix_do_personal')
-  return data?.[0]?.nome || 'Personal'
+  return { nome: data?.[0]?.nome || 'Personal' }
 }
 
 // Curtidas com o emoji de cada reação; sem o SQL das reações, lê só as curtidas (viram ❤️).
@@ -35,7 +38,7 @@ export function useComunidade() {
       supabase.from('conquistas').select('*').eq('visivel', true).order('created_at', { ascending: false }).limit(20),
       supabase.from('desafios').select('*').order('fim'),
       supabase.from('equipes').select('*').order('nome'), // SQL novo: sem ele, sem equipes
-      nomeDoPersonal(), // para assinar as fotos que o personal posta no feed
+      personalDoGrupo(), // para assinar as fotos que o personal posta no feed
     ])
     // Check-ins desde o começo do mês ou do desafio ativo mais antigo (para ranking e desafios).
     const desde = [inicioDoMes(hoje), ...(desafios.data || []).filter((d) => d.fim >= hoje).map((d) => d.inicio)].sort()[0]
@@ -44,7 +47,7 @@ export function useComunidade() {
     if (falha) return setErro(`Não foi possível carregar a comunidade: ${falha.message}`)
     const ids = feed.data.map((c) => c.id)
     const caminhos = feed.data.map((c) => c.foto).filter(Boolean)
-    const avatares = membros.data.map((m) => m.avatar).filter((a) => a && !a.startsWith('p:'))
+    const avatares = [...membros.data.map((m) => m.avatar), personal.avatar].filter((a) => a && !a.startsWith('p:'))
     // Comentários e avatares são do SQL novo: se ainda não rodou, só não aparecem.
     const idsConquistas = conquistas.error ? [] : conquistas.data.map((c) => c.id)
     const [curtidas, fotos, comentarios, fotosAvatar, reacoesConquistas] = await Promise.all([

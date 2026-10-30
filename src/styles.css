@@ -865,3 +865,7 @@ body { background: var(--surface) }
 .aviso .aviso-tipo, .lembrete-destaque .atalho-rotulo { color: var(--cor-tipo) }
 .lembrete-destaque { border-left-color: var(--cor-tipo) }
 .aviso h2 { font-size: 20px }
+.pedir-notificacoes { max-width: 380px; margin-top: 18vh; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px }
+.pedir-notificacoes h2 { margin: 6px 0 0 }
+.pedir-notificacoes p { margin: 0 0 6px }
+.pedir-notificacoes button.primary { width: 100% }

@@ -3,6 +3,7 @@ import { supabase } from '../../supabase.js'
 import { pixCopiaECola } from '../../lib/pix.js'
 import { num } from '../../lib/formato.js'
 import AtivarNotificacoes from '../../components/AtivarNotificacoes.jsx'
+import EditarAvatar from '../../components/EditarAvatar.jsx'
 import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Configuracoes() {
@@ -37,6 +38,7 @@ export default function Configuracoes() {
       <h1>Configurações</h1>
       <p className="sub">Seus dados e a chave Pix das mensalidades.</p>
       <AjudaDaPagina />
+      <div style={{ maxWidth: 640, marginBottom: 12 }}><EditarAvatar personal={d} onMudou={(avatar) => setD({ ...d, avatar })} /></div>
       <form className="stack" style={{ maxWidth: 640 }} onSubmit={salvar}>
         <div className="panel form">
           <div className="secao" style={{ marginTop: 0 }}>Seus dados</div>
