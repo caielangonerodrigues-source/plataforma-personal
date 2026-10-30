@@ -113,6 +113,14 @@ function Interessados() {
   )
 }
 
+// Planos e texto prontos da consultoria do Caiê: um toque em "Usar planos sugeridos" cria tudo (depois dá para editar).
+const PLANOS_SUGERIDOS = [
+  { nome: 'Consultoria Online', preco: 149.9, periodo: 'mês', destaque: false, ordem: 0, itens: 'Treino personalizado no app\nAvaliação física por fotos e medidas\nAjustes mensais do treino\nAcompanhamento pelo aplicativo\nSuporte por mensagens' },
+  { nome: 'Consultoria Premium', preco: 199.9, periodo: 'mês', destaque: true, ordem: 1, itens: 'Tudo do plano Consultoria Online\nAvaliação física presencial\nReavaliação presencial no fim do ciclo\nCheck-in semanal e ajustes conforme a evolução\nAcompanhamento mais próximo' },
+]
+const TITULO_SUGERIDO = 'Treine comigo de onde estiver'
+const TEXTO_SUGERIDO = 'Na consultoria online você recebe um treino montado para o seu objetivo e a sua rotina, acompanha tudo pelo app e recebe meus ajustes conforme evolui. Serve para quem treina em qualquer academia ou em casa. No fim de cada ciclo a gente reavalia e você decide se renova.'
+
 function Pagina() {
   const [d, setD] = useState(null)
   const [planos, setPlanos] = useState([])
@@ -142,6 +150,14 @@ function Pagina() {
     if (error) return setErro(`Não foi possível salvar: ${error.message}`)
     setErro(''); setAviso('Página salva.')
   }
+  async function usarSugeridos() {
+    const { error } = await supabase.from('planos_consultoria').insert(PLANOS_SUGERIDOS)
+    if (error) return setErro(`Não foi possível criar os planos: ${error.message}`)
+    const pagina = { venda_ativa: true, venda_titulo: d.venda_titulo?.trim() || TITULO_SUGERIDO, venda_texto: d.venda_texto?.trim() || TEXTO_SUGERIDO }
+    await supabase.from('personais').update(pagina).eq('user_id', d.user_id)
+    setD({ ...d, ...pagina }); setErro(''); setAviso('Planos criados e página no ar.')
+    carregar()
+  }
   async function apagarPlano(p) {
     if (!confirm(`Apagar o plano "${p.nome}"?`)) return
     await supabase.from('planos_consultoria').delete().eq('id', p.id)
@@ -167,7 +183,13 @@ function Pagina() {
 
       <div className="panel">
         <div className="row between" style={{ marginBottom: 8 }}><h2>Planos</h2><button className="small" onClick={() => setEditando({})}>Novo plano</button></div>
-        {planos.length === 0 ? <p className="empty">Sem planos, a página mostra só o formulário de contato.</p> : (
+        {planos.length === 0 ? (
+          <div className="stack" style={{ gap: 8 }}>
+            <p className="empty" style={{ margin: 0 }}>Sem planos, a página mostra só o formulário de contato.</p>
+            <p className="meta" style={{ margin: 0 }}>Sugestão: Consultoria Online (R$ 149,90) e Consultoria Premium (R$ 199,90, com avaliação presencial). Também preenche o título e o texto da página, se estiverem vazios, e coloca a página no ar.</p>
+            <div><button className="primary" onClick={usarSugeridos}>Usar planos sugeridos</button></div>
+          </div>
+        ) : (
           <div className="list">
             {planos.map((p) => (
               <div key={p.id} className="item" style={{ cursor: 'default' }}>
@@ -202,13 +224,13 @@ function FormPlano({ plano, onFechar, onSalvo }) {
       <label>Por<input maxLength={20} placeholder="mês, trimestre…" {...campo('periodo')} /></label>
       <label className="full">O que inclui (um item por linha)<textarea rows={5} maxLength={1000} placeholder={'Treino no app com vídeos\nAvaliação online a cada 15 dias\nSuporte no WhatsApp'} {...campo('itens')} /></label>
       <label className="full" style={{ flexDirection: 'row', alignItems: 'center', gap: 10, textTransform: 'none', letterSpacing: 0, fontSize: 14, color: 'var(--ink)' }}>
-        <input type="checkbox" style={{ width: 18, height: 18 }} checked={d.destaque} onChange={(e) => setD({ ...d, destaque: e.target.checked })} /> Destacar como "mais escolhido"
+        <input type="checkbox" style={{ width: 18, height: 18 }} checked={d.destaque} onChange={(e) => setD({ ...d, destaque: e.target.checked })} /> Destacar como "minha recomendação"
       </label>
     </Modal>
   )
 }
 
-// Horários livres para aula experimental: a pessoa escolhe um deles na página de vendas e cai na Agenda.
+// Horários livres para aula experimental: a pessoa escolhe um deles em /experimental e cai na Agenda.
 function HorariosExperimental() {
   const [lista, setLista] = useState(null)
   const [userId, setUserId] = useState(null)
@@ -236,7 +258,7 @@ function HorariosExperimental() {
     <div className="panel">
       <h2>Aula experimental</h2>
       <p className="meta" style={{ margin: '2px 0 12px' }}>
-        Coloque os horários em que você pode dar uma aula experimental. Na página de vendas, a pessoa escolhe um dia dos próximos 14 dias e já aparece aqui em Interessados e na sua Agenda. Cada horário só pode ser marcado por uma pessoa por dia.
+        Coloque os horários em que você pode dar uma aula experimental. Na tela de entrada do site aparece "Aula experimental" (link direto: /experimental); a pessoa escolhe um dia dos próximos 14 dias e já aparece aqui em Interessados e na sua Agenda. Cada horário só pode ser marcado por uma pessoa por dia.
       </p>
       {erro && <p className="erro">{erro}</p>}
       {lista && (

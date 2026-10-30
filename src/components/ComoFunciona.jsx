@@ -108,7 +108,7 @@ export const AJUDA_PERSONAL = {
   '/aulas': ['Aulas de spinning: bikes reservadas, pagamentos para confirmar, lista de espera e pacotes.'],
   '/vendas': [
     'Página de vendas da consultoria online e os contatos de quem se interessou (leads).',
-    'Aula experimental: em "Página e planos" coloque seus horários livres. A pessoa marca pela página e aparece aqui e na Agenda.',
+    'Aula experimental: em "Página e planos" coloque seus horários livres. A pessoa marca pela tela de entrada do site (Aula experimental) e aparece aqui e na Agenda.',
   ],
   '/financeiro': ['Mensalidades do mês: quem pagou, quem está para vencer e quem está atrasado. Marque o pagamento quando receber o Pix.'],
   '/configuracoes': ['Seus dados, chave Pix, prazo para trocar ficha, mensagem de motivação automática e notificações neste celular.'],
