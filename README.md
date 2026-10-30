@@ -225,6 +225,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-avaliacao-medidas.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Em **Nova avaliação** aparecem pescoço, ombros, peitoral, abdômen, panturrilha e os lados direito e esquerdo de braço, coxa e panturrilha, além de dobras extras (bíceps, panturrilha e as que não entram no protocolo escolhido).
 
+### 19. Foto de avatar dos personais da equipe
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-avatar-equipe.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. A foto que cada personal da equipe coloca em **Configurações › Seu avatar** passa a aparecer para ele, para a equipe e para os alunos.
+
 ## Desenvolvimento
 
 ```bash
