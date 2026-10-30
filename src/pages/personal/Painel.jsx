@@ -10,9 +10,12 @@ import { ListaFeedbacks } from '../../components/ComoFoiTreino.jsx'
 import { atendimentos } from '../../lib/agenda.js'
 import { fichasParaTrocar, DIAS_REAVALIACAO } from '../../lib/ficha.js'
 import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
+import FaixaFoto, { saudacao } from '../../components/FaixaFoto.jsx'
+import IconeLinha, { ICONES } from '../../components/IconeLinha.jsx'
 
 export default function Painel() {
   const [alunos, setAlunos] = useState(null)
+  const [nome, setNome] = useState('')
   const [treinaramHoje, setTreinaramHoje] = useState(0)
   const [envios, setEnvios] = useState([])
   const [videos, setVideos] = useState([]) // vídeos de execução sem correção
@@ -35,7 +38,10 @@ export default function Painel() {
     supabase.rpc('aplicar_fases').then(() => supabase.from('alunos').select('*, avaliacoes(data, peso, gordura), treinos(*)').order('nome'))
       .then(({ data, error }) => (error ? setErro(error.message) : setAlunos(data.map((a) => ({ ...a, treinos: a.treinos.filter((t) => !t.arquivado) })))))
     // Prazo de troca de ficha e quem já tem fase programada (sem o SQL novo, fica o padrão de 6 semanas).
-    supabase.from('personais').select('*').maybeSingle().then(({ data }) => data?.trocar_ficha_semanas && setPrazoFicha(data.trocar_ficha_semanas))
+    supabase.from('personais').select('*').maybeSingle().then(({ data }) => {
+      if (data?.nome) setNome(data.nome)
+      if (data?.trocar_ficha_semanas) setPrazoFicha(data.trocar_ficha_semanas)
+    })
     supabase.from('fases').select('aluno_id').is('aplicada_em', null).then(({ data }) => setComFase(new Set((data || []).map((f) => f.aluno_id))))
     // Uma vez por dia, manda a notificação das fichas vencidas (aluno e personal).
     try {
@@ -104,8 +110,8 @@ export default function Painel() {
 
   return (
     <>
-      <h1>Painel</h1>
-      <p className="sub">Resumo dos seus alunos hoje.</p>
+      <FaixaFoto baixa rotulo="Painel" titulo={`${saudacao()}${nome ? `, ${primeiroNome(nome)}` : ''}.`}
+        texto={`${ativos} ${ativos === 1 ? 'aluno ativo' : 'alunos ativos'} · ${treinaramHoje} ${treinaramHoje === 1 ? 'treinou' : 'treinaram'} hoje. Aqui está o resumo do dia.`} />
       <AjudaDaPagina />
       <div className="kpis" style={{ marginBottom: 20 }}>
         <div className="panel kpi"><div className="n">{alunos.length}</div><div className="l">Alunos</div></div>
@@ -173,7 +179,7 @@ export default function Painel() {
                   <Link to={`/alunos/${a.id}`} style={{ color: 'inherit', textDecoration: 'none', minWidth: 0 }}>
                     <div className="name">{a.nome}</div><div className="meta">{em === 0 ? 'Hoje' : em === 1 ? 'Amanhã' : fmtData(data).slice(0, 5)} · faz {idade} anos</div>
                   </Link>
-                  {zap && em === 0 ? <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer">Dar parabéns</a> : <span className="meta">🎂</span>}
+                  {zap && em === 0 ? <a className="pill pendente" style={{ textDecoration: 'none' }} href={zap} target="_blank" rel="noreferrer">Dar parabéns</a> : <IconeLinha d={ICONES.presente} tamanho={22} />}
                 </div>
               )
             })}

@@ -83,7 +83,7 @@ export const SLIDES = [
 ]
 
 // Fotos do personal (tabela fotos_entrada, bucket público "entrada"); sem o SQL novo, lista vazia.
-function useFotosDoPersonal() {
+export function useFotosDoPersonal() {
   const [fotos, setFotos] = useState([])
   useEffect(() => {
     supabase?.from('fotos_entrada').select('*').order('ordem').order('created_at').limit(8).then(({ data, error }) => {

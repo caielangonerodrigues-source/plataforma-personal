@@ -9,6 +9,7 @@ import { medalhas, progressoDesafio, proximaMedalha } from '../lib/medalhas.js'
 import { ofensiva } from '../lib/semana.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
 import Corpo from './Corpo.jsx'
+import FaixaFoto from './FaixaFoto.jsx'
 import { SeloAviso } from './NovidadesAcademia.jsx'
 import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
@@ -71,6 +72,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
 
   return (
     <div className="inicio">
+      <InicioHero aluno={aluno} ficha={ficha} feitosHoje={feitosHoje} treinouHoje={dias.includes(hoje)} irPara={irPara} onCheckin={onCheckin} />
       {aviso && (
         <button type="button" className={`lembrete-destaque tipo-${aviso.tipo in TIPOS_AVISO ? aviso.tipo : 'novidade'}`} onClick={() => irPara('novidades')}>
           <SeloAviso tipo={aviso.tipo} tamanho={42} />
@@ -171,7 +173,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
               <div><span className="name">{ficha.nome}</span>{ficha.foco && <span className="meta"> · {ficha.foco}</span>}</div>
               <div className="meta">{feitosHoje} de {ficha.exercicios.length} exercícios feitos hoje</div>
               <div className="bar"><i style={{ width: `${ficha.exercicios.length ? Math.round((feitosHoje / ficha.exercicios.length) * 100) : 0}%` }} /></div>
-              <div><button className="primary" onClick={() => irPara('treino')}>{feitosHoje ? 'Continuar treino' : 'Começar treino'}</button></div>
+              <div><button className="link" onClick={() => irPara('treino')}>Ver a ficha ›</button></div>
             </>
           ) : <p className="meta" style={{ margin: 0 }}>{treinos ? 'Seu personal ainda está montando sua ficha.' : 'Carregando…'}</p>}
         </div>
@@ -239,6 +241,29 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   )
 }
 
+// Faixa de foto no topo do Início: o treino do dia com o botão laranja para começar.
+function InicioHero({ aluno, ficha, feitosHoje, treinouHoje, irPara, onCheckin }) {
+  const nome = primeiroNome(aluno.nome)
+  const total = ficha?.exercicios.length || 0
+  const terminou = total > 0 && feitosHoje >= total
+  const titulo = terminou || (treinouHoje && !ficha) ? `Treino feito, ${nome}.` : feitosHoje ? `Falta pouco, ${nome}.` : `Bora treinar, ${nome}.`
+  const texto = !ficha ? 'Seu personal está montando sua ficha. Enquanto isso, registre seu treino com um check-in.'
+    : terminou ? 'Todos os exercícios de hoje feitos. Registre com uma foto e mantenha a sequência.'
+      : feitosHoje ? `${feitosHoje} de ${total} exercícios feitos hoje. Termine o treino e registre com uma foto.`
+        : `${total} exercícios te esperando hoje. A turma já está treinando.`
+  const checkin = treinouHoje ? 'Novo check-in' : 'Fazer check-in'
+  return (
+    <FaixaFoto rotulo={ficha && `Treino de hoje · ${ficha.nome}${ficha.foco ? ` · ${ficha.foco}` : ''}`} titulo={titulo} texto={texto}>
+      {ficha && !terminou ? (
+        <div className="faixa-foto-acoes">
+          <button className="hero-cta" onClick={() => irPara('treino')}>{feitosHoje ? 'Continuar treino' : 'Começar treino'}</button>
+          <button className="hero-link" onClick={onCheckin}>{checkin}</button>
+        </div>
+      ) : <div className="faixa-foto-acoes"><button className="hero-cta" onClick={onCheckin}>{checkin}</button></div>}
+    </FaixaFoto>
+  )
+}
+
 // Atalho sem caixa, no padrão da tela de entrada: ícone de traço, título, texto e ação em laranja.
 function Atalho({ icone, rotulo, titulo, acao, onClick, href, children }) {
   const conteudo = (
@@ -285,21 +310,30 @@ function DietaDeHoje({ aluno, hoje, irPara }) {
 }
 
 // Bonequinho com os músculos treinados desde segunda: quanto mais forte o laranja, mais vezes trabalhou.
+// Ao lado, a lista dos músculos da semana com uma barra fina, como uma seção da tela de entrada.
 function MusculosDaSemana({ registros, treinos, desde }) {
   const nomes = Object.fromEntries(treinos.flatMap((t) => t.exercicios || []).map((e) => [e.id, e.nome]))
   const feitos = registros.filter((r) => r.data >= desde).map((r) => r.troca || nomes[r.exercicio_id]).filter(Boolean)
   const conta = cargaPorMusculo(feitos)
   const intensidade = Object.fromEntries(Object.entries(conta).map(([m, n]) => [m, Math.min(1, n / 2)]))
   const faltou = faltouNaSemana(conta)
+  const treinados = Object.entries(conta).sort((a, b) => b[1] - a[1])
+  const maior = treinados[0]?.[1] || 1
+  const total = Object.keys(MUSCULOS).length
   return (
-    <div className="panel musculos-semana">
-      <h3>Músculos da semana</h3>
-      <Corpo intensidade={intensidade} tamanho={80} />
-      <p className="meta" style={{ margin: 0 }}>
-        {!feitos.length ? 'Marque os exercícios no treino e o bonequinho vai acendendo.'
-          : faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.`
-            : 'Corpo todo treinado nesta semana'}
-      </p>
-    </div>
+    <section className="panel musculos-semana">
+      <span className="atalho-rotulo">Desde segunda</span>
+      <h2>Músculos da semana.</h2>
+      <p className="meta">{treinados.length ? `${treinados.length} de ${total} grupos treinados` : 'Marque os exercícios no treino e o bonequinho vai acendendo.'}</p>
+      <Corpo intensidade={intensidade} tamanho={104} />
+      {treinados.length > 0 && (
+        <ul className="musculos-lista">
+          {treinados.slice(0, 6).map(([m, n]) => (
+            <li key={m}><span>{MUSCULOS[m]}</span><i><b style={{ width: `${Math.round((n / maior) * 100)}%` }} /></i></li>
+          ))}
+        </ul>
+      )}
+      {feitos.length > 0 && <p className="meta">{faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.` : 'Corpo todo treinado nesta semana.'}</p>}
+    </section>
   )
 }
