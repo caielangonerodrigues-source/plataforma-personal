@@ -32,7 +32,7 @@ import CompartilharStory from '../../components/CompartilharStory.jsx'
 import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
 import BarraApp, { Icone } from '../../components/BarraApp.jsx'
 import Corpo, { CorpoMini } from '../../components/Corpo.jsx'
-import { MUSCULOS, musculosDoExercicio } from '../../lib/musculos.js'
+import { musculosDoExercicio, nomeMusculo } from '../../lib/musculos.js'
 import { METODOS, blocosDeMetodo } from '../../lib/metodos.js'
 import Voce from '../../components/Voce.jsx'
 import ComoFunciona, { AJUDA_ALUNO } from '../../components/ComoFunciona.jsx'
@@ -524,8 +524,8 @@ function MusculosDoTreino({ nomes }) {
       <Corpo principais={principais} secundarios={secundarios} tamanho={44} legenda={false} />
       <div style={{ minWidth: 0 }}>
         <div className="name">Hoje você trabalha</div>
-        <div className="meta">{principais.map((m) => MUSCULOS[m]).join(', ')}</div>
-        {secundarios.length > 0 && <div className="meta" style={{ fontSize: 12 }}>e ajuda: {secundarios.map((m) => MUSCULOS[m]).join(', ')}</div>}
+        <div className="meta">{principais.map((m) => nomeMusculo(m)).join(', ')}</div>
+        {secundarios.length > 0 && <div className="meta" style={{ fontSize: 12 }}>e ajuda: {secundarios.map((m) => nomeMusculo(m)).join(', ')}</div>}
         <div className="meta" style={{ fontSize: 12 }}>Toque no bonequinho de cada exercício para ver os músculos dele.</div>
       </div>
     </div>
