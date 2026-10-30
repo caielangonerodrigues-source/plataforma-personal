@@ -5,6 +5,7 @@ import { hojeISO } from '../lib/formato.js'
 import { reduzirFoto } from '../lib/foto.js'
 import { lugarDoCheckin, posicaoAtual } from '../lib/localizacao.js'
 import IconeLinha, { ICONES } from './IconeLinha.jsx'
+import RecortarFoto from './RecortarFoto.jsx'
 import { ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, resumoCardio, resumoMusculacao, resumoTreino, ritmo, tituloMusculacao } from '../lib/social.js'
 
 const OUTRO = 'outro'
@@ -23,6 +24,7 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
   const [tempo, setTempo] = useState('')
   const [comentario, setComentario] = useState('')
   const [foto, setFoto] = useState(null)
+  const [recortando, setRecortando] = useState(null)
   const [preview, setPreview] = useState('')
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -46,9 +48,15 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
 
   function escolherFoto(e) {
     const f = e.target.files?.[0]
+    e.target.value = ''
     if (!f) return
     if (!f.type.startsWith('image/')) return setErro('Escolha um arquivo de imagem.')
-    setErro(''); setFoto(f); setPreview(URL.createObjectURL(f))
+    setErro(''); setRecortando(f)
+  }
+
+  // Enquadrada em 4:5, o mesmo formato do feed.
+  function usarFoto(blob) {
+    setRecortando(null); setFoto(blob); setPreview(URL.createObjectURL(blob))
   }
 
   const hoje = hojeISO()
@@ -128,6 +136,7 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
         </label>
       </div>
       {preview && <img className="foto-preview full" src={preview} alt="Prévia da foto" />}
+      {recortando && <RecortarFoto arquivo={recortando} proporcao={4 / 5} onPronto={usarFoto} onCancelar={() => setRecortando(null)} />}
       <div className="full checkin-local">
         <label className="checkbox"><input id="checkin-com-local" type="checkbox" checked={comLocal} onChange={(e) => setComLocal(e.target.checked)} />Mostrar onde treinei</label>
         {comLocal && (
