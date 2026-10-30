@@ -13,9 +13,12 @@ async function fotoQuadrada(arquivo, lado = 400) {
   return new Promise((ok, erro) => canvas.toBlob((b) => (b ? ok(b) : erro(new Error('Não foi possível ler a foto.'))), 'image/jpeg', 0.85))
 }
 
-// Área do aluno: tirar uma foto ou escolher um avatar pronto (aparece na comunidade).
-export default function EditarAvatar({ aluno, onMudou }) {
-  const [avatar, setAvatar] = useState(aluno.avatar || null)
+// Tirar uma foto ou escolher um avatar pronto (aparece na comunidade). Serve para o aluno e, com `personal`,
+// para o personal (a foto vai para a pasta dele e o banco salva em personais).
+export default function EditarAvatar({ aluno, personal, onMudou }) {
+  const dono = personal ? { id: personal.user_id, nome: personal.nome, avatar: personal.avatar } : aluno
+  const rpc = personal ? 'definir_avatar_personal' : 'definir_avatar'
+  const [avatar, setAvatar] = useState(dono.avatar || null)
   const [fotos, setFotos] = useState({})
   const [ocupado, setOcupado] = useState(false)
   const [erro, setErro] = useState('')
@@ -30,10 +33,10 @@ export default function EditarAvatar({ aluno, onMudou }) {
 
   async function salvar(novo) {
     setOcupado(true); setErro('')
-    const { error } = await supabase.rpc('definir_avatar', { p_avatar: novo })
+    const { error } = await supabase.rpc(rpc, { p_avatar: novo })
     if (error) {
       setOcupado(false)
-      return setErro(error.message.includes('definir_avatar') ? 'Peça ao seu personal para atualizar o sistema.' : 'Não foi possível salvar. Tente de novo.')
+      return setErro(error.message.includes(rpc) ? (personal ? 'Falta rodar o SQL do avatar do personal (README, passo 14).' : 'Peça ao seu personal para atualizar o sistema.') : 'Não foi possível salvar. Tente de novo.')
     }
     const antigo = lerAvatar(avatar)
     if (antigo?.tipo === 'foto' && antigo.caminho !== novo) await supabase.storage.from('avatares').remove([antigo.caminho])
@@ -47,7 +50,7 @@ export default function EditarAvatar({ aluno, onMudou }) {
     setOcupado(true); setErro('')
     try {
       const blob = await fotoQuadrada(arquivo)
-      const caminho = `${aluno.id}/${crypto.randomUUID()}.jpg`
+      const caminho = `${dono.id}/${crypto.randomUUID()}.jpg`
       const { error } = await supabase.storage.from('avatares').upload(caminho, blob, { contentType: 'image/jpeg' })
       if (error) throw error
       setFotos((f) => ({ ...f, [caminho]: URL.createObjectURL(blob) }))
@@ -61,10 +64,10 @@ export default function EditarAvatar({ aluno, onMudou }) {
   return (
     <div className="panel stack" style={{ gap: 12 }}>
       <div className="row" style={{ gap: 14, flexWrap: 'nowrap' }}>
-        <Avatar nome={aluno.nome} avatar={avatar} fotos={fotos} tamanho={72} />
+        <Avatar nome={dono.nome} avatar={avatar} fotos={fotos} tamanho={72} />
         <div style={{ minWidth: 0 }}>
           <h2 style={{ margin: 0 }}>Seu avatar</h2>
-          <p className="meta" style={{ margin: '2px 0 0' }}>Aparece no feed, nos comentários e no ranking da comunidade.</p>
+          <p className="meta" style={{ margin: '2px 0 0' }}>{personal ? 'Aparece nas suas fotos e comentários na comunidade.' : 'Aparece no feed, nos comentários e no ranking da comunidade.'}</p>
         </div>
       </div>
       <div className="row" style={{ gap: 8 }}>

@@ -199,6 +199,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-posts-personal.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Em **Comunidade**, o personal ganha o bloco **Postar foto**: a foto entra no feed dos alunos com a marca "Personal", recebe reações e comentários e não conta como check-in nem entra no ranking.
 
+### 14. Avatar do personal
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-avatar-personal.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Em **Configurações**, o personal escolhe uma foto ou um avatar pronto. Ele aparece nas fotos e comentários do personal na comunidade.
+
 ## Desenvolvimento
 
 ```bash

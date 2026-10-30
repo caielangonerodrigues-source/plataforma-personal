@@ -34,7 +34,7 @@ export default function Comunidade({ comunidade, meuAlunoId, minhasDatas, podeAp
   const tabela = ranking(dados.mes, meuGrupo === 'geral' ? dados.membros : meuGrupo === 'equipe' ? dados.membros.filter((m) => m.equipe_id === equipeMinha.id) : doGrupo(dados.membros, meuGrupo))
   const legenda = { geral: 'Todos os alunos', academia: 'Quem treina na academia', online: 'Alunos da consultoria online', equipe: `Quem é da ${equipeMinha?.nome || 'sua equipe'}` }[meuGrupo]
   // Fotos do personal entram no feed assinadas com o nome dele e a marca "Personal".
-  const autorDe = (c) => (c.personal_id ? { nome: dados.personal || 'Personal', personal: true } : membro[c.aluno_id])
+  const autorDe = (c) => (c.personal_id ? { ...dados.personal, personal: true } : membro[c.aluno_id])
   const feed = dados.feed.filter((c) => c.personal_id || membro[c.aluno_id])
   const comFoto = feed.filter((c) => c.foto && dados.fotos[c.foto])
   const equipes = placarEquipes(dados.equipes || [], dados.membros, dados.mes)
@@ -219,7 +219,7 @@ function Post({ c, dados, membro, autor, comunidade, meu, podeApagarTudo, reagir
             const quem = k.aluno_id && membro[k.aluno_id]
             return (
               <div className="comentario" key={k.id}>
-                <Avatar nome={k.autor} avatar={quem?.avatar} fotos={dados.fotos} tamanho={28} />
+                <Avatar nome={k.autor} avatar={k.do_personal ? dados.personal?.avatar : quem?.avatar} fotos={dados.fotos} tamanho={28} />
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <span className="name" style={{ fontSize: 14 }}>{nomeCurto(k.autor || 'Aluno')}</span>
                   {k.do_personal && <span className="post-tag" style={{ marginLeft: 6 }}>Personal</span>}

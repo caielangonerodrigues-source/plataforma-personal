@@ -4,6 +4,7 @@ import { supabase } from '../../supabase.js'
 import { primeiroNome } from '../../lib/formato.js'
 import Logo from '../../components/Logo.jsx'
 import BarraApp from '../../components/BarraApp.jsx'
+import PedirNotificacoes from '../../components/PedirNotificacoes.jsx'
 
 // Menu em grupos (computador) e barra de app embaixo com "Mais" (celular).
 const GRUPOS = [
@@ -46,6 +47,7 @@ export default function LayoutPersonal({ nome }) {
         <button className="small so-computador" onClick={() => supabase.auth.signOut()}>Sair</button>
       </nav>
       <main><Outlet /></main>
+      <PedirNotificacoes texto="Mensagens dos alunos, ficha para trocar, reações e comentários nas suas fotos." />
       <BarraApp
         itens={PRINCIPAIS.map((to) => { const [, rotulo, icone] = todos.find(([t]) => t === to); return { chave: to, rotulo, icone, ativo: ativo(to), badge: badge(to), onClick: () => ir(to) } })}
         mais={[

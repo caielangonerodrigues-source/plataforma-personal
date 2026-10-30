@@ -24,6 +24,7 @@ import TrocaExercicio from '../../components/TrocaExercicio.jsx'
 import ComoFoiTreino from '../../components/ComoFoiTreino.jsx'
 import IndiqueAmigo from '../../components/IndiqueAmigo.jsx'
 import AtivarNotificacoes from '../../components/AtivarNotificacoes.jsx'
+import PedirNotificacoes from '../../components/PedirNotificacoes.jsx'
 import { RelatoriosAluno } from '../../components/Relatorio.jsx'
 import GradeAulas from '../../components/GradeAulas.jsx'
 import NovidadesAcademia from '../../components/NovidadesAcademia.jsx'
@@ -233,6 +234,7 @@ export default function AreaAluno({ aluno }) {
     <div className={`solo${aba === 'inicio' ? ' largo' : ''}`}>
       <Cabecalho aluno={aluno} whatsapp={whatsapp} naoLidas={aba === 'mensagens' ? 0 : naoLidas} onMensagens={() => irPara('mensagens')} onCheckin={() => setCheckinAberto(true)} fezHoje={fezHoje} />
       <InstalarApp />
+      <PedirNotificacoes texto="Lembrete do treino, aviso de ficha nova, novidades da academia e quando alguém reagir ao seu treino." />
       {qr && (
         <div className={`panel qr-resultado${qr.erro ? ' erro' : ''}`} role="status">
           <IconeLinha d={qr.erro ? ICONES.aviso : ICONES.marcar} tamanho={30} />
