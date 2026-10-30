@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase.js'
+import { assinarFotos } from '../lib/fotosAssinadas.js'
 import Avatar from './Avatar.jsx'
 import { inicioDoMes, nomeCurto, quandoFoi, sequencia } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
@@ -24,7 +25,7 @@ export default function PerfilAluno({ membro, dados, equipe, onFechar, onAbrirPo
       ])
       const lista = checkins.data || []
       const faltam = lista.slice(0, 30).map((c) => c.foto).filter((f) => f && !dados.fotos[f])
-      const assinadas = faltam.length ? (await supabase.storage.from('checkins').createSignedUrls(faltam, 3600)).data || [] : []
+      const assinadas = faltam.length ? (await assinarFotos('checkins', faltam)).data || [] : []
       if (vivo) setPerfil({ checkins: lista, conquistas: conquistas.error ? [] : conquistas.data, fotos: { ...dados.fotos, ...Object.fromEntries(assinadas.filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])) } })
     })()
     return () => { vivo = false }

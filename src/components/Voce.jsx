@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase.js'
+import { assinarFotos } from '../lib/fotosAssinadas.js'
 import Avatar from './Avatar.jsx'
 import CardTreino from './CardTreino.jsx'
 import { Icone } from './BarraApp.jsx'
@@ -21,7 +22,7 @@ export default function Voce({ aluno, avatar, fotosAvatar, totalTreinos, progres
       const { data } = await supabase.from('checkins').select('*').eq('aluno_id', aluno.id).order('created_at', { ascending: false }).limit(60)
       const lista = data || []
       const caminhos = lista.map((c) => c.foto).filter(Boolean)
-      const assinadas = caminhos.length ? (await supabase.storage.from('checkins').createSignedUrls(caminhos, 3600)).data || [] : []
+      const assinadas = caminhos.length ? (await assinarFotos('checkins', caminhos)).data || [] : []
       setFotos(Object.fromEntries(assinadas.filter((f) => f.signedUrl).map((f) => [f.path, f.signedUrl])))
       setCheckins(lista)
     })()
