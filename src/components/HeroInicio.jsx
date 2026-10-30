@@ -34,11 +34,13 @@ export default function HeroInicio({ nome, foto, fezHoje }) {
 
 // Fotos fixas dos banners: fileira de bikes de spinning (Pexels) e turma com barra (pump).
 export const FOTO_SPINNING = 'https://images.pexels.com/photos/35567435/pexels-photo-35567435.jpeg?auto=compress&cs=tinysrgb&w=1200'
+export const FOTO_CONSULTORIA = unsplash('1758599881072-62facc386445')
 export const FOTO_AULAS = unsplash('1554284126-aa88f22d8b74')
 
 const BANNERS = {
   spinning: ['Aulas de spinning,', 'reserve sua bike.', 'Reservar uma bike', FOTO_SPINNING],
   aulas: ['Aulas coletivas,', 'treine com a turma.', 'Ver horários', FOTO_AULAS],
+  consultoria: ['Consultoria online,', 'treine comigo de onde estiver.', 'Ver planos', FOTO_CONSULTORIA],
   online: ['Treine de onde estiver,', 'com seu personal no app.', 'Ver planos', null],
 }
 

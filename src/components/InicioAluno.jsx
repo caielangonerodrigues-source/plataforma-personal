@@ -284,9 +284,7 @@ function CartaoConsultoria() {
   useEffect(() => { supabase.rpc('indicacao_do_personal').then(({ data }) => setAtiva(!!data?.[0]?.venda_ativa)) }, [])
   if (!ativa) return null
   return (
-    <Atalho icone={ICONES.celular} titulo="Consultoria online" acao="Ver planos" href="/consultoria">
-      <p>Vai viajar ou mudar de cidade? Continue treinando comigo pelo app, de onde estiver.</p>
-    </Atalho>
+    <BannerAcademia tipo="consultoria" href="/consultoria" />
   )
 }
 
