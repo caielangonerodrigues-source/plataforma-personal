@@ -76,7 +76,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
           {aluno.objetivo && <div className="meta">{aluno.objetivo}</div>}
           <div className="perfil-numeros">
             <div><span>Treinos</span><strong>{todosDias.length}</strong></div>
-            <div><span>Sequência</span><strong>{seq}</strong></div>
+            <div><span>Dias seguidos</span><strong>{seq}</strong></div>
             <div><span>Medalhas</span><strong>{ganhas}</strong></div>
           </div>
           <button className="link" onClick={onCheckin}>{dias.includes(hoje) ? 'Novo check-in ›' : 'Fazer o check-in de hoje ›'}</button>

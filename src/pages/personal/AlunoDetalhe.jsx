@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Status from '../../components/Status.jsx'
-import { fmtData, hojeISO, porData, porOrdem, primeiroNome } from '../../lib/formato.js'
+import { fmtData, hojeISO, porData, plural, porOrdem, primeiroNome } from '../../lib/formato.js'
 import FormAluno from './FormAluno.jsx'
 import Treinos from './Treinos.jsx'
 import Avaliacoes from './Avaliacoes.jsx'
@@ -83,7 +83,7 @@ export default function AlunoDetalhe() {
       <p className="meta" style={{ marginTop: 8 }}>
         {aluno.telefone && <>WhatsApp <a href={linkWhatsApp(aluno.telefone, `Oi, ${primeiroNome(aluno.nome)}! Tudo bem?`)} target="_blank" rel="noreferrer">{aluno.telefone}</a> · </>}
         {aluno.email ? <>{aluno.email} · {aluno.user_id ? 'acesso ativo' : 'ainda não criou a senha'}</> : 'sem e-mail de acesso'}
-        {' · '}treinou em {diasTreinados} dia(s) nos últimos 30
+        {' · '}treinou em {plural(diasTreinados, 'dia')} nos últimos 30
       </p>
       {erro && <p className="erro">{erro}</p>}
       {alertaParq && <p className="erro" style={{ marginTop: 6 }}>PAR-Q com resposta "sim": veja a anamnese antes de aumentar a intensidade.</p>}

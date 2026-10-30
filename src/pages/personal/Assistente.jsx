@@ -4,7 +4,7 @@ import { supabase } from '../../supabase.js'
 import { useBiblioteca } from '../../components/SeletorExercicios.jsx'
 import { VerDieta, salvarDieta } from '../../components/Nutricao.jsx'
 import { temAlertaParq } from '../../components/Anamnese.jsx'
-import { f1, fmtData, porData, porOrdem, primeiroNome } from '../../lib/formato.js'
+import { f1, fmtData, porData, plural, porOrdem, primeiroNome } from '../../lib/formato.js'
 import { fichasDaIA, pedirIA } from '../../lib/ia.js'
 import { resumoModelo } from '../../lib/modelos.js'
 import { FormModelo, aplicarModelo } from './Modelos.jsx'
@@ -98,7 +98,7 @@ export default function Assistente() {
             {ultima
               ? `Avaliação de ${fmtData(ultima.data)}: ${[ultima.peso && `${f1(ultima.peso)} kg`, ultima.altura && `${f1(ultima.altura)} m`, ultima.gordura && `${f1(ultima.gordura)}% de gordura`].filter(Boolean).join(', ')}`
               : 'Sem avaliação física: a sugestão fica mais genérica.'}
-            {aluno.treinos.length > 0 && tipo === 'treino' && ` · já tem ${aluno.treinos.length} ficha(s)`}
+            {aluno.treinos.length > 0 && tipo === 'treino' && ` · já tem ${plural(aluno.treinos.length, 'ficha')}`}
             {parq && <p className="erro" style={{ marginTop: 4 }}>PAR-Q com resposta "sim": a IA vai considerar, mas revise com atenção.</p>}
             {!aluno.objetivo && <p style={{ margin: '4px 0 0' }}><Link to={`/alunos/${aluno.id}`}>Coloque o objetivo no cadastro</Link> para a sugestão ficar melhor.</p>}
           </div>
