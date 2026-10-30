@@ -285,21 +285,30 @@ function DietaDeHoje({ aluno, hoje, irPara }) {
 }
 
 // Bonequinho com os músculos treinados desde segunda: quanto mais forte o laranja, mais vezes trabalhou.
+// Ao lado, a lista dos músculos da semana com uma barra fina, como uma seção da tela de entrada.
 function MusculosDaSemana({ registros, treinos, desde }) {
   const nomes = Object.fromEntries(treinos.flatMap((t) => t.exercicios || []).map((e) => [e.id, e.nome]))
   const feitos = registros.filter((r) => r.data >= desde).map((r) => r.troca || nomes[r.exercicio_id]).filter(Boolean)
   const conta = cargaPorMusculo(feitos)
   const intensidade = Object.fromEntries(Object.entries(conta).map(([m, n]) => [m, Math.min(1, n / 2)]))
   const faltou = faltouNaSemana(conta)
+  const treinados = Object.entries(conta).sort((a, b) => b[1] - a[1])
+  const maior = treinados[0]?.[1] || 1
+  const total = Object.keys(MUSCULOS).length
   return (
-    <div className="panel musculos-semana">
-      <h3>Músculos da semana</h3>
-      <Corpo intensidade={intensidade} tamanho={80} />
-      <p className="meta" style={{ margin: 0 }}>
-        {!feitos.length ? 'Marque os exercícios no treino e o bonequinho vai acendendo.'
-          : faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.`
-            : 'Corpo todo treinado nesta semana'}
-      </p>
-    </div>
+    <section className="panel musculos-semana">
+      <span className="atalho-rotulo">Desde segunda</span>
+      <h2>Músculos da semana.</h2>
+      <p className="meta">{treinados.length ? `${treinados.length} de ${total} grupos treinados` : 'Marque os exercícios no treino e o bonequinho vai acendendo.'}</p>
+      <Corpo intensidade={intensidade} tamanho={104} />
+      {treinados.length > 0 && (
+        <ul className="musculos-lista">
+          {treinados.slice(0, 6).map(([m, n]) => (
+            <li key={m}><span>{MUSCULOS[m]}</span><i><b style={{ width: `${Math.round((n / maior) * 100)}%` }} /></i></li>
+          ))}
+        </ul>
+      )}
+      {feitos.length > 0 && <p className="meta">{faltou.length ? `Ainda não treinou: ${faltou.map((m) => MUSCULOS[m]).join(', ')}.` : 'Corpo todo treinado nesta semana.'}</p>}
+    </section>
   )
 }

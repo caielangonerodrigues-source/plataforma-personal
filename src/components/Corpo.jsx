@@ -1,7 +1,7 @@
 // Bonequinho de frente e de costas com os músculos acesos em laranja.
-// Estilo chapado (minimalista): a silhueta da ilustração (public/corpo/<vista>.webp) vira um cinza claro só com
-// um traço leve dos músculos, e cada músculo aceso é laranja chapado recortado pela máscara
-// (public/corpo/<vista>-<músculo>.png); o mais ativo fica no laranja mais escuro.
+// Estilo chapado (minimalista): a silhueta da ilustração (public/corpo/<vista>.webp) vira um cinza bem claro,
+// cada músculo é uma forma chapada recortada pela máscara (public/corpo/<vista>-<músculo>.png), cinza quando
+// parado e laranja quando aceso; o mais ativo fica no laranja mais escuro.
 // `principais`/`secundarios`: ids de MUSCULOS, com `ativo` (o mais ativo) aceso mais forte e brilhando;
 // ou `intensidade`: { id: 0..1 } para o mapa da semana.
 import { MUSCULOS } from '../lib/musculos.js'
@@ -20,7 +20,10 @@ function Vista({ lado, titulo, nivel, ativo, tamanho }) {
     <figure className="corpo-vista">
       <div className="corpo-img" style={{ width: largura, height: altura }}>
         <span className="corpo-silhueta" style={{ WebkitMaskImage: `url(/corpo/${lado}.webp)`, maskImage: `url(/corpo/${lado}.webp)` }} />
-        <img className="corpo-detalhe" src={`/corpo/${lado}.webp`} alt="" draggable="false" />
+        {v.musculos.map((m) => {
+          const mascara = `url(/corpo/${lado}-${m}.png)`
+          return <span key={`base-${m}`} className="corpo-musculo base" style={{ WebkitMaskImage: mascara, maskImage: mascara }} />
+        })}
         {v.musculos.map((m) => {
           const n = nivel(m)
           if (!n) return null

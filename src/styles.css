@@ -780,13 +780,13 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .corpo-legenda i.fraco { opacity: .3 }
 .corpo-legenda .corpo-foco { color: var(--ink) }
 .corpo-legenda .corpo-foco i { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent) }
-/* Bonequinho chapado: silhueta cinza clara, traço leve dos músculos e músculos em laranja chapado */
+/* Bonequinho chapado: silhueta cinza clara, músculos em cinza e, quando treinados, em laranja chapado */
 .corpo-silhueta, .corpo-musculo { position: absolute; inset: 0; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat }
-.corpo-silhueta { background: color-mix(in srgb, var(--ink) 9%, var(--surface)) }
-.corpo-img img.corpo-detalhe { filter: grayscale(1) contrast(1.6); opacity: .14; mix-blend-mode: multiply }
+.corpo-silhueta { background: color-mix(in srgb, var(--ink) 5%, var(--surface)) }
 .corpo-musculo { background: var(--accent) }
+.corpo-musculo.base { background: color-mix(in srgb, var(--ink) 17%, var(--surface)) }
 .corpo-musculo.ativo { background: #c83a00 }
-@media (prefers-color-scheme: dark) { .corpo-img img.corpo-detalhe { mix-blend-mode: screen; opacity: .1 } .corpo-musculo.ativo { background: #ff8a4f } }
+@media (prefers-color-scheme: dark) { .corpo-musculo.ativo { background: #ff8a4f } }
 .pill.metodo { background: var(--accent-soft); color: var(--accent); border: 0; cursor: pointer; font-family: inherit; margin-top: 3px }
 .pill.metodo span { font-weight: 400; opacity: .8 }
 .metodo-texto { font-size: 13px; line-height: 1.4; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; margin: 4px 0 2px }
@@ -869,3 +869,13 @@ body { background: var(--surface) }
 .pedir-notificacoes h2 { margin: 6px 0 0 }
 .pedir-notificacoes p { margin: 0 0 6px }
 .pedir-notificacoes button.primary { width: 100% }
+/* Músculos da semana: seção centralizada com o bonequinho chapado e a lista com barras */
+.musculos-semana { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px }
+.musculos-semana h2 { margin: 2px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -.03em }
+.musculos-semana .atalho-rotulo { color: var(--accent); font-weight: 700; margin-top: 0 }
+.musculos-semana > p { margin: 0 }
+.musculos-semana .corpo { margin: 14px 0 6px }
+.musculos-lista { list-style: none; margin: 6px 0 4px; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 9px; text-align: left }
+.musculos-lista li { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 12px; font-size: 14px }
+.musculos-lista i { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden }
+.musculos-lista b { display: block; height: 100%; background: var(--accent); border-radius: 2px }
