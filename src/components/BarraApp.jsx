@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 const ICONES = {
   inicio: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
   treino: 'M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12',
+  montar: 'M12 6.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 9.5h14M12 9.5v5.5M8.5 21l3.5-6 3.5 6',
   aulas: 'M4 6h16v14H4zM4 10h16M9 3v4M15 3v4',
   comunidade: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5.5a3 3 0 0 1 0 5.5M18 15c2 .6 3 2.3 3 5',
   novidades: 'M4 10v4h3l6 4V6l-6 4zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12',

@@ -50,6 +50,7 @@ import { segundosDescanso } from '../../lib/descanso.js'
 import { situacaoFicha } from '../../lib/ficha.js'
 import { DIAS_SEMANA, diaDaSemana, proximoAtendimento } from '../../lib/agenda.js'
 import { f1, hojeISO, num, porData, porOrdem, primeiroNome } from '../../lib/formato.js'
+import MonteSeuTreino from '../../components/MonteSeuTreino.jsx'
 
 export default function AreaAluno({ aluno }) {
   const [aba, setAba] = useState('inicio')
@@ -219,13 +220,13 @@ export default function AreaAluno({ aluno }) {
   const blocos = ficha ? blocosDeMetodo(ficha.exercicios) : [] // bi-set, tri-set...: exercícios feitos em sequência
   const ultima = avaliacoes.at(-1)
   const fezHoje = diasCheckin.includes(hoje)
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ['montar', 'Monte seu treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   // No celular: barra flutuante (Início, Treino, Check-in no meio, Turma/Consultoria e Você); o resto fica em Você › Mais.
   const quarta = online ? 'consultoria' : aluno.comunidade ? 'comunidade' : 'novidades'
   const principais = ['inicio', 'treino', 'dieta', quarta, 'voce']
   const rotuloBarra = { comunidade: 'Turma', consultoria: 'Relato' }
-  const textos = { aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
+  const textos = { montar: 'Escolha exercícios e veja os músculos no bonequinho', aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
   const whatsapp = online ? null : academia.whatsapp
   const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k, badge: badgeAba(k), onClick: () => irPara(k) })
   const badgeAba = (k) => (aba === k ? 0 : k === 'novidades' ? academia.novos : k === 'mensagens' ? naoLidas : 0)
@@ -281,6 +282,7 @@ export default function AreaAluno({ aluno }) {
       )}
 
       {aba === 'dieta' && <DietaAluno aluno={aluno} hoje={hoje} />}
+      {aba === 'montar' && <MonteSeuTreino />}
       {aba === 'spinning' && <AulasSpinning embutido />}
       {aba === 'conta' && (
         <div className="stack">
@@ -315,6 +317,7 @@ export default function AreaAluno({ aluno }) {
               )}
               {proximaFase && <div className="meta" style={{ marginBottom: 10 }}>Nova fase do treino ({proximaFase.nome}) começa em {fmtCurta(proximaFase.inicio)}.</div>}
               <MusculosDoTreino nomes={ficha.exercicios.map((e) => trocaDe(e.id) || e.nome)} />
+              <button className="link" style={{ margin: '-4px 0 12px' }} onClick={() => irPara('montar')}>Brincar de montar um treino ›</button>
               <div className="meta" style={{ marginBottom: 6 }}>{ficha.foco} · {qtdFeitos} de {ficha.exercicios.length} feitos</div>
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
               {erro && <p className="erro" style={{ marginTop: 10 }}>{erro}</p>}
