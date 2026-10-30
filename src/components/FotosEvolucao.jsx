@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabase.js'
-import { reduzirFoto } from '../lib/foto.js'
+import RecortarFoto from './RecortarFoto.jsx'
 import { fmtData, hojeISO } from '../lib/formato.js'
 
 const ANGULOS = [['frente', 'Frente'], ['lado', 'Lado'], ['costas', 'Costas']]
@@ -12,6 +12,7 @@ export default function FotosEvolucao({ alunoId, podeApagar }) {
   const [angulo, setAngulo] = useState('frente')
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
+  const [recortando, setRecortando] = useState(null) // foto escolhida, antes de enquadrar
 
   const carregar = useCallback(async () => {
     const { data } = await supabase.from('fotos_evolucao').select('*').eq('aluno_id', alunoId).order('data')
@@ -25,13 +26,18 @@ export default function FotosEvolucao({ alunoId, podeApagar }) {
 
   useEffect(() => { carregar() }, [carregar])
 
-  async function enviar(e) {
+  function escolher(e) {
     const arquivo = e.target.files?.[0]
     e.target.value = ''
-    if (!arquivo) return
+    if (arquivo) setRecortando(arquivo)
+  }
+
+  // Enquadrada em 3:4, para as fotos de antes e depois ficarem lado a lado iguais.
+  async function enviar(blob) {
+    setRecortando(null)
     setEnviando(true); setErro('')
     const caminho = `${alunoId}/${crypto.randomUUID()}.jpg`
-    const up = await supabase.storage.from('evolucao').upload(caminho, await reduzirFoto(arquivo, 1600, 0.85), { contentType: 'image/jpeg' })
+    const up = await supabase.storage.from('evolucao').upload(caminho, blob, { contentType: 'image/jpeg' })
     const ins = up.error ? up : await supabase.from('fotos_evolucao').insert({ aluno_id: alunoId, data: hojeISO(), angulo, caminho })
     if (ins.error) { setErro(`Não foi possível enviar: ${ins.error.message}`); if (!up.error) await supabase.storage.from('evolucao').remove([caminho]) }
     setEnviando(false); carregar()
@@ -79,9 +85,10 @@ export default function FotosEvolucao({ alunoId, podeApagar }) {
       )}
       {erro && <p className="erro">{erro}</p>}
       <label className="foto-botao">
-        <input id="foto-evolucao" className="sr" type="file" accept="image/*" onChange={enviar} disabled={enviando} />
+        <input id="foto-evolucao" className="sr" type="file" accept="image/*" onChange={escolher} disabled={enviando} />
         {enviando ? 'Enviando…' : `Adicionar foto de ${ANGULOS.find(([k]) => k === angulo)[1].toLowerCase()}`}
       </label>
+      {recortando && <RecortarFoto arquivo={recortando} proporcao={3 / 4} lado={1200} onPronto={enviar} onCancelar={() => setRecortando(null)} />}
     </div>
   )
 }

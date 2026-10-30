@@ -3,6 +3,7 @@ import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { doGrupo, grupoDe, nomeCurto, quandoFoi, ranking } from '../lib/comunidade.js'
 import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
+import RecortarFoto from './RecortarFoto.jsx'
 import Reacoes from './Reacoes.jsx'
 import CardTreino from './CardTreino.jsx'
 import PerfilAluno from './PerfilAluno.jsx'
@@ -253,6 +254,8 @@ function PostarFoto({ postar }) {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [chave, setChave] = useState(0) // limpa o campo do arquivo depois de postar
+  const [recortando, setRecortando] = useState(null)
+  const [previa, setPrevia] = useState(null)
 
   async function enviar(e) {
     e.preventDefault()
@@ -261,7 +264,7 @@ function PostarFoto({ postar }) {
     const falha = await postar(foto, legenda)
     setEnviando(false)
     if (falha) return setErro(falha)
-    setFoto(null); setLegenda(''); setChave((k) => k + 1)
+    setFoto(null); setPrevia(null); setLegenda(''); setChave((k) => k + 1)
   }
 
   return (
@@ -270,7 +273,10 @@ function PostarFoto({ postar }) {
       <div className="stack" style={{ gap: 8, flex: 1, minWidth: 0 }}>
         <strong>Postar foto para os alunos</strong>
         <span className="meta">Aparece no feed de todos, com a marca Personal. Não conta como check-in.</span>
-        <input key={chave} type="file" accept="image/*" aria-label="Foto" onChange={(e) => setFoto(e.target.files?.[0] || null)} />
+        <input key={chave} type="file" accept="image/*" aria-label="Foto" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) setRecortando(f) }} />
+        {previa && <img className="foto-preview" src={previa} alt="Prévia da foto" />}
+        {recortando && <RecortarFoto arquivo={recortando} proporcao={4 / 5} onCancelar={() => setRecortando(null)}
+          onPronto={(blob) => { setRecortando(null); setFoto(blob); setPrevia(URL.createObjectURL(blob)) }} />}
         <textarea rows={2} maxLength={280} placeholder="Escreva algo para motivar a turma (opcional)" value={legenda} onChange={(e) => setLegenda(e.target.value)} />
         {erro && <p className="erro" style={{ margin: 0 }}>{erro}</p>}
         <div><button className="primary" disabled={enviando || !foto}>{enviando ? 'Postando…' : 'Postar'}</button></div>
