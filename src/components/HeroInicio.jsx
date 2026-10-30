@@ -38,7 +38,7 @@ export const FOTO_AULAS = unsplash('1554284126-aa88f22d8b74')
 
 const BANNERS = {
   spinning: ['Aulas de spinning,', 'reserve sua bike.', 'Reservar uma bike', FOTO_SPINNING],
-  aulas: ['Aulas de pump,', 'treine com a turma.', 'Ver horários', FOTO_AULAS],
+  aulas: ['Aulas coletivas,', 'treine com a turma.', 'Ver horários', FOTO_AULAS],
   online: ['Treine de onde estiver,', 'com seu personal no app.', 'Ver planos', null],
 }
 
