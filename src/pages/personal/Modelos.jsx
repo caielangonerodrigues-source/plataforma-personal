@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { METODOS } from '../../lib/metodos.js'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Modal from '../../components/Modal.jsx'
@@ -82,7 +83,7 @@ export default function Modelos() {
                   <div key={i}>
                     <div className="row" style={{ gap: 0 }}><span className="letter">{f.nome}</span><h3>{f.foco}</h3></div>
                     <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-                      {f.exercicios.map((e, j) => <li key={j}>{e.nome} <span className="meta">{e.series} × {e.reps}</span></li>)}
+                      {f.exercicios.map((e, j) => <li key={j}>{e.nome} <span className="meta">{e.series} × {e.reps}{METODOS[e.metodo] ? ` · ${METODOS[e.metodo].nome}` : ''}</span></li>)}
                     </ul>
                   </div>
                 ))}

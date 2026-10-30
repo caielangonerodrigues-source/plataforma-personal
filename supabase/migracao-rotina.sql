@@ -97,3 +97,45 @@ grant execute on function public.horarios_experimental(uuid), public.marcar_expe
 alter table public.checkins drop constraint if exists checkins_resumo_check;
 alter table public.checkins add constraint checkins_resumo_check
   check (resumo is null or (jsonb_typeof(resumo) = 'object' and resumo->>'tipo' in ('treino', 'cardio', 'musculacao') and pg_column_size(resumo) < 2000));
+
+-- ---------------------------------------------------------------------------
+-- Métodos de treino no exercício (rest-pause, drop set, bi-set, superset...). Os ids ficam em src/lib/metodos.js.
+-- As fases copiam o método junto com o exercício.
+-- ---------------------------------------------------------------------------
+
+alter table public.exercicios add column if not exists metodo text;
+alter table public.exercicios drop constraint if exists exercicios_metodo_check;
+alter table public.exercicios add constraint exercicios_metodo_check check (metodo ~ '^[a-z0-9_]{1,30}$');
+
+-- Troca as fichas das fases que já começaram (do personal logado ou do próprio aluno).
+-- O site chama ao abrir o painel, o aluno ou a área do aluno. Devolve quantas fases entraram.
+create or replace function public.aplicar_fases() returns int
+language plpgsql security definer set search_path = public as $$
+declare
+  f record; ficha jsonb; t uuid; o int; n int := 0;
+begin
+  for f in select * from fases
+            where aplicada_em is null and inicio <= (now() at time zone 'America/Sao_Paulo')::date
+              and (dono_do_aluno(aluno_id) or eh_o_aluno(aluno_id))
+            order by inicio, created_at
+  loop
+    update treinos set arquivado = true where aluno_id = f.aluno_id and not arquivado;
+    o := 0;
+    for ficha in select value from jsonb_array_elements(f.fichas) loop
+      insert into treinos (aluno_id, nome, foco, ordem) values (f.aluno_id, coalesce(nullif(ficha->>'nome', ''), chr(65 + o)), ficha->>'foco', o)
+      returning id into t;
+      insert into exercicios (treino_id, nome, series, reps, carga, descanso, obs, video_url, metodo, ordem)
+      select t, e->>'nome', case when e->>'series' ~ '^\d{1,3}$' then (e->>'series')::int end, e->>'reps', e->>'carga', e->>'descanso',
+             nullif(e->>'obs', ''), case when e->>'video_url' ~ '^https://' then e->>'video_url' end,
+             case when e->>'metodo' ~ '^[a-z0-9_]{1,30}$' then e->>'metodo' end, (x.ord - 1)::int
+        from jsonb_array_elements(coalesce(ficha->'exercicios', '[]')) with ordinality as x(e, ord)
+       where coalesce(e->>'nome', '') <> '';
+      o := o + 1;
+    end loop;
+    update fases set aplicada_em = now() where id = f.id;
+    n := n + 1;
+  end loop;
+  return n;
+end;
+$$;
+grant execute on function public.aplicar_fases() to authenticated;

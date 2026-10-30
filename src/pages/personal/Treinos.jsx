@@ -5,6 +5,7 @@ import Modal from '../../components/Modal.jsx'
 import { num } from '../../lib/formato.js'
 import { fichasDoAluno } from '../../lib/modelos.js'
 import { BIBLIOTECA } from '../../lib/exercicios.js'
+import { METODOS, blocosDeMetodo } from '../../lib/metodos.js'
 import SeletorExercicios from '../../components/SeletorExercicios.jsx'
 import { AplicarModelo, FormModelo } from './Modelos.jsx'
 import Fases from '../../components/Fases.jsx'
@@ -27,6 +28,15 @@ export default function Treinos({ aluno, recarregar }) {
     const { error } = await q
     if (error) { setErro(`Não foi possível salvar: ${error.message}`); return false }
     setErro(''); setAviso('mudou'); await recarregar(); return true
+  }
+
+  // Sobe o exercício uma posição (para montar bi-set, tri-set... com os exercícios lado a lado).
+  async function subir(lista, i) {
+    const [a, b] = [lista[i - 1], lista[i]]
+    const [oa, ob] = a.ordem === b.ordem ? [i, i - 1] : [b.ordem, a.ordem]
+    const { error } = await supabase.from('exercicios').update({ ordem: oa }).eq('id', a.id)
+    if (!error) await rodar(supabase.from('exercicios').update({ ordem: ob }).eq('id', b.id))
+    else setErro(`Não foi possível mudar a ordem: ${error.message}`)
   }
 
   return (
@@ -68,16 +78,21 @@ export default function Treinos({ aluno, recarregar }) {
               <table>
                 <thead><tr><th>Exercício</th><th className="num">Séries</th><th className="num">Reps</th><th className="num">Carga</th><th className="num">Descanso</th><th /></tr></thead>
                 <tbody>
-                  {t.exercicios.map((e) => (
-                    <tr key={e.id}>
+                  {t.exercicios.map((e, i, lista) => {
+                    const bloco = blocosDeMetodo(lista)[i]
+                    return (
+                    <tr key={e.id} className={bloco ? `em-bloco${bloco.indice === 1 ? ' bloco-inicio' : ''}${bloco.indice === bloco.total ? ' bloco-fim' : ''}` : undefined}>
                       <td>
-                        {e.nome}{e.obs && <div className="meta">{e.obs}</div>}
+                        {e.nome}
+                        {METODOS[e.metodo] && <div><span className="pill metodo">{METODOS[e.metodo].nome}{bloco ? ` ${bloco.indice}/${bloco.total}` : ''}</span></div>}
+                        {e.obs && <div className="meta">{e.obs}</div>}
                         {e.video_url && <div><a className="meta" href={e.video_url} target="_blank" rel="noreferrer">Ver vídeo</a></div>}
                       </td>
                       <td className="num">{e.series}</td><td className="num">{e.reps}</td><td className="num">{e.carga}</td><td className="num">{e.descanso}</td>
-                      <td style={{ whiteSpace: 'nowrap' }}><button className="ghost small" onClick={() => setModal({ tipo: 'exercicio', treino: t, exercicio: e })}>Editar</button><button className="ghost small" aria-label={`Remover ${e.nome}`} onClick={() => rodar(supabase.from('exercicios').delete().eq('id', e.id))}>✕</button></td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{i > 0 && <button className="ghost small" aria-label={`Subir ${e.nome}`} title="Subir" onClick={() => subir(lista, i)}>↑</button>}<button className="ghost small" onClick={() => setModal({ tipo: 'exercicio', treino: t, exercicio: e })}>Editar</button><button className="ghost small" aria-label={`Remover ${e.nome}`} onClick={() => rodar(supabase.from('exercicios').delete().eq('id', e.id))}>✕</button></td>
                     </tr>
-                  ))}
+                    )
+                  })}
                   {!t.exercicios.length && <tr><td colSpan="6" className="empty">Nenhum exercício ainda.</td></tr>}
                 </tbody>
               </table>
@@ -128,8 +143,8 @@ function FormFicha({ aluno, onFechar, rodar }) {
 
 function FormExercicio({ treino, exercicio: ex, onFechar, rodar }) {
   const [d, setD] = useState(() => (ex
-    ? { nome: ex.nome, series: String(ex.series ?? ''), reps: ex.reps ?? '', carga: ex.carga === '—' ? '' : ex.carga ?? '', descanso: ex.descanso ?? '', obs: ex.obs ?? '', video: ex.video_url ?? '' }
-    : { nome: '', series: '3', reps: '12', carga: '', descanso: '60s', obs: '', video: '' }))
+    ? { nome: ex.nome, series: String(ex.series ?? ''), reps: ex.reps ?? '', carga: ex.carga === '—' ? '' : ex.carga ?? '', descanso: ex.descanso ?? '', obs: ex.obs ?? '', video: ex.video_url ?? '', metodo: ex.metodo ?? '' }
+    : { nome: '', series: '3', reps: '12', carga: '', descanso: '60s', obs: '', video: '', metodo: '' }))
   const [erro, setErro] = useState('')
   const campo = (k) => ({ id: `ex-${k}`, value: d[k], onChange: (e) => setD({ ...d, [k]: e.target.value }) })
   async function salvar() {
@@ -137,6 +152,7 @@ function FormExercicio({ treino, exercicio: ex, onFechar, rodar }) {
     const video = d.video.trim()
     if (video && !/^https:\/\//.test(video)) return setErro('O link do vídeo precisa começar com https://')
     const dados = { nome: d.nome.trim(), series: num(d.series) || 1, reps: d.reps, carga: d.carga || '—', descanso: d.descanso, obs: d.obs || null, video_url: video || null }
+    if (d.metodo || ex?.metodo) dados.metodo = d.metodo || null // só manda a coluna quando usa (o SQL novo pode ainda não ter rodado)
     const ordem = treino.exercicios.reduce((m, e) => Math.max(m, e.ordem + 1), 0)
     const ok = await rodar(ex
       ? supabase.from('exercicios').update(dados).eq('id', ex.id)
@@ -151,6 +167,13 @@ function FormExercicio({ treino, exercicio: ex, onFechar, rodar }) {
       <label>Repetições<input {...campo('reps')} /></label>
       <label>Carga<input placeholder="Ex.: 20 kg" {...campo('carga')} /></label>
       <label>Descanso<input {...campo('descanso')} /></label>
+      <label className="full">Método
+        <select {...campo('metodo')}>
+          <option value="">Normal (séries comuns)</option>
+          {Object.entries(METODOS).map(([id, m]) => <option key={id} value={id}>{m.nome}</option>)}
+        </select>
+      </label>
+      {METODOS[d.metodo] && <p className="meta full" style={{ margin: '-4px 0 0' }}>{METODOS[d.metodo].texto}{METODOS[d.metodo].junta ? ' Marque o mesmo método nos exercícios seguidos que fazem parte do bloco.' : ''}</p>}
       <label className="full">Observação<input placeholder="Opcional, ex.: cadência 3-1-1" {...campo('obs')} /></label>
       <label className="full">Vídeo de execução<input type="url" placeholder="Opcional, link do YouTube ou Instagram" {...campo('video')} /></label>
     </Modal>

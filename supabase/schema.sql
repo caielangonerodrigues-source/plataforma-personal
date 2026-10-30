@@ -66,6 +66,7 @@ create table public.exercicios (
   descanso text,
   obs text,
   video_url text check (video_url ~ '^https://'), -- vídeo de execução (YouTube, Instagram...)
+  metodo text check (metodo ~ '^[a-z0-9_]{1,30}$'), -- método de treino (drop set, bi-set...), ids em src/lib/metodos.js
   ordem int not null default 0,
   created_at timestamptz not null default now()
 );
@@ -1088,9 +1089,10 @@ begin
     for ficha in select value from jsonb_array_elements(f.fichas) loop
       insert into treinos (aluno_id, nome, foco, ordem) values (f.aluno_id, coalesce(nullif(ficha->>'nome', ''), chr(65 + o)), ficha->>'foco', o)
       returning id into t;
-      insert into exercicios (treino_id, nome, series, reps, carga, descanso, obs, video_url, ordem)
+      insert into exercicios (treino_id, nome, series, reps, carga, descanso, obs, video_url, metodo, ordem)
       select t, e->>'nome', case when e->>'series' ~ '^\d{1,3}$' then (e->>'series')::int end, e->>'reps', e->>'carga', e->>'descanso',
-             nullif(e->>'obs', ''), case when e->>'video_url' ~ '^https://' then e->>'video_url' end, (x.ord - 1)::int
+             nullif(e->>'obs', ''), case when e->>'video_url' ~ '^https://' then e->>'video_url' end,
+             case when e->>'metodo' ~ '^[a-z0-9_]{1,30}$' then e->>'metodo' end, (x.ord - 1)::int
         from jsonb_array_elements(coalesce(ficha->'exercicios', '[]')) with ordinality as x(e, ord)
        where coalesce(e->>'nome', '') <> '';
       o := o + 1;

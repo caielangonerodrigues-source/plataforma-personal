@@ -31,6 +31,7 @@ import { IconeWhatsApp } from '../../components/BotaoWhatsApp.jsx'
 import BarraApp, { Icone } from '../../components/BarraApp.jsx'
 import Corpo, { CorpoMini } from '../../components/Corpo.jsx'
 import { MUSCULOS, musculosDoExercicio } from '../../lib/musculos.js'
+import { METODOS, blocosDeMetodo } from '../../lib/metodos.js'
 import Voce from '../../components/Voce.jsx'
 import ComoFunciona, { AJUDA_ALUNO } from '../../components/ComoFunciona.jsx'
 import Avatar from '../../components/Avatar.jsx'
@@ -60,6 +61,7 @@ export default function AreaAluno({ aluno }) {
   const [fichaId, setFichaId] = useState(null)
   const [aberto, setAberto] = useState(null) // exercício com as séries abertas
   const [musculos, setMusculos] = useState(null) // exercício com o bonequinho aberto
+  const [metodoAberto, setMetodoAberto] = useState(null) // exercício com a explicação do método aberta
   const [checkinAberto, setCheckinAberto] = useState(false)
   const [erro, setErro] = useState('')
   const [descanso, setDescanso] = useState(null) // { nome, segundos }
@@ -153,6 +155,8 @@ export default function AreaAluno({ aluno }) {
   // Só manda a coluna troca quando existe, para funcionar mesmo antes do SQL novo.
   const comTroca = (id, dados) => (trocaDe(id) ? { ...dados, troca: trocaDe(id) } : dados)
   function descansar(e, serie) {
+    const bloco = blocos[ficha?.exercicios.findIndex((x) => x.id === e.id)]
+    if (bloco && bloco.indice < bloco.total) return // bi-set, tri-set...: segue direto para o próximo exercício
     prepararSom()
     setDescanso({ id: Date.now(), nome: trocaDe(e.id) || e.nome, serie, segundos: segundosDescanso(e.descanso) })
   }
@@ -210,6 +214,7 @@ export default function AreaAluno({ aluno }) {
   const ficha = treinos?.find((t) => t.id === fichaId) || treinos?.[0]
   const qtdFeitos = ficha ? ficha.exercicios.filter((e) => deHoje(e.id)).length : 0
   const pct = ficha?.exercicios.length ? Math.round((qtdFeitos / ficha.exercicios.length) * 100) : 0
+  const blocos = ficha ? blocosDeMetodo(ficha.exercicios) : [] // bi-set, tri-set...: exercícios feitos em sequência
   const ultima = avaliacoes.at(-1)
   const fezHoje = diasCheckin.includes(hoje)
   const abas = [['inicio', 'Início'], ['treino', 'Treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
@@ -311,14 +316,17 @@ export default function AreaAluno({ aluno }) {
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
               {erro && <p className="erro" style={{ marginTop: 10 }}>{erro}</p>}
               <div>
-                {ficha.exercicios.map((e) => {
+                {ficha.exercicios.map((e, i) => {
+                  const bloco = blocos[i]
+                  const metodo = METODOS[e.metodo]
                   const hojeReg = deHoje(e.id)
                   const troca = trocaDe(e.id)
                   const anterior = !troca && ultimaSessao(registros, e.id, hoje)
                   const mus = musculosDoExercicio(troca || e.nome)
                   const { foco } = mus
                   return (
-                    <div key={e.id}>
+                    <div key={e.id} className={bloco ? `em-bloco${bloco.indice === 1 ? ' bloco-inicio' : ''}${bloco.indice === bloco.total ? ' bloco-fim' : ''}` : undefined}>
+                      {bloco?.indice === 1 && <div className="bloco-titulo">{metodo.nome} · {bloco.total} exercícios seguidos, sem descanso entre eles</div>}
                       <div className={`check${hojeReg ? ' done' : ''}`}>
                         <input type="checkbox" id={`ex-${e.id}`} aria-label={`Concluir ${e.nome}`} checked={!!hojeReg} onChange={(ev) => marcar(e, ev.target.checked)} />
                         <div style={{ minWidth: 0 }}>
@@ -328,6 +336,13 @@ export default function AreaAluno({ aluno }) {
                           {troca && <div className="meta" style={{ fontSize: 12 }}>no lugar de {e.nome}</div>}
                           <div className="meta">{e.series} × {e.reps} · descanso {e.descanso}{e.obs ? ` · ${e.obs}` : ''}</div>
                           {foco && <div className="foco-musculo">🎯 Mais ativo: {foco}</div>}
+                          {metodo && (
+                            <button type="button" className="pill metodo" aria-expanded={metodoAberto === e.id} onClick={() => setMetodoAberto(metodoAberto === e.id ? null : e.id)}>
+                              ⚡ {metodo.nome}{bloco ? ` ${bloco.indice}/${bloco.total}` : ''} <span aria-hidden="true">ⓘ</span>
+                            </button>
+                          )}
+                          {metodo && metodoAberto === e.id && <div className="metodo-texto">{metodo.texto}</div>}
+                          {bloco && bloco.indice < bloco.total && <div className="meta" style={{ fontSize: 12 }}>Sem descanso: vá direto para o próximo.</div>}
                           <BolinhasSeries exercicio={e} feitas={hojeReg ? Infinity : seriesFeitas[e.id] || 0} onMarcar={(i) => marcarSerie(e, i)} />
                           <div className="row" style={{ gap: 12, marginTop: 2, rowGap: 2 }}>
                             <button className="link" style={{ fontSize: 13 }} onClick={() => setAberto(aberto === e.id ? null : e.id)}>
