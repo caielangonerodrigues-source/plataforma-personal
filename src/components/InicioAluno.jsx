@@ -234,6 +234,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             <div className="meta">Treinar junto é melhor. Mande seu link e ganhe desconto na mensalidade.</div>
           </button>
         )}
+        {!online && <CartaoConsultoria />}
       </aside>
     </div>
   )
@@ -242,6 +243,19 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
 const quando = ({ data, em }) => (em === 0 ? 'Hoje' : em === 1 ? 'Amanhã' : em < 0 ? `Atrasada ${-em} ${-em === 1 ? 'dia' : 'dias'}` : `Em ${em} dias · ${fmtData(data).slice(0, 5)}`)
 
 // Cartão da dieta de hoje: contador de macros resumido; toque para abrir o diário.
+// Aluno da academia: a consultoria online como opção para quando viajar ou mudar de cidade (só com a página no ar).
+function CartaoConsultoria() {
+  const [ativa, setAtiva] = useState(false)
+  useEffect(() => { supabase.rpc('indicacao_do_personal').then(({ data }) => setAtiva(!!data?.[0]?.venda_ativa)) }, [])
+  if (!ativa) return null
+  return (
+    <a href="/consultoria" className="panel stack cartao-link" style={{ gap: 4, textDecoration: 'none', color: 'inherit' }}>
+      <div className="name">📲 Consultoria online</div>
+      <div className="meta">Vai viajar ou mudar de cidade? Continue treinando comigo pelo app, de onde estiver.</div>
+    </a>
+  )
+}
+
 function DietaDeHoje({ aluno, hoje, irPara }) {
   const { dieta } = useDieta(aluno.id)
   const diario = useDiario(aluno.id, hoje)
