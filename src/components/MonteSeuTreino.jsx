@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import Corpo, { CorpoMini } from './Corpo.jsx'
 import { BIBLIOTECA, GRUPOS, buscaVideo, filtrarExercicios } from '../lib/exercicios.js'
-import { MUSCULOS, cargaPorMusculo, faltouNaSemana, musculosDoExercicio } from '../lib/musculos.js'
+import { MUSCULOS, cargaPorMusculo, faltouNaSemana, musculosDoExercicio, nomeMusculo } from '../lib/musculos.js'
 
 // "Monte seu treino": o aluno brinca de montar um treino com os exercícios da biblioteca e vê no bonequinho
 // os músculos que cada um trabalha. É só para aprender os grupos: fica no aparelho e não muda a ficha do personal.
 const CHAVE = 'monte-seu-treino'
 const MAXIMO = 15
 const ler = () => { try { return JSON.parse(localStorage.getItem(CHAVE)) || [] } catch { return [] } }
-const nomes = (l) => l.map((m) => MUSCULOS[m]).join(', ')
+const nomes = (l) => l.map(nomeMusculo).join(', ')
 // Bonequinho pequeno com os músculos do exercício, para o aluno se achar na lista.
 const Mini = ({ nome, onClick }) => <span className="monte-mini">{<CorpoMini {...musculosDoExercicio(nome)} tamanho={40} onClick={onClick} />}</span>
 

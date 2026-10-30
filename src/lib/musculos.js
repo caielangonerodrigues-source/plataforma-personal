@@ -8,6 +8,18 @@ export const MUSCULOS = {
   trapezio: 'Trapézio', dorsais: 'Dorsais', lombar: 'Lombar', gluteos: 'Glúteos', posterior: 'Posterior de coxa',
 }
 
+// Regiões de cada músculo, para o bonequinho mostrar o ponto exato (ex.: ombro lateral, glúteo médio).
+// Na contagem da semana cada região soma no músculo dela.
+export const REGIOES = {
+  peito_superior: ['peito', 'Peitoral superior'], peito_medio: ['peito', 'Peitoral médio e inferior'],
+  ombro_frontal: ['ombro', 'Ombro frontal'], ombro_lateral: ['ombro', 'Ombro lateral'], ombro_posterior: ['ombro', 'Ombro posterior'],
+  trapezio_superior: ['trapezio', 'Trapézio superior'], trapezio_medio: ['trapezio', 'Trapézio médio e inferior'],
+  abdomen_superior: ['abdomen', 'Abdômen superior'], abdomen_inferior: ['abdomen', 'Abdômen inferior'],
+  gluteo_maximo: ['gluteos', 'Glúteo máximo'], gluteo_medio: ['gluteos', 'Glúteo médio'],
+}
+export const paiDe = (id) => REGIOES[id]?.[0] || id
+export const nomeMusculo = (id) => REGIOES[id]?.[1] || MUSCULOS[id] || id
+
 const DO_GRUPO = {
   Peito: [['peito'], ['triceps', 'ombro']], Costas: [['dorsais'], ['biceps', 'trapezio']], Ombros: [['ombro'], ['trapezio']],
   Bíceps: [['biceps'], ['antebraco']], Tríceps: [['triceps'], []], Antebraço: [['antebraco'], []],
@@ -20,19 +32,27 @@ const DO_GRUPO = {
 const REGRAS = [
   [['supino fechado'], ['triceps'], ['peito', 'ombro']],
   [['flexao', 'fechada'], ['triceps'], ['peito']],
-  [['crucifixo inverso'], ['ombro'], ['trapezio']],
+  [['crucifixo inverso'], ['ombro_posterior'], ['trapezio_medio']],
   [['pullover'], ['peito', 'dorsais'], ['triceps']],
-  [['supino'], ['peito'], ['triceps', 'ombro']],
-  [['crucifixo'], ['peito'], ['ombro']],
-  [['crossover'], ['peito'], ['ombro']],
-  [['peck'], ['peito'], ['ombro']],
-  [['chest press'], ['peito'], ['triceps', 'ombro']],
-  [['paralelas para peito'], ['peito'], ['triceps', 'ombro']],
-  [['flexao de braco'], ['peito'], ['triceps', 'ombro', 'abdomen']],
+  [['supino inclinado'], ['peito_superior'], ['ombro_frontal', 'triceps']],
+  [['supino declinado'], ['peito_medio'], ['triceps']],
+  [['supino'], ['peito'], ['triceps', 'ombro_frontal']],
+  [['crucifixo inclinado'], ['peito_superior'], ['ombro_frontal']],
+  [['crucifixo declinado'], ['peito_medio'], []],
+  [['crucifixo'], ['peito'], ['ombro_frontal']],
+  [['crossover polia baixa'], ['peito_superior'], ['ombro_frontal']],
+  [['crossover polia alta'], ['peito_medio'], ['ombro_frontal']],
+  [['crossover'], ['peito'], ['ombro_frontal']],
+  [['peck'], ['peito'], ['ombro_frontal']],
+  [['chest press'], ['peito'], ['triceps', 'ombro_frontal']],
+  [['paralelas para peito'], ['peito_medio'], ['triceps', 'ombro_frontal']],
+  [['flexao de braco', 'declinada'], ['peito_superior'], ['triceps', 'ombro_frontal', 'abdomen']],
+  [['flexao de braco', 'pes elevados'], ['peito_superior'], ['triceps', 'ombro_frontal', 'abdomen']],
+  [['flexao de braco'], ['peito'], ['triceps', 'ombro_frontal', 'abdomen']],
   [['flexao no trx'], ['peito'], ['triceps', 'abdomen']],
-  [['remada alta'], ['ombro', 'trapezio'], ['biceps']],
-  [['remada'], ['dorsais', 'trapezio'], ['biceps', 'ombro']],
-  [['puxada'], ['dorsais'], ['biceps', 'trapezio']],
+  [['remada alta'], ['ombro_lateral', 'trapezio_superior'], ['biceps']],
+  [['remada'], ['dorsais', 'trapezio_medio'], ['biceps', 'ombro_posterior']],
+  [['puxada'], ['dorsais'], ['biceps', 'trapezio_medio']],
   [['barra fixa'], ['dorsais'], ['biceps', 'antebraco']],
   [['pulldown'], ['dorsais'], ['triceps']],
   [['terra romeno'], ['posterior', 'gluteos'], ['lombar']],
@@ -40,18 +60,21 @@ const REGRAS = [
   [['levantamento terra'], ['posterior', 'gluteos', 'lombar'], ['quadriceps', 'trapezio', 'antebraco']],
   [['lombar'], ['lombar'], ['gluteos']],
   [['superman'], ['lombar'], ['gluteos']],
-  [['encolhimento'], ['trapezio'], ['antebraco']],
-  [['face pull'], ['ombro'], ['trapezio']],
-  [['desenvolvimento'], ['ombro'], ['triceps', 'trapezio']],
-  [['elevacao lateral'], ['ombro'], ['trapezio']],
-  [['elevacao frontal'], ['ombro'], []],
-  [['rotacao externa'], ['ombro'], []],
+  [['encolhimento'], ['trapezio_superior'], ['antebraco']],
+  [['face pull'], ['ombro_posterior'], ['trapezio_medio']],
+  [['desenvolvimento'], ['ombro_frontal', 'ombro_lateral'], ['triceps', 'trapezio_superior']],
+  [['landmine'], ['ombro_frontal', 'peito_superior'], ['triceps']],
+  [['pike'], ['ombro_frontal'], ['triceps', 'trapezio_superior']],
+  [['elevacao lateral'], ['ombro_lateral'], ['trapezio_superior']],
+  [['elevacao em y'], ['ombro_lateral', 'trapezio_medio'], ['ombro_posterior']],
+  [['elevacao frontal'], ['ombro_frontal'], ['peito_superior']],
+  [['rotacao externa'], ['ombro_posterior'], []],
   [['rosca punho'], ['antebraco'], []],
   [['rosca inversa'], ['antebraco'], ['biceps']],
   [['rosca martelo'], ['biceps', 'antebraco'], []],
   [['rosca'], ['biceps'], ['antebraco']],
   [['triceps'], ['triceps'], []],
-  [['mergulho'], ['triceps'], ['peito', 'ombro']],
+  [['mergulho'], ['triceps'], ['peito_medio', 'ombro_frontal']],
   [['fazendeiro'], ['antebraco', 'trapezio'], ['abdomen']],
   [['farmer'], ['antebraco', 'trapezio'], ['abdomen']],
   [['cadeira extensora'], ['quadriceps'], []],
@@ -72,25 +95,36 @@ const REGRAS = [
   [['nordica'], ['posterior'], []],
   [['flexao de joelho'], ['posterior'], ['gluteos']],
   [['adutora'], ['adutores'], []],
-  [['abdutora'], ['gluteos'], []],
-  [['abducao'], ['gluteos'], []],
-  [['elevacao pelvica'], ['gluteos'], ['posterior']],
-  [['ponte'], ['gluteos'], ['posterior', 'lombar']],
+  [['abdutora'], ['gluteo_medio'], []],
+  [['abducao'], ['gluteo_medio'], []],
+  [['ostra'], ['gluteo_medio'], []],
+  [['caminhada lateral'], ['gluteo_medio'], ['gluteo_maximo']],
+  [['step-up lateral'], ['gluteo_medio', 'quadriceps'], ['gluteo_maximo']],
+  [['elevacao pelvica'], ['gluteo_maximo'], ['posterior', 'gluteo_medio']],
+  [['ponte'], ['gluteo_maximo'], ['posterior', 'lombar']],
+  [['frog pump'], ['gluteo_maximo'], ['gluteo_medio']],
   [['pull through'], ['gluteos', 'posterior'], ['lombar']],
   [['kettlebell swing'], ['gluteos', 'posterior'], ['lombar', 'ombro', 'abdomen']],
-  [['coice'], ['gluteos'], ['posterior']],
+  [['coice'], ['gluteo_maximo'], ['posterior']],
   [['gluteo'], ['gluteos'], ['posterior']],
-  [['mini band'], ['gluteos'], []],
+  [['mini band'], ['gluteo_medio'], []],
   [['panturrilha'], ['panturrilha'], []],
   [['obliquo'], ['obliquos'], ['abdomen']],
   [['abdominal bicicleta'], ['abdomen', 'obliquos'], []],
+  [['abdominal infra'], ['abdomen_inferior'], ['obliquos']],
+  [['abdominal supra'], ['abdomen_superior'], ['obliquos']],
+  [['abdominal canivete'], ['abdomen_superior', 'abdomen_inferior'], ['obliquos']],
+  [['elevacao de joelhos'], ['abdomen_inferior'], ['obliquos']],
+  [['abdominal tesoura'], ['abdomen_inferior'], []],
+  [['toque no calcanhar'], ['obliquos'], ['abdomen_superior']],
+  [['lenhador'], ['obliquos'], ['abdomen']],
   [['corda naval'], ['ombro'], ['abdomen', 'biceps', 'antebraco']],
   [['russian'], ['obliquos'], ['abdomen']],
   [['prancha lateral'], ['obliquos'], ['abdomen']],
   [['pallof'], ['obliquos'], ['abdomen']],
   [['abdominal'], ['abdomen'], ['obliquos']],
   [['prancha'], ['abdomen'], ['obliquos', 'ombro']],
-  [['elevacao de pernas'], ['abdomen'], ['obliquos']],
+  [['elevacao de pernas'], ['abdomen_inferior'], ['obliquos']],
   [['rollout'], ['abdomen'], ['dorsais', 'ombro']],
   [['mountain climber'], ['abdomen'], ['quadriceps', 'ombro']],
   [['burpee'], ['quadriceps', 'peito'], ['ombro', 'triceps', 'abdomen', 'gluteos']],
@@ -122,6 +156,11 @@ const FOCO = [
   [['panturrilha sentad'], 'Sóleo'], [['panturrilha'], 'Gastrocnêmio'],
   [['lombar'], 'Eretores da espinha'], [['superman'], 'Eretores da espinha'],
   [['obliquo'], 'Oblíquos'], [['russian'], 'Oblíquos'], [['prancha lateral'], 'Oblíquos'], [['pallof'], 'Oblíquos'],
+  [['abdominal infra'], 'Reto abdominal (parte de baixo)'], [['abdominal supra'], 'Reto abdominal (parte de cima)'],
+  [['elevacao de joelhos'], 'Reto abdominal (parte de baixo)'], [['abdominal tesoura'], 'Reto abdominal (parte de baixo)'],
+  [['elevacao em y'], 'Deltoide lateral e trapézio inferior'], [['landmine'], 'Deltoide anterior'], [['pike'], 'Deltoide anterior'],
+  [['ostra'], 'Glúteo médio'], [['caminhada lateral'], 'Glúteo médio'], [['frog pump'], 'Glúteo máximo'],
+  [['crucifixo inclinado'], 'Peitoral (parte de cima)'], [['crossover polia baixa'], 'Peitoral (parte de cima)'], [['crossover polia alta'], 'Peitoral (parte de baixo)'],
   [['elevacao de pernas'], 'Reto abdominal (parte de baixo)'], [['prancha'], 'Transverso do abdômen'], [['abdominal'], 'Reto abdominal'],
 ]
 
@@ -134,7 +173,7 @@ export function musculosDoExercicio(nome, lista) {
   const regra = REGRAS.find(([palavras]) => palavras.every((p) => texto.includes(p)))
   const [principais, secundarios] = regra ? [regra[1], regra[2]] : DO_GRUPO[grupoDoExercicio(nome, lista)] || [[], []]
   const ativo = principais[0] || null
-  const foco = FOCO.find(([palavras]) => palavras.every((p) => texto.includes(p)))?.[1] || (ativo && MUSCULOS[ativo])
+  const foco = FOCO.find(([palavras]) => palavras.every((p) => texto.includes(p)))?.[1] || (ativo && nomeMusculo(ativo))
   return { principais: unicos(principais), secundarios: unicos(secundarios).filter((m) => !principais.includes(m)), ativo, foco }
 }
 
@@ -144,8 +183,11 @@ export function cargaPorMusculo(exercicios) {
   const conta = {}
   for (const nome of exercicios) {
     const { principais, secundarios } = musculosDoExercicio(nome)
-    for (const m of principais) conta[m] = (conta[m] || 0) + 1
-    for (const m of secundarios) conta[m] = (conta[m] || 0) + 0.5
+    // Regiões contam no músculo delas, uma vez por exercício (ombro frontal + lateral = 1 de ombro).
+    const p = unicos(principais.map(paiDe))
+    const sec = unicos(secundarios.map(paiDe)).filter((m) => !p.includes(m))
+    for (const m of p) conta[m] = (conta[m] || 0) + 1
+    for (const m of sec) conta[m] = (conta[m] || 0) + 0.5
   }
   return conta
 }
