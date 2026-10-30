@@ -932,3 +932,79 @@ body { background: var(--surface) }
 .recorte-quadro.redondo::after { border-radius: 50%; box-shadow: 0 0 0 9999px rgb(0 0 0 / .45), inset 0 0 0 2px rgb(255 255 255 / .85) }
 .recorte-zoom { display: flex; align-items: center; gap: 12px }
 .recorte-zoom input { flex: 1; accent-color: var(--accent) }
+
+/* Minhas conquistas: grupos em pílulas, carrossel de medalhas e progresso */
+.conquistas-grupos { position: relative; display: flex; gap: 8px; overflow-x: auto; margin: 12px -2px 0; padding: 2px; scrollbar-width: none }
+.conquistas-grupos::-webkit-scrollbar { display: none }
+.conquistas-grupos button { flex: none; border-radius: 99px; padding: 7px 14px; font-size: 13px; font-weight: 600; background: none; border: 1.5px solid var(--line); color: var(--muted) }
+.conquistas-grupos button.on { background: var(--accent); border-color: var(--accent); color: #fff }
+.conquistas-frase { margin: 16px 0 0; color: var(--muted); font-size: 15px }
+.conquistas-frase strong { color: var(--ink) }
+.conquistas-trilho { display: flex; align-items: center; gap: 6px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 14px 40%; margin: 0 -16px; scrollbar-width: none; min-height: 190px }
+.conquistas-trilho::-webkit-scrollbar { display: none }
+.conquista-item { flex: none; scroll-snap-align: center; background: none; border: 0; padding: 0; opacity: .55; transition: opacity .2s }
+.conquista-item.foco, .conquista-item.ganha { opacity: 1 }
+.conquista-item svg { display: block; transition: width .2s, height .2s }
+.moeda.ganhou { filter: drop-shadow(0 6px 14px rgb(252 76 2 / .3)) }
+.conquista-detalhe { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 8px }
+.conquista-titulo { font-family: var(--display); font-size: 19px; font-weight: 700; letter-spacing: -.02em; text-align: center }
+.conquista-detalhe span { color: var(--muted); font-size: 14px }
+.conquista-num { font-size: 18px !important; color: var(--muted); font-variant-numeric: tabular-nums }
+.conquista-num strong { font-family: var(--display); font-size: 30px; color: var(--ink) }
+.bar.grossa { height: 10px }
+@media (prefers-reduced-motion: reduce) { .conquista-item, .conquista-item svg { transition: none } }
+
+/* Início: cartão "Minhas conquistas" */
+.inicio-conquista { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; width: 100%; padding: 18px 0; background: none; border: 0; border-radius: 0; font: inherit; color: inherit; text-align: left }
+.inicio-conquista .topo { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline }
+.inicio-conquista .topo h2 { margin: 0 }
+.inicio-conquista .linha { display: flex; justify-content: space-between; align-items: baseline; gap: 8px }
+.inicio-conquista .bar { grid-column: 1 / -1 }
+.inicio-conquista .nome { grid-column: 1 / -1; color: var(--muted); font-size: 14px }
+
+/* Início no estilo da referência: foto P&B com a pergunta, conteúdo subindo arredondado por cima */
+.hero-inicio { position: relative; height: 300px; margin: 14px 0 0; border-radius: 22px 22px 0 0; overflow: hidden; background: #2a2a2e; display: flex; align-items: flex-end }
+.hero-inicio img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.05) brightness(.85) }
+.hero-inicio::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / 0) 40%, rgb(0 0 0 / .55)) }
+.hero-inicio h1 { position: relative; z-index: 1; margin: 0 0 46px; padding: 0 22px; color: #fff; font-size: clamp(28px, 7.5vw, 40px); line-height: 1.1; letter-spacing: -.02em; text-shadow: 0 2px 12px rgb(0 0 0 / .3) }
+.inicio.com-hero { position: relative; z-index: 1; margin-top: -26px; background: var(--surface); border-radius: 26px 26px 0 0; padding-top: 20px }
+@media (max-width: 760px) {
+  .hero-inicio { margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); border-radius: 0; height: 340px }
+  .inicio.com-hero { margin-inline: -16px; padding-inline: 16px }
+}
+
+.banner-academia { position: relative; display: block; min-height: 170px; border-radius: 22px; overflow: hidden; background: #8a8a90; color: #fff; text-decoration: none }
+.banner-academia img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(.35) }
+.banner-academia::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(20 20 24 / .72) 0%, rgb(20 20 24 / .35) 60%, rgb(20 20 24 / .05)) }
+.banner-academia > div { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; padding: 22px; max-width: 70% }
+.banner-marca { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .02em }
+.banner-marca i { color: var(--accent); font-style: normal }
+.banner-academia strong { font-family: var(--display); font-size: 21px; line-height: 1.15; font-weight: 500; letter-spacing: -.01em; text-transform: uppercase }
+.banner-academia strong em { display: block; font-weight: 800; font-style: italic }
+.banner-acao { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase }
+
+.titulo-secao { display: flex; justify-content: space-between; align-items: center; gap: 10px }
+.titulo-secao h2 { margin: 0; display: flex; align-items: center; gap: 8px }
+.titulo-secao h2 svg { color: var(--accent); flex: none }
+.link-sublinhado { background: none; border: 0; padding: 0; font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: underline; text-underline-offset: 4px }
+
+/* Barra de baixo: check-in em círculo laranja cheio, mais alto que os outros */
+@media (max-width: 760px) {
+  .barra-app { overflow: visible }
+  .barra-app button.centro .barra-icone { display: grid; place-items: center; width: 58px; height: 58px; margin-top: -30px; border-radius: 50%; background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgb(252 76 2 / .4), 0 0 0 4px var(--surface) }
+  .barra-app button.centro .barra-icone svg { width: 28px; height: 28px }
+  .barra-app button.centro { color: var(--accent) }
+}
+.titulo-icone { display: flex; align-items: center; gap: 8px }
+.titulo-icone svg { color: var(--accent) }
+
+/* Tela de entrada no estilo da referência: fotos em preto e branco e a seção seguinte subindo arredondada */
+.hero-foto { filter: grayscale(1) contrast(1.06) brightness(.9) }
+.hero-entrada { background: #1c1c20 !important }
+.hero-chamada { padding-bottom: 20px }
+.hero-pontos, .hero-legenda { bottom: 52px }
+.entrada-atalhos { position: relative; z-index: 4; margin-top: -30px; background: var(--surface); border-radius: 30px 30px 0 0 }
+@media (max-width: 720px) {
+  .hero-chamada { bottom: 92px }
+  .hero-pontos { bottom: 56px }
+}

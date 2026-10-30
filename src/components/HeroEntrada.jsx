@@ -127,7 +127,7 @@ export default function HeroEntrada({ intervalo = 5000, onComecar, onEntrar }) {
         )
       })}
       <div className="hero-chamada">
-        <h1>Motivação garantida pela turma.</h1>
+        <h1>Pronto pra treinar?</h1>
         <p>Treino, evolução e comunidade da Corpo Atlético, tudo no seu celular.</p>
         <button className="hero-cta" onClick={onComecar}>Junte-se a nós agora</button>
         <button className="hero-link" onClick={onEntrar}>Já tenho conta</button>
