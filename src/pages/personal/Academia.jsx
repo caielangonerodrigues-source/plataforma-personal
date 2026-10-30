@@ -24,7 +24,7 @@ export default function Academia() {
       supabase.from('equipes').select('*').order('nome'),
       supabase.from('alunos').select('*').neq('status', 'pausado').order('nome'),
       supabase.from('fotos_entrada').select('*').order('ordem').order('created_at'),
-      supabase.from('checkins').select('aluno_id, data').gte('data', `${hojeISO().slice(0, 7)}-01`),
+      supabase.from('checkins').select('aluno_id, data').not('aluno_id', 'is', null).gte('data', `${hojeISO().slice(0, 7)}-01`),
     ])
     if (aulas.error || avisos.error || equipes.error) return setSemSql(true)
     setD({ personal: p.data, aulas: aulas.data, avisos: avisos.data, equipes: equipes.data, alunos: alunos.data || [], fotos: fotos.error ? null : fotos.data, mes: mes.data || [] })
@@ -75,6 +75,12 @@ function Novidades({ avisos, alunos, recarregar }) {
     e.preventDefault()
     if (!f.titulo.trim()) return setErro('Escreva o título.')
     setSalvando(true); setOk('')
+    if (f.id) {
+      const { error } = await supabase.from('avisos').update({ tipo: f.tipo, titulo: f.titulo.trim(), texto: f.texto.trim() || null, fixado: f.fixado }).eq('id', f.id)
+      setSalvando(false)
+      if (error) return setErro(`Não foi possível salvar: ${error.message}`)
+      setErro(''); setOk('Aviso atualizado.'); setF(vazio); return recarregar()
+    }
     const { error } = await supabase.from('avisos').insert({ tipo: f.tipo, titulo: f.titulo.trim(), texto: f.texto.trim() || null, fixado: f.fixado })
     if (error) { setSalvando(false); return setErro(`Não foi possível publicar: ${error.message}`) }
     let msg = 'Publicado na aba Novidades dos alunos.'
@@ -97,24 +103,25 @@ function Novidades({ avisos, alunos, recarregar }) {
       <form className="form" onSubmit={publicar}>
         <label>Tipo
           <select id="aviso-tipo" value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })}>
-            {Object.entries(TIPOS_AVISO).map(([k, [r, i]]) => <option key={k} value={k}>{i} {r}</option>)}
+            {Object.entries(TIPOS_AVISO).map(([k, [r]]) => <option key={k} value={k}>{r}</option>)}
           </select>
         </label>
         <label style={{ gridColumn: 'span 2' }}>Título<input id="aviso-titulo" maxLength={80} placeholder="Ex.: Feriado: academia fecha dia 15" value={f.titulo} onChange={(e) => setF({ ...f, titulo: e.target.value })} /></label>
         <label className="full">Texto<textarea id="aviso-texto" rows={3} maxLength={1000} placeholder="Opcional" value={f.texto} onChange={(e) => setF({ ...f, texto: e.target.value })} /></label>
         <label className="full checkbox"><input type="checkbox" checked={f.fixado} onChange={(e) => setF({ ...f, fixado: e.target.checked })} /> Fixar no topo</label>
-        <label className="full checkbox"><input type="checkbox" checked={f.notificar} onChange={(e) => setF({ ...f, notificar: e.target.checked })} /> Mandar notificação no celular dos alunos</label>
+        {!f.id && <label className="full checkbox"><input type="checkbox" checked={f.notificar} onChange={(e) => setF({ ...f, notificar: e.target.checked })} /> Mandar notificação no celular dos alunos</label>}
         {erro && <p className="erro full" style={{ margin: 0 }}>{erro}</p>}
         {ok && <p className="ok full" style={{ margin: 0 }}>{ok}</p>}
-        <div className="full"><button className="primary" disabled={salvando}>{salvando ? 'Publicando…' : 'Publicar'}</button></div>
+        <div className="full"><button className="primary" disabled={salvando}>{salvando ? 'Salvando…' : f.id ? 'Salvar alterações' : 'Publicar'}</button>{f.id && <button type="button" className="link" style={{ marginLeft: 12 }} onClick={() => { setF(vazio); setOk('') }}>Cancelar</button>}</div>
       </form>
       <div className="stack" style={{ gap: 0, marginTop: 14 }}>
         {ordenarAvisos(avisos).map((a) => (
           <div key={a.id} className="linha-lista">
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div className="name">{TIPOS_AVISO[a.tipo]?.[1]} {a.titulo}{a.fixado && <span className="meta"> · 📌 fixado</span>}</div>
+              <div className="name">{a.titulo}{a.fixado && <span className="meta"> · fixado</span>}</div>
               <div className="meta">{quandoFoi(a.created_at)}{a.texto ? ` · ${a.texto.slice(0, 80)}${a.texto.length > 80 ? '…' : ''}` : ''}</div>
             </div>
+            <button className="ghost small" onClick={() => { setF({ id: a.id, tipo: a.tipo, titulo: a.titulo, texto: a.texto || '', fixado: a.fixado, notificar: false }); setOk(''); document.getElementById('aviso-titulo')?.focus() }}>Editar</button>
             <button className="ghost small" onClick={() => fixar(a)}>{a.fixado ? 'Desafixar' : 'Fixar'}</button>
             <button className="ghost small" aria-label={`Apagar ${a.titulo}`} onClick={() => apagar(a)}>✕</button>
           </div>

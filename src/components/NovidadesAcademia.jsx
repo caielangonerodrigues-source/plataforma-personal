@@ -21,13 +21,13 @@ export default function NovidadesAcademia({ academia }) {
         </div>
       )}
       {lista.map((a) => {
-        const [rotulo, icone] = TIPOS_AVISO[a.tipo] || TIPOS_AVISO.novidade
+        const [rotulo] = TIPOS_AVISO[a.tipo] || TIPOS_AVISO.novidade
         const novo = !vistoEm || a.created_at > vistoEm
         return (
           <article key={a.id} className={`panel aviso aviso-${a.tipo}`}>
             <div className="row" style={{ gap: 8 }}>
-              <span className="aviso-tipo"><span aria-hidden="true">{icone}</span> {rotulo}</span>
-              {a.fixado && <span className="meta">📌 Fixado</span>}
+              <span className="aviso-tipo">{rotulo}</span>
+              {a.fixado && <span className="meta">Fixado</span>}
               {novo && <span className="pill pendente">Novo</span>}
               <span className="meta" style={{ marginLeft: 'auto' }}>{quandoFoi(a.created_at)}</span>
             </div>

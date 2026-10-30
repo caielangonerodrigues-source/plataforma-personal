@@ -72,8 +72,8 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
       <label className="full">O que você treinou?
         <select id="checkin-treino" value={treinoId} onChange={(e) => setTreinoId(e.target.value)}>
           {treinos.map((t) => <option key={t.id} value={t.id}>Treino {t.nome}{t.foco ? ` · ${t.foco}` : ''}</option>)}
-          <option value={MUSCULACAO}>🏋️ Musculação</option>
-          {Object.entries(ESPORTES).map(([k, [nome, icone]]) => <option key={k} value={k}>{icone} {nome}</option>)}
+          <option value={MUSCULACAO}>Musculação</option>
+          {Object.entries(ESPORTES).map(([k, [nome]]) => <option key={k} value={k}>{nome}</option>)}
           <option value={OUTRO}>Outra atividade</option>
         </select>
       </label>
@@ -96,7 +96,7 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
       </>}
       {treino && resumo && (
         <p className="meta full" style={{ margin: 0 }}>
-          Vai junto no post: {resumo.feitos} de {resumo.total} exercícios{resumo.volume ? ` · ${resumo.volume.toLocaleString('pt-BR')} kg levantados` : ''}{resumo.recordes.length ? ` · ${resumo.recordes.length} recorde${resumo.recordes.length > 1 ? 's' : ''} 💪` : ''}
+          Vai junto no post: {resumo.feitos} de {resumo.total} exercícios{resumo.volume ? ` · ${resumo.volume.toLocaleString('pt-BR')} kg levantados` : ''}{resumo.recordes.length ? ` · ${resumo.recordes.length} recorde${resumo.recordes.length > 1 ? 's' : ''}` : ''}
         </p>
       )}
       <div className="full stack" style={{ gap: 4 }}>

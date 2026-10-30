@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { supabase } from '../supabase.js'
 import { ALIMENTOS, somarItens } from '../lib/nutricao.js'
 import { MACROS, consumoDoDia, consumoPrevisto, faltando, macrosDoExtra, metasDaDieta, situacaoDoDia, sugestoes } from '../lib/diario.js'
@@ -107,7 +108,7 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
         {situacao && <div className={`situacao-dieta ${situacao.tipo}`}>{situacao.texto}</div>}
         {dicas.length > 0 && (
           <div className="stack" style={{ gap: 8 }}>
-            <div className="meta" style={{ fontWeight: 600 }}>💡 {pendentes > 0 ? 'Mesmo com as refeições que faltam, ainda sobra espaço. Um lanche ajuda a fechar:' : 'Para bater a meta hoje, você pode comer:'}</div>
+            <div className="meta" style={{ fontWeight: 600 }}>{pendentes > 0 ? 'Mesmo com as refeições que faltam, ainda sobra espaço. Um lanche ajuda a fechar:' : 'Para bater a meta hoje, você pode comer:'}</div>
             {dicas.map((d) => (
               <div key={d.macro} className="dica-macro">
                 <span style={{ flex: 1, minWidth: 0 }}>{d.texto}</span>
@@ -132,7 +133,7 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
               </label>
               <label className={`botao-foto-prato${ocupado === `f${i}` ? ' enviando' : ''}`} title="Foto do prato">
                 <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => { foto(i, e.target.files?.[0]); e.target.value = '' }} />
-                {ocupado === `f${i}` ? '…' : '📷'}<span className="so-computador"> Foto</span>
+                {ocupado === `f${i}` ? '…' : <IconeLinha d={ICONES.camera} tamanho={18} traco={1.8} />}<span className="so-computador"> Foto</span>
               </label>
             </div>
             <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>

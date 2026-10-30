@@ -4,6 +4,15 @@ import { hojeISO } from '../lib/formato.js'
 import { inicioDoMes } from '../lib/comunidade.js'
 import { EMOJIS, acaoReacao } from '../lib/reacoes.js'
 import { avisarInteracao } from '../lib/push.js'
+import { reduzirFoto } from '../lib/foto.js'
+
+// Nome do personal: o próprio cadastro (quando quem abre é o personal) ou o do personal do aluno.
+async function nomeDoPersonal() {
+  const { data: eu } = await supabase.from('personais').select('nome').limit(1)
+  if (eu?.[0]?.nome) return eu[0].nome
+  const { data } = await supabase.rpc('pix_do_personal')
+  return data?.[0]?.nome || 'Personal'
+}
 
 // Curtidas com o emoji de cada reação; sem o SQL das reações, lê só as curtidas (viram ❤️).
 async function lerCurtidas(ids) {
@@ -19,17 +28,18 @@ export function useComunidade() {
 
   const carregar = useCallback(async () => {
     const hoje = hojeISO()
-    const [sessao, membros, feed, conquistas, desafios, equipes] = await Promise.all([
+    const [sessao, membros, feed, conquistas, desafios, equipes, personal] = await Promise.all([
       supabase.auth.getSession(),
       supabase.rpc('comunidade_membros'),
       supabase.from('checkins').select('*').order('created_at', { ascending: false }).limit(30), // * traz o card do treino (resumo) quando o SQL novo rodou
       supabase.from('conquistas').select('*').eq('visivel', true).order('created_at', { ascending: false }).limit(20),
       supabase.from('desafios').select('*').order('fim'),
       supabase.from('equipes').select('*').order('nome'), // SQL novo: sem ele, sem equipes
+      nomeDoPersonal(), // para assinar as fotos que o personal posta no feed
     ])
     // Check-ins desde o começo do mês ou do desafio ativo mais antigo (para ranking e desafios).
     const desde = [inicioDoMes(hoje), ...(desafios.data || []).filter((d) => d.fim >= hoje).map((d) => d.inicio)].sort()[0]
-    const periodo = await supabase.from('checkins').select('aluno_id, data').gte('data', desde)
+    const periodo = await supabase.from('checkins').select('aluno_id, data').not('aluno_id', 'is', null).gte('data', desde) // posts do personal não contam
     const falha = membros.error || feed.error || periodo.error || desafios.error
     if (falha) return setErro(`Não foi possível carregar a comunidade: ${falha.message}`)
     const ids = feed.data.map((c) => c.id)
@@ -47,6 +57,7 @@ export function useComunidade() {
     setErro('')
     setDados({
       eu: sessao.data.session?.user.id,
+      personal,
       membros: membros.data,
       feed: feed.data,
       conquistas: conquistas.error ? [] : conquistas.data, // SQL novo: sem ele, sem conquistas no feed
@@ -92,6 +103,20 @@ export function useComunidade() {
     carregar()
   }
 
+  // Foto do personal no feed: não é check-in, só motivação. Fica na pasta do personal no bucket dos check-ins.
+  async function postarFoto(foto, legenda) {
+    const caminho = `${dados.eu}/${crypto.randomUUID()}.jpg`
+    const envio = await supabase.storage.from('checkins').upload(caminho, await reduzirFoto(foto), { contentType: 'image/jpeg' })
+    if (envio.error) return `Não foi possível enviar a foto: ${envio.error.message}`
+    const { error } = await supabase.from('checkins').insert({ personal_id: dados.eu, data: hojeISO(), comentario: legenda.trim() || null, foto: caminho })
+    if (error) {
+      await supabase.storage.from('checkins').remove([caminho])
+      return /personal_id/.test(error.message) ? 'Falta rodar o SQL das fotos do personal (veja o README, passo 13).' : `Não foi possível postar: ${error.message}`
+    }
+    await carregar()
+    return ''
+  }
+
   async function apagar(checkin) {
     if (checkin.foto) await supabase.storage.from('checkins').remove([checkin.foto])
     const { error } = await supabase.from('checkins').delete().eq('id', checkin.id)
@@ -113,5 +138,5 @@ export function useComunidade() {
     carregar()
   }
 
-  return { dados, erro, carregar, reagir, reagirConquista, apagar, comentar, apagarComentario }
+  return { dados, erro, carregar, reagir, reagirConquista, apagar, comentar, apagarComentario, postarFoto }
 }

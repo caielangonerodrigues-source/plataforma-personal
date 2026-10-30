@@ -110,7 +110,7 @@ function EnviarVideo({ aluno, exercicios, onEnviado }) {
       {(exercicio === '__outro' || !nomes.length) && <label className="full">Qual exercício?<input maxLength={80} placeholder="Ex.: Levantamento terra" value={outro} onChange={(e) => setOutro(e.target.value)} /></label>}
       <label className="foto-botao full">
         <input className="sr" type="file" accept="video/*" onChange={escolher} />
-        {arquivo ? `🎬 ${arquivo.name.slice(0, 30)} · ${(arquivo.size / 1048576).toFixed(1).replace('.', ',')} MB (trocar)` : '🎬 Gravar ou escolher vídeo'}
+        {arquivo ? `${arquivo.name.slice(0, 30)} · ${(arquivo.size / 1048576).toFixed(1).replace('.', ',')} MB (trocar)` : 'Gravar ou escolher vídeo'}
       </label>
       <label className="full">Dúvida ou comentário (opcional)<textarea rows={2} maxLength={280} placeholder="Ex.: sinto o joelho na descida" value={comentario} onChange={(e) => setComentario(e.target.value)} /></label>
       {erro && <p className="erro full" style={{ margin: 0 }}>{erro}</p>}

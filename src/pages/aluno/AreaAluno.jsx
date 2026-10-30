@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import IconeLinha, { ICONES } from '../../components/IconeLinha.jsx'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Grafico from '../../components/Grafico.jsx'
@@ -234,7 +235,7 @@ export default function AreaAluno({ aluno }) {
       <InstalarApp />
       {qr && (
         <div className={`panel qr-resultado${qr.erro ? ' erro' : ''}`} role="status">
-          <span aria-hidden="true" style={{ fontSize: 26 }}>{qr.erro ? '⚠️' : '✅'}</span>
+          <IconeLinha d={qr.erro ? ICONES.aviso : ICONES.marcar} tamanho={30} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <strong>{qr.erro ? 'Check-in não feito' : qr.feito ? 'Check-in na academia feito!' : 'Você já fez o check-in na academia hoje'}</strong>
             <div className="meta">{qr.erro || (qr.feito ? 'Contou para a sequência, o ranking e as medalhas. Quer postar uma foto do treino?' : 'Sua presença de hoje já está registrada.')}</div>
@@ -306,7 +307,7 @@ export default function AreaAluno({ aluno }) {
               )}
               {fichaVencida && (
                 <div className="aviso-ficha">
-                  <strong>Hora de trocar a ficha 💪</strong>
+                  <strong>Hora de trocar a ficha</strong>
                   <span className="meta" style={{ color: 'inherit' }}>Você está há {fichaVencida.semanas} semanas na mesma ficha. Seu personal já foi avisado para montar a próxima. Até lá, siga com esta.</span>
                 </div>
               )}
@@ -335,10 +336,10 @@ export default function AreaAluno({ aluno }) {
                           </label>
                           {troca && <div className="meta" style={{ fontSize: 12 }}>no lugar de {e.nome}</div>}
                           <div className="meta">{e.series} × {e.reps} · descanso {e.descanso}{e.obs ? ` · ${e.obs}` : ''}</div>
-                          {foco && <div className="foco-musculo">🎯 Mais ativo: {foco}</div>}
+                          {foco && <div className="foco-musculo">Mais ativo: {foco}</div>}
                           {metodo && (
                             <button type="button" className="pill metodo" aria-expanded={metodoAberto === e.id} onClick={() => setMetodoAberto(metodoAberto === e.id ? null : e.id)}>
-                              ⚡ {metodo.nome}{bloco ? ` ${bloco.indice}/${bloco.total}` : ''} <span aria-hidden="true">ⓘ</span>
+                              {metodo.nome}{bloco ? ` ${bloco.indice}/${bloco.total}` : ''} <span aria-hidden="true">ⓘ</span>
                             </button>
                           )}
                           {metodo && metodoAberto === e.id && <div className="metodo-texto">{metodo.texto}</div>}
@@ -496,7 +497,7 @@ function Cabecalho({ aluno, whatsapp, naoLidas = 0, onMensagens, onCheckin, fezH
           </button>
         )}
         {whatsapp && <a className="botao-whatsapp redondo" href={whatsapp} target="_blank" rel="noreferrer" aria-label="Grupo da academia no WhatsApp" title="Grupo da academia no WhatsApp"><IconeWhatsApp /></a>}
-        {onCheckin && <button className="primary small so-computador" onClick={onCheckin}>{fezHoje ? 'Novo check-in' : '📸 Fazer check-in'}</button>}
+        {onCheckin && <button className="primary small so-computador" onClick={onCheckin}>{fezHoje ? 'Novo check-in' : 'Fazer check-in'}</button>}
         <button className="small so-computador" onClick={() => supabase.auth.signOut()}>Sair</button>
       </div>
     </div>

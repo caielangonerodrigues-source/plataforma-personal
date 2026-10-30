@@ -19,9 +19,9 @@ export default function CompartilharStory({ aluno, hoje, dias, registros, avalia
   const nomeExercicio = recorde && treinos.flatMap((t) => t.exercicios).find((e) => e.id === recorde.exercicio_id)?.nome
 
   const opcoes = [
-    { tipo: 'mes', rotulo: `📅 Meu mês (${noMes})`, dados: { mes: MESES[Number(hoje.slice(5, 7)) - 1], treinos: noMes, sequencia: sequencia(todosDias, hoje) }, pode: noMes > 0 },
-    { tipo: 'medalha', rotulo: medalha ? `${medalha.icone} ${medalha.titulo}` : '🏅 Medalha', dados: medalha, pode: !!medalha },
-    { tipo: 'recorde', rotulo: recorde ? `💪 Recorde: ${nomeExercicio || 'carga'}` : '💪 Recorde', dados: recorde && { ...recorde, exercicio: nomeExercicio || 'Exercício' }, pode: !!recorde },
+    { tipo: 'mes', rotulo: `Meu mês (${noMes})`, dados: { mes: MESES[Number(hoje.slice(5, 7)) - 1], treinos: noMes, sequencia: sequencia(todosDias, hoje) }, pode: noMes > 0 },
+    { tipo: 'medalha', rotulo: medalha ? medalha.titulo : 'Medalha', dados: medalha, pode: !!medalha },
+    { tipo: 'recorde', rotulo: recorde ? `Recorde: ${nomeExercicio || 'carga'}` : 'Recorde', dados: recorde && { ...recorde, exercicio: nomeExercicio || 'Exercício' }, pode: !!recorde },
   ]
 
   async function gerar(o) {

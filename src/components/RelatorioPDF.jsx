@@ -13,7 +13,7 @@ export default function BotaoPDF({ alunoId, nome, mes, numeros, conteudo = {}, c
   const [aberto, setAberto] = useState(false)
   return (
     <>
-      <button type="button" className={className} onClick={() => setAberto(true)} disabled={!numeros}>📄 Baixar PDF</button>
+      <button type="button" className={className} onClick={() => setAberto(true)} disabled={!numeros}>Baixar PDF</button>
       {aberto && <FolhaRelatorio alunoId={alunoId} nome={nome} mes={mes} numeros={numeros} conteudo={conteudo} onFechar={() => setAberto(false)} />}
     </>
   )

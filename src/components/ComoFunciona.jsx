@@ -1,18 +1,10 @@
-import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 
-// Explicação curta de cada aba. Aberta na primeira visita; depois que a pessoa fecha, fica fechada naquele aparelho.
-export default function ComoFunciona({ chave, itens }) {
-  const guardada = `ajuda-fechada-${chave}`
-  const [aberta, setAberta] = useState(() => { try { return !localStorage.getItem(guardada) } catch { return true } })
-  function alternar(e) {
-    const abriu = e.currentTarget.open
-    setAberta(abriu)
-    try { if (abriu) localStorage.removeItem(guardada); else localStorage.setItem(guardada, '1') } catch { /* sem armazenamento */ }
-  }
+// Explicação curta de cada aba: um link discreto, sempre fechado; abre só quando a pessoa toca.
+export default function ComoFunciona({ itens }) {
   return (
-    <details className="como-funciona" open={aberta} onToggle={alternar}>
-      <summary>ℹ️ Como funciona</summary>
+    <details className="como-funciona">
+      <summary>Como funciona</summary>
       <ul>{itens.map((t) => <li key={t}>{t}</li>)}</ul>
     </details>
   )
@@ -49,14 +41,14 @@ export const AJUDA_ALUNO = {
   ],
   inicio: [
     'Seu resumo: treinos da semana, próximo treino, ranking e medalhas.',
-    '🔥 Ofensiva: são as semanas seguidas em que você treinou pelo menos 2 vezes. Se a semana estiver acabando e faltar treino, você recebe um aviso para não perder.',
+    'Ofensiva: são as semanas seguidas em que você treinou pelo menos 2 vezes. Se a semana estiver acabando e faltar treino, você recebe um aviso para não perder.',
     'Toda segunda chega no celular o resumo da sua semana.',
   ],
   novidades: ['Avisos da academia: feriados, eventos, mudanças de horário e novidades.'],
   comunidade: [
     'Cada check-in vira um post no feed. Reaja com emoji e comente nos treinos da turma.',
     'O ranking conta os dias com check-in no mês. Veja o Geral, só a Academia, só o Online ou só a sua equipe.',
-    'No placar das equipes, cada dia de treino de um membro vale 1 ponto para o time. O time com mais pontos no mês ganha a coroa 👑.',
+    'No placar das equipes, cada dia de treino de um membro vale 1 ponto para o time. O time com mais pontos no mês ganha a coroa.',
     'Medalhas e recordes aparecem no feed sozinhos. No chat da turma todo mundo conversa junto.',
   ],
   dieta: [

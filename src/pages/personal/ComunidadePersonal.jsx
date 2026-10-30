@@ -7,7 +7,7 @@ export default function ComunidadePersonal() {
   return (
     <>
       <h1>Comunidade</h1>
-      <p className="sub">Check-ins dos seus alunos, desafios e o ranking do mês. Você pode criar desafios, reagir com emoji e apagar posts.</p>
+      <p className="sub">Check-ins dos seus alunos, desafios e o ranking do mês. Você pode postar fotos para motivar a turma, criar desafios, reagir e apagar posts.</p>
       <AjudaDaPagina />
       <Comunidade comunidade={comunidade} podeApagarTudo />
     </>

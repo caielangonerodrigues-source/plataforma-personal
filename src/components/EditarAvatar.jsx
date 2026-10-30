@@ -68,7 +68,7 @@ export default function EditarAvatar({ aluno, onMudou }) {
         </div>
       </div>
       <div className="row" style={{ gap: 8 }}>
-        <button className="primary" disabled={ocupado} onClick={() => camera.current.click()}>📷 Tirar foto</button>
+        <button className="primary" disabled={ocupado} onClick={() => camera.current.click()}>Tirar foto</button>
         <button disabled={ocupado} onClick={() => galeria.current.click()}>Escolher da galeria</button>
         {avatar && <button className="ghost" disabled={ocupado} onClick={() => salvar(null)}>Remover</button>}
         <input ref={camera} type="file" accept="image/*" capture="user" hidden onChange={enviarFoto} />
