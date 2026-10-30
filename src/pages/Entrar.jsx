@@ -97,27 +97,33 @@ export default function Entrar() {
 
       <HeroEntrada onComecar={() => irPara('criar')} onEntrar={() => irPara('entrar')} />
 
-      <nav className="entrada-atalhos" aria-label="Para quem ainda não é aluno">
-        <Link to="/spinning" className="atalho forte">
-          <IconeLinha d="M5.5 18a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM18.5 18a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5.5 14.5 9 8h6l3.5 6.5M9 8 7.5 5H5M12 14.5 15 8M14 5h2.5" />
-          <span className="atalho-texto"><strong>Aula de spinning</strong><span>Reserve sua bike, sem precisar de conta</span></span>
-          <span className="atalho-acao">Reservar ›</span>
-        </Link>
-        {consultoria && (
-          <Link to="/consultoria" className="atalho forte">
-            <IconeLinha d="M7 2.5h10a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V4A1.5 1.5 0 0 1 7 2.5zM10.5 18.5h3M9 9l2 2 4-4" />
-            <span className="atalho-texto"><strong>Consultoria online</strong><span>Treino e acompanhamento comigo, de onde você estiver</span></span>
-            <span className="atalho-acao">Ver planos ›</span>
+      <section className="entrada-secao entrada-atalhos" aria-label="Para quem ainda não é aluno">
+        <h2 className="entrada-titulo">Venha treinar com a gente.</h2>
+        <div className="entrada-atalhos-grade">
+          <Link to="/spinning" className="entrada-recurso atalho">
+            <IconeLinha d="M5.5 18a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM18.5 18a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5.5 14.5 9 8h6l3.5 6.5M9 8 7.5 5H5M12 14.5 15 8M14 5h2.5" />
+            <h3>Aula de spinning</h3>
+            <p>Reserve sua bike direto pelo site, sem precisar de conta. Pagamento por Pix ou pacote de aulas.</p>
+            <span className="atalho-acao">Reservar ›</span>
           </Link>
-        )}
-        {experimental && (
-          <Link to="/experimental" className="atalho">
-            <IconeLinha d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12" />
-            <span className="atalho-texto"><strong>Aula experimental</strong><span>Venha conhecer a academia: escolha um horário</span></span>
-            <span className="atalho-acao">Marcar ›</span>
-          </Link>
-        )}
-      </nav>
+          {consultoria && (
+            <Link to="/consultoria" className="entrada-recurso atalho">
+              <IconeLinha d="M7 2.5h10a1.5 1.5 0 0 1 1.5 1.5v16a1.5 1.5 0 0 1-1.5 1.5H7A1.5 1.5 0 0 1 5.5 20V4A1.5 1.5 0 0 1 7 2.5zM10.5 18.5h3M9 9l2 2 4-4" />
+              <h3>Consultoria online</h3>
+              <p>Treino montado para você e acompanhamento pelo app, de onde você estiver, com ajustes conforme a sua evolução.</p>
+              <span className="atalho-acao">Ver planos ›</span>
+            </Link>
+          )}
+          {experimental && (
+            <Link to="/experimental" className="entrada-recurso atalho">
+              <IconeLinha d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4" />
+              <h3>Aula experimental</h3>
+              <p>Venha conhecer a academia: escolha um dia e horário e treine com a gente.</p>
+              <span className="atalho-acao">Marcar ›</span>
+            </Link>
+          )}
+        </div>
+      </section>
 
       <section className="entrada-secao entrada-acesso" id="acesso">
       <div style={{ width: '100%', maxWidth: 420, margin: '0 auto' }}>
@@ -212,9 +218,9 @@ export default function Entrar() {
 }
 
 // Ícones de traço (24×24) dos recursos, no estilo do site do Strava.
-// Ícone de traço fino, igual aos da seção "Tudo o que você precisa" (cor vem do texto do cartão).
+// Ícone de traço fino, igual aos da seção "Tudo o que você precisa".
 const IconeLinha = ({ d }) => (
-  <svg className="atalho-icone" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
 )
 
 const RECURSOS = [
