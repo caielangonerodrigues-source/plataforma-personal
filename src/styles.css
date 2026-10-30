@@ -780,7 +780,7 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .corpo-legenda i.fraco { opacity: .3 }
 .corpo-legenda .corpo-foco { color: var(--ink) }
 .corpo-legenda .corpo-foco i { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent) }
-/* Bonequinho chapado: silhueta cinza clara, traço leve dos músculos e músculos em laranja chapado */
+/* Bonequinho chapado: silhueta cinza clara, músculos em cinza e, quando treinados, em laranja chapado */
 .corpo-silhueta, .corpo-musculo { position: absolute; inset: 0; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat }
 .corpo-silhueta { background: color-mix(in srgb, var(--ink) 5%, var(--surface)) }
 .corpo-musculo { background: var(--accent) }
@@ -869,21 +869,9 @@ body { background: var(--surface) }
 .pedir-notificacoes h2 { margin: 6px 0 0 }
 .pedir-notificacoes p { margin: 0 0 6px }
 .pedir-notificacoes button.primary { width: 100% }
-/* Telas de dentro na pegada da tela de entrada: faixa de foto no topo, títulos grandes e muito espaço */
-.faixa-foto { grid-column: 1 / -1; position: relative; overflow: hidden; display: flex; align-items: flex-end; min-height: 360px; margin: 0 0 8px; background: #161618; color: #fff }
-.faixa-foto.baixa { min-height: 240px; margin-bottom: 24px }
-.faixa-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.05) }
-.faixa-foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / .05) 0%, rgb(0 0 0 / .35) 45%, rgb(0 0 0 / .72) 100%) }
-.faixa-foto-texto { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 32px clamp(20px, 5vw, 48px); max-width: 760px }
-.faixa-foto h1 { color: #fff; font-size: clamp(34px, 5vw, 56px); font-weight: 600; letter-spacing: -.03em; line-height: 1.04; margin: 0; text-shadow: 0 2px 24px rgb(0 0 0 / .35) }
-.faixa-foto p { margin: 0; font-size: 16px; max-width: 520px; text-shadow: 0 1px 10px rgb(0 0 0 / .5) }
-.faixa-foto-rotulo { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #ffb08c }
-.faixa-foto-acoes { display: flex; align-items: center; gap: 22px; margin-top: 8px; flex-wrap: wrap }
-.faixa-foto .hero-cta { margin: 0; padding: 14px 30px; font-size: 17px }
-.inicio h2 { font-size: 26px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1 }
-.inicio .panel { padding: 30px 0 }
+/* Músculos da semana: seção centralizada com o bonequinho chapado e a lista com barras */
 .musculos-semana { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px }
-.musculos-semana h2 { margin: 2px 0 0 }
+.musculos-semana h2 { margin: 2px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -.03em }
 .musculos-semana .atalho-rotulo { color: var(--accent); font-weight: 700; margin-top: 0 }
 .musculos-semana > p { margin: 0 }
 .musculos-semana .corpo { margin: 14px 0 6px }
@@ -891,10 +879,3 @@ body { background: var(--surface) }
 .musculos-lista li { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 12px; font-size: 14px }
 .musculos-lista i { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden }
 .musculos-lista b { display: block; height: 100%; background: var(--accent); border-radius: 2px }
-@media (max-width: 760px) {
-  .faixa-foto { margin-inline: -16px; min-height: 420px }
-  .faixa-foto.baixa { min-height: 260px }
-  .inicio .faixa-foto { order: -4 }
-  .faixa-foto-acoes { flex-direction: column; align-self: stretch; gap: 14px }
-  .faixa-foto .hero-cta { align-self: stretch; text-align: center }
-}
