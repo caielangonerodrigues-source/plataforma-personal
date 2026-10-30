@@ -13,7 +13,7 @@ test('limpa o formulário aceitando vírgula', () => {
 
 test('envio vira avaliação com braço e coxa do lado direito', () => {
   const a = paraAvaliacao({ data: '2026-10-28', peso: 70.2, gordura: null, medidas: { cintura: 80, braco_e: 31, coxa_d: 55 } })
-  assert.deepEqual(a, { data: '2026-10-28', peso: 70.2, gordura: '', cintura: 80, quadril: '', braco: 31, coxa: 55 })
+  assert.deepEqual(a, { data: '2026-10-28', peso: 70.2, gordura: '', cintura: 80, quadril: '', braco: 31, coxa: 55, medidas: { cintura: 80, braco_e: 31, coxa_d: 55 } })
 })
 
 test('relato da semana: primeiro, em dia e atrasado', () => {
