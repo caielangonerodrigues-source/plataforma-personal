@@ -210,6 +210,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 2. Todo personal liberado (passo 4) passa a ver e editar os mesmos alunos, treinos, agenda, academia e financeiro do primeiro personal, como se fosse uma conta só.
 3. Em **Academia › Localização da academia**, toque em **Salvar a localização atual** estando dentro da academia. No check-in, o aluno escolhe **Mostrar onde treinei**: perto da academia aparece "Corpo Atlético"; em outro lugar, o bairro e a cidade.
 
+### 16. Perfil de cada personal da equipe
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-perfil-equipe.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Em **Configurações**, cada personal muda a própria foto, nome e WhatsApp. A chave Pix das mensalidades é da academia: só o primeiro personal (o dono) vê e muda.
+
 ## Desenvolvimento
 
 ```bash
