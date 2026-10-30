@@ -679,6 +679,9 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .refeicao.feita .name { color: var(--ok) }
 .refeicao-check { flex-direction: row; display: flex; align-items: flex-start; gap: 10px; text-transform: none; letter-spacing: 0; font-size: 15px; color: var(--ink); font-weight: 400; cursor: pointer; min-width: 0 }
 .refeicao-check input { width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--ok); flex: 0 0 auto }
+.editar-refeicao { gap: 10px; margin-top: 10px }
+.linha-editavel { display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; border-bottom: 1px solid var(--line) }
+.linha-editavel input { padding: 8px 10px }
 .botao-foto-prato { flex-direction: row; display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 16px; cursor: pointer; text-transform: none; letter-spacing: 0; color: var(--ink); font-weight: 600; white-space: nowrap }
 .botao-foto-prato span { font-size: 13px }
 .foto-prato { display: block; width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin-top: 10px }

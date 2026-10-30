@@ -57,7 +57,8 @@ export default function App() {
       const { data: p } = await supabase.from('personais').select('user_id, nome').maybeSingle()
       if (p) {
         const meta = sessao.user.user_metadata || {}
-        if (ativo) setPerfil({ tipo: 'personal', nome: p.user_id === uid ? p.nome : meta.full_name || meta.name || '' })
+        const meu = p.user_id === uid ? null : (await supabase.rpc('meu_perfil')).data?.[0]
+        if (ativo) setPerfil({ tipo: 'personal', nome: p.user_id === uid ? p.nome : meu?.nome || meta.full_name || meta.name || '' })
         return
       }
       const { data: a } = await supabase.from('alunos').select('*').eq('user_id', uid).maybeSingle()

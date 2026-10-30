@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { supabase } from '../supabase.js'
 import { ALIMENTOS, somarItens } from '../lib/nutricao.js'
-import { MACROS, consumoDoDia, consumoPrevisto, faltando, macrosDoExtra, metasDaDieta, situacaoDoDia, sugestoes } from '../lib/diario.js'
+import { MACROS, consumoDoDia, consumoPrevisto, faltando, itensEditados, macrosDoExtra, macrosEditados, metasDaDieta, rascunhoDaRefeicao, situacaoDoDia, sugestoes } from '../lib/diario.js'
 import { reduzirFoto } from '../lib/foto.js'
 import ListaAlimentos from './ListaAlimentos.jsx'
 import { f1, fmtData, num } from '../lib/formato.js'
@@ -54,6 +54,7 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
   const [ocupado, setOcupado] = useState(null)
   const [extra, setExtra] = useState({ alimento: '', gramas: '' })
   const [lista, setLista] = useState(false)
+  const [editando, setEditando] = useState(null) // { i: refeição, itens: rascunho, escolher: linha na lista de alimentos }
   if (!diario.itens) return <p className="carregando">Carregando…</p>
   if (diario.indisponivel) return <p className="meta">O diário da dieta (marcar refeições e contar os macros) aparece aqui assim que seu personal atualizar o sistema.</p>
 
@@ -91,6 +92,31 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
         : supabase.from('diario_dieta').insert({ aluno_id: aluno.id, data: hoje, refeicao: i, foto: caminho })
     })
   }
+  // "Comi diferente": grava os itens que o aluno comeu de verdade e marca a refeição como feita.
+  async function salvarEdicao() {
+    const { i } = editando
+    const itens = itensEditados(editando.itens)
+    const macros = somarItens(itens)
+    const atual = registro(i)
+    const gravar = (dados) => (atual
+      ? supabase.from('diario_dieta').update(dados).eq('id', atual.id)
+      : supabase.from('diario_dieta').insert({ aluno_id: aluno.id, data: hoje, refeicao: i, ...dados }))
+    await rodar(`r${i}`, async () => {
+      const r = await gravar({ itens, macros })
+      // Sem supabase/migracao-dieta-editavel.sql não existe a coluna itens: guarda só o total.
+      return r.error && /itens/.test(r.error.message || '') ? gravar({ macros }) : r
+    })
+    setEditando(null)
+  }
+  function voltarAoPlano(i) {
+    const id = registro(i).id
+    rodar(`r${i}`, async () => {
+      const r = await supabase.from('diario_dieta').update({ itens: null, macros: null }).eq('id', id)
+      return r.error && /itens/.test(r.error.message || '') ? supabase.from('diario_dieta').update({ macros: null }).eq('id', id) : r
+    })
+    setEditando(null)
+  }
+  const mudaLinha = (j, campo) => setEditando((e) => ({ ...e, itens: e.itens.map((it, n) => (n === j ? { ...it, ...campo } : it)) }))
   const anotar = (alimento, gramas, macros) => rodar('extra', () => supabase.from('diario_dieta').insert({ aluno_id: aluno.id, data: hoje, alimento, gramas, macros }))
   function anotarExtra(e) {
     e.preventDefault()
@@ -121,24 +147,63 @@ export default function DiarioDieta({ aluno, dieta, hoje }) {
 
       {erro && <p className="erro">{erro}</p>}
 
+      {doPlano.length > 0 && <p className="meta" style={{ margin: 0 }}>Comeu diferente do plano? Toque em <strong>Editar</strong> na refeição: cada linha é editável. Mude os gramas, troque o alimento, tire o que não comeu ou adicione o que comeu, e os macros se ajustam sozinhos.</p>}
+
+      {editando?.escolher != null && <ListaAlimentos titulo="Trocar por" onEscolher={(a) => { const j = editando.escolher; setEditando((e) => ({ ...e, escolher: null, itens: j === e.itens.length ? [...e.itens, { alimento: a.nome, gramas: a.gramas ? String(a.gramas) : '' }] : e.itens.map((it, n) => (n === j ? { ...it, alimento: a.nome, gramas: a.gramas ? String(a.gramas) : it.gramas } : it)) })) }} onFechar={() => setEditando((e) => ({ ...e, escolher: null }))} />}
+
       {doPlano.map(({ r, i }) => {
         const reg = registro(i)
-        const t = somarItens(r.itens)
+        const editada = Array.isArray(reg?.itens) || (reg?.macros && !reg?.itens)
+        const mostrar = Array.isArray(reg?.itens) ? reg.itens : r.itens
+        const t = editada && reg.macros ? reg.macros : somarItens(mostrar)
+        const aqui = editando?.i === i
+        const previa = aqui && somarItens(editando.itens.map((it) => macrosEditados(it) || {}))
         return (
           <div className={`panel refeicao${reg ? ' feita' : ''}`} key={i}>
             <div className="row between" style={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
               <label className="refeicao-check">
                 <input type="checkbox" checked={!!reg} disabled={ocupado === `r${i}`} onChange={(e) => marcar(i, e.target.checked)} />
-                <span><span className="name">{r.horario && <span className="mono" style={{ color: 'var(--accent)', marginRight: 8 }}>{r.horario}</span>}{r.nome}</span>{t.kcal > 0 && <span className="meta"> · {t.kcal} kcal</span>}</span>
+                <span><span className="name">{r.horario && <span className="mono" style={{ color: 'var(--accent)', marginRight: 8 }}>{r.horario}</span>}{r.nome}</span>{t.kcal > 0 && <span className="meta"> · {t.kcal} kcal</span>}{editada && <span className="meta"> · do seu jeito</span>}</span>
               </label>
               <label className={`botao-foto-prato${ocupado === `f${i}` ? ' enviando' : ''}`} title="Foto do prato">
                 <input type="file" accept="image/*" capture="environment" hidden onChange={(e) => { foto(i, e.target.files?.[0]); e.target.value = '' }} />
                 {ocupado === `f${i}` ? '…' : <IconeLinha d={ICONES.camera} tamanho={18} traco={1.8} />}<span className="so-computador"> Foto</span>
               </label>
             </div>
-            <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
-              {r.itens.map((it, j) => <li key={j}>{it.alimento}{(it.quantidade || it.gramas) && <span className="meta"> · {[it.quantidade, it.gramas && `${f1(it.gramas)} g`].filter(Boolean).join(', ')}</span>}</li>)}
-            </ul>
+            {aqui ? (
+              <div className="editar-refeicao stack">
+                {editando.itens.map((it, j) => {
+                  const m = macrosEditados(it)
+                  return (
+                    <div key={j} className="linha-editavel">
+                      <div className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
+                        <input list="alimentos-diario" aria-label={`Alimento da linha ${j + 1}`} value={it.alimento} maxLength={80} style={{ flex: 1, minWidth: 0 }} onChange={(e) => mudaLinha(j, { alimento: e.target.value })} />
+                        <input aria-label={`Gramas da linha ${j + 1}`} inputMode="decimal" placeholder="g" value={it.gramas} style={{ width: 64 }} onChange={(e) => mudaLinha(j, { gramas: e.target.value })} />
+                        <button type="button" className="ghost small" aria-label={`Tirar ${it.alimento || 'linha'}`} onClick={() => setEditando((e) => ({ ...e, itens: e.itens.filter((_, n) => n !== j) }))}>✕</button>
+                      </div>
+                      <div className="row between meta" style={{ gap: 6 }}>
+                        <span>{m ? `${m.kcal} kcal · P ${f1(m.proteina)} · C ${f1(m.carboidrato)} · G ${f1(m.gordura)}` : it.alimento ? 'Fora da tabela: não entra na conta' : ''}</span>
+                        <button type="button" className="link" onClick={() => setEditando((e) => ({ ...e, escolher: j }))}>Trocar</button>
+                      </div>
+                    </div>
+                  )
+                })}
+                <button type="button" className="link" style={{ alignSelf: 'flex-start' }} onClick={() => setEditando((e) => ({ ...e, escolher: e.itens.length }))}>+ Adicionar alimento</button>
+                <div className="meta"><strong>Total: {previa.kcal} kcal</strong> · P {f1(previa.proteina)} g · C {f1(previa.carboidrato)} g · G {f1(previa.gordura)} g</div>
+                <div className="row" style={{ gap: 8 }}>
+                  <button className="primary small" disabled={ocupado === `r${i}`} onClick={salvarEdicao}>Salvar o que comi</button>
+                  <button className="small" onClick={() => setEditando(null)}>Cancelar</button>
+                  {editada && <button className="link" onClick={() => voltarAoPlano(i)}>Voltar ao plano</button>}
+                </div>
+              </div>
+            ) : (
+              <>
+                <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
+                  {mostrar.map((it, j) => <li key={j}>{it.alimento}{(it.quantidade || it.gramas) && <span className="meta"> · {[it.quantidade, it.gramas && `${f1(it.gramas)} g`].filter(Boolean).join(', ')}</span>}</li>)}
+                </ul>
+                <button className="link" style={{ marginTop: 6 }} onClick={() => setEditando({ i, itens: rascunhoDaRefeicao(r, reg), escolher: null })}>Editar o que comi ›</button>
+              </>
+            )}
             {r.obs && <p className="meta" style={{ margin: '6px 0 0' }}>{r.obs}</p>}
             {reg?.foto && diario.fotos[reg.foto] && <img className="foto-prato" src={diario.fotos[reg.foto]} alt={`Prato do ${r.nome}`} loading="lazy" />}
           </div>

@@ -7,22 +7,33 @@ import EditarAvatar from '../../components/EditarAvatar.jsx'
 import { AjudaDaPagina } from '../../components/ComoFunciona.jsx'
 
 export default function Configuracoes() {
-  const [d, setD] = useState(null)
+  const [d, setD] = useState(null) // cadastro da academia (o do dono)
+  const [eu, setEu] = useState(null) // perfil de quem está logado
   const [aviso, setAviso] = useState('')
   const [erro, setErro] = useState('')
 
   useEffect(() => {
-    supabase.from('personais').select('*').maybeSingle().then(({ data }) => setD(data))
+    Promise.all([supabase.from('personais').select('*').maybeSingle(), supabase.rpc('meu_perfil')]).then(([academia, perfil]) => {
+      setD(academia.data)
+      // Sem supabase/migracao-perfil-equipe.sql, segue como antes: o cadastro único é o perfil.
+      const p = perfil.error ? null : perfil.data?.[0]
+      setEu(p || (academia.data && { ...academia.data, dono: true, antigo: true }))
+    })
   }, [])
 
-  if (!d) return <p className="carregando">Carregando…</p>
+  if (!d || !eu) return <p className="carregando">Carregando…</p>
   const campo = (k) => ({ id: `config-${k}`, value: d[k] ?? '', onChange: (e) => { setAviso(''); setD({ ...d, [k]: e.target.value }) } })
+  const meu = (k) => ({ id: `config-${k}`, value: eu[k] ?? '', onChange: (e) => { setAviso(''); setEu({ ...eu, [k]: e.target.value }) } })
 
   async function salvar(e) {
     e.preventDefault()
+    const perfil = eu.antigo
+      ? { error: null, dados: { nome: eu.nome?.trim() || null, telefone: eu.telefone?.trim() || null } }
+      : await supabase.rpc('salvar_meu_perfil', { p_nome: eu.nome || '', p_telefone: eu.telefone || '' })
+    if (perfil.error) return setErro(`Não foi possível salvar: ${perfil.error.message}`)
     const { error } = await supabase.from('personais').update({
-      nome: d.nome?.trim() || null, telefone: d.telefone?.trim() || null,
-      pix_chave: d.pix_chave?.trim() || null, pix_nome: d.pix_nome?.trim() || null, pix_cidade: d.pix_cidade?.trim() || null,
+      ...(perfil.dados || {}),
+      ...(eu.dono ? { pix_chave: d.pix_chave?.trim() || null, pix_nome: d.pix_nome?.trim() || null, pix_cidade: d.pix_cidade?.trim() || null } : {}),
       ...('desconto_indicacao' in d ? { desconto_indicacao: num(d.desconto_indicacao) } : {}),
       ...('motivacao_auto' in d ? { motivacao_auto: !!d.motivacao_auto } : {}),
       ...('trocar_ficha_semanas' in d ? { trocar_ficha_semanas: Math.min(26, Math.max(2, Math.round(num(d.trocar_ficha_semanas)) || 6)) } : {}),
@@ -36,17 +47,18 @@ export default function Configuracoes() {
   return (
     <>
       <h1>Configurações</h1>
-      <p className="sub">Seus dados e a chave Pix das mensalidades.</p>
+      <p className="sub">{eu.dono ? 'Seus dados e a chave Pix das mensalidades.' : 'Seu perfil e as regras da academia.'}</p>
       <AjudaDaPagina />
-      <div style={{ maxWidth: 640, marginBottom: 12 }}><EditarAvatar personal={d} onMudou={(avatar) => setD({ ...d, avatar })} /></div>
+      <div style={{ maxWidth: 640, marginBottom: 12 }}><EditarAvatar personal={eu} onMudou={(avatar) => setEu({ ...eu, avatar })} /></div>
       <form className="stack" style={{ maxWidth: 640 }} onSubmit={salvar}>
         <div className="panel form">
           <div className="secao" style={{ marginTop: 0 }}>Seus dados</div>
-          <label>Nome<input {...campo('nome')} /></label>
-          <label>WhatsApp<input placeholder="(11) 98765-4321" {...campo('telefone')} /></label>
-          <p className="meta full" style={{ margin: 0 }}>O WhatsApp aparece para o aluno avisar que pagou a mensalidade.</p>
+          <label>Nome<input {...meu('nome')} /></label>
+          <label>WhatsApp<input placeholder="(11) 98765-4321" {...meu('telefone')} /></label>
+          {eu.dono && <p className="meta full" style={{ margin: 0 }}>O WhatsApp aparece para o aluno avisar que pagou a mensalidade.</p>}
         </div>
-        <div className="panel form">
+        {!eu.dono && <p className="meta" style={{ margin: 0 }}>A chave Pix das mensalidades é da academia e só {d.nome || 'o dono da conta'} muda. As regras abaixo valem para toda a equipe.</p>}
+        {eu.dono && <div className="panel form">
           <div className="secao" style={{ marginTop: 0 }}>Pix</div>
           <label className="full">Chave Pix<input placeholder="CPF, e-mail, celular (+5511...) ou chave aleatória" {...campo('pix_chave')} /></label>
           <label>Nome do recebedor<input maxLength={25} placeholder="Como aparece no banco" {...campo('pix_nome')} /></label>
@@ -55,7 +67,7 @@ export default function Configuracoes() {
             Celular como chave vai no formato +5511987654321. Teste antes de divulgar: copie o código abaixo (R$ 1,00) e cole no app do seu banco para ver se aparece seu nome.
           </p>
           {exemplo && <textarea id="config-pix-teste" className="full" readOnly rows={3} value={exemplo} onFocus={(e) => e.target.select()} style={{ fontFamily: 'var(--mono)', fontSize: 12 }} />}
-        </div>
+        </div>}
         {'motivacao_auto' in d && (
           <div className="panel form">
             <div className="secao" style={{ marginTop: 0 }}>Motivação automática</div>
