@@ -65,7 +65,9 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const faltam = passos.filter((p) => !p.feito)
 
   const membros = doGrupo(dados?.membros || [], online ? 'online' : 'academia') // ranking só com quem treina do mesmo jeito
-  const tabela = dados ? ranking(dados.mes, membros).slice(0, 3) : []
+  const [rankingAberto, setRankingAberto] = useState(false)
+  const rankingTodo = dados ? ranking(dados.mes, membros) : []
+  const tabela = rankingAberto ? rankingTodo : rankingTodo.slice(0, 3)
   const desafio = (dados?.desafios || []).find((d) => d.inicio <= hoje && d.fim >= hoje)
   const aula = !online && academia?.aulas && proximaAula(academia.aulas)
   const aviso = academia && ordenarAvisos(academia.avisos)[0]
@@ -228,6 +230,11 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
                 <span className="meta">{r.dias} {r.dias === 1 ? 'dia' : 'dias'}</span>
               </div>
             ))}
+            {rankingTodo.length > 3 && (
+              <button type="button" className="link-sublinhado" style={{ alignSelf: 'flex-start' }} onClick={() => setRankingAberto((v) => !v)}>
+                {rankingAberto ? 'Ver menos' : `Ver mais (${rankingTodo.length - 3})`}
+              </button>
+            )}
           </div>
         )}
         {desafio && (
