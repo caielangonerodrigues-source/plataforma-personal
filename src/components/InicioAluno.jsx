@@ -182,7 +182,12 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
             </>
           ) : <p className="meta" style={{ margin: 0 }}>{treinos ? 'Seu personal ainda está montando sua ficha.' : 'Carregando…'}</p>}
         </div>
-        <BannerAcademia foto={fotoDoDia(fotos, hoje)} online={online} />
+        {online
+          ? <BannerAcademia tipo="online" foto={fotoDoDia(fotos, hoje)} href="/consultoria" />
+          : <>
+            <BannerAcademia tipo="spinning" href="/spinning" />
+            <BannerAcademia tipo="aulas" onClick={() => irPara('aulas')} />
+          </>}
         {!online && <CartaoConsultoria />}
       </div>
 

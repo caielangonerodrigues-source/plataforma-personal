@@ -32,21 +32,32 @@ export default function HeroInicio({ nome, foto, fezHoje }) {
   )
 }
 
-// Cartão com foto da academia, no estilo de banner, para divulgar spinning, aula experimental ou consultoria.
-export function BannerAcademia({ foto, online }) {
-  const [titulo, linha2, acao, href] = online
-    ? ['Treine de onde estiver,', 'com seu personal no app.', 'Ver planos', '/consultoria']
-    : ['Musculação e spinning,', 'num só lugar.', 'Reservar uma bike', '/spinning']
-  return (
-    <a className="banner-academia" href={href}>
-      <img src={foto} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+// Fotos fixas dos banners: bike de spinning e turma em aula coletiva.
+export const FOTO_SPINNING = unsplash('1709315821780-3c092a9eddda')
+export const FOTO_AULAS = unsplash('1517130038641-a774d04afb3c')
+
+const BANNERS = {
+  spinning: ['Aulas de spinning,', 'reserve sua bike.', 'Reservar uma bike', FOTO_SPINNING],
+  aulas: ['Aulas coletivas,', 'treine com a turma.', 'Ver horários', FOTO_AULAS],
+  online: ['Treine de onde estiver,', 'com seu personal no app.', 'Ver planos', null],
+}
+
+// Cartão com foto, no estilo de banner. Com href vira link; com onClick, um botão que troca de aba.
+export function BannerAcademia({ tipo, foto, href, onClick }) {
+  const [titulo, linha2, acao, fixa] = BANNERS[tipo]
+  const conteudo = (
+    <>
+      <img src={fixa || foto} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }} />
       <div>
         <span className="banner-marca">CORPO ATLÉTICO<i>.</i></span>
         <strong>{titulo}<em>{linha2}</em></strong>
         <span className="banner-acao">{acao} ›</span>
       </div>
-    </a>
+    </>
   )
+  return href
+    ? <a className="banner-academia" href={href}>{conteudo}</a>
+    : <button type="button" className="banner-academia" onClick={onClick}>{conteudo}</button>
 }
 
 // Título de seção: ícone de traço + título à esquerda, ação sublinhada à direita.
