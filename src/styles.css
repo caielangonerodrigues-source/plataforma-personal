@@ -883,3 +883,10 @@ body { background: var(--surface) }
 .checkin-local { display: flex; flex-direction: column; gap: 4px }
 .checkin-local .meta, .post-local { display: inline-flex; align-items: center; gap: 4px }
 .post-local { display: flex; font-size: 12px }
+/* Monte seu treino: lista de exercícios sem caixa, o escolhido com a linha laranja à esquerda */
+.monte-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.monte-item:last-child { border-bottom: 0 }
+.monte-item.ativo { border-left: 3px solid var(--accent); padding-left: 10px }
+.monte-nome { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: none; border: 0; padding: 0; text-align: left; font: inherit; font-weight: 400; color: inherit; cursor: pointer }
+.monte-item .link { flex: none }
+.monte-treino .chips { margin-bottom: 6px }
