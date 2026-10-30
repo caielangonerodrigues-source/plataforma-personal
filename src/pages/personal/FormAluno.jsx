@@ -4,7 +4,7 @@ import CampoData from '../../components/CampoData.jsx'
 import { supabase } from '../../supabase.js'
 import { hojeISO, num } from '../../lib/formato.js'
 
-const VAZIO = { nome: '', email: '', telefone: '', sexo: 'F', idade: '', data_nascimento: '', objetivo: '', plano: '', inicio: hojeISO(), status: 'ativo', modalidade: 'presencial', comunidade: true, valor_mensal: '', dia_vencimento: '' }
+const VAZIO = { nome: '', email: '', telefone: '', sexo: 'F', idade: '', data_nascimento: '', objetivo: '', plano: '', inicio: hojeISO(), status: 'ativo', modalidade: 'presencial', comunidade: true, valor_mensal: '', dia_vencimento: '', peso: '', altura: '' }
 
 // Idade completa hoje a partir da data de nascimento (AAAA-MM-DD)
 function idadeEm(nasc) {
@@ -15,7 +15,7 @@ function idadeEm(nasc) {
 }
 
 export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
-  const [d, setD] = useState(() => (aluno ? { ...VAZIO, ...aluno, idade: aluno.idade ?? '', data_nascimento: aluno.data_nascimento ?? '', email: aluno.email ?? '', valor_mensal: aluno.valor_mensal ?? '', dia_vencimento: aluno.dia_vencimento ?? '' } : { ...VAZIO, ...inicial }))
+  const [d, setD] = useState(() => (aluno ? { ...VAZIO, ...aluno, idade: aluno.idade ?? '', data_nascimento: aluno.data_nascimento ?? '', email: aluno.email ?? '', valor_mensal: aluno.valor_mensal ?? '', dia_vencimento: aluno.dia_vencimento ?? '', peso: aluno.peso ?? '', altura: aluno.altura != null ? Math.round(aluno.altura * 100) : '' } : { ...VAZIO, ...inicial }))
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
   const campo = (k) => ({ id: `aluno-${k}`, value: d[k] ?? '', onChange: (e) => setD({ ...d, [k]: e.target.value }) })
@@ -27,6 +27,13 @@ export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
       nome: d.nome.trim(), email: d.email.trim() || null, telefone: d.telefone, sexo: d.sexo, idade: idadeEm(d.data_nascimento) ?? num(d.idade), data_nascimento: d.data_nascimento || null,
       objetivo: d.objetivo, plano: d.plano, inicio: d.inicio || null, status: d.status, modalidade: d.modalidade, comunidade: d.comunidade,
       valor_mensal: num(d.valor_mensal), dia_vencimento: num(d.dia_vencimento),
+    }
+    // Peso e altura só vão para o banco depois da migração (a coluna aparece no aluno carregado) ou se foram preenchidos.
+    if ((aluno && 'peso' in aluno) || d.peso !== '' || d.altura !== '') {
+      const alt = num(d.altura)
+      dados.peso = num(d.peso)
+      dados.altura = alt == null ? null : alt > 3 ? alt / 100 : alt
+      if (dados.peso !== (aluno?.peso ?? null) || dados.altura !== (aluno?.altura ?? null)) dados.peso_altura_em = new Date().toISOString()
     }
     const q = aluno
       ? supabase.from('alunos').update(dados).eq('id', aluno.id).select().single()
@@ -45,6 +52,8 @@ export default function FormAluno({ aluno, inicial, onFechar, onSalvo }) {
       <label>Sexo<select {...campo('sexo')}><option value="F">Feminino</option><option value="M">Masculino</option></select></label>
       <label>Data de nascimento<CampoData id="aluno-data_nascimento" value={d.data_nascimento} onChange={(v) => setD((x) => ({ ...x, data_nascimento: v }))} /></label>
       <label>Idade<input type="number" min="5" max="110" placeholder={d.data_nascimento ? 'calculada pela data' : ''} disabled={!!d.data_nascimento} {...campo('idade')} value={d.data_nascimento ? idadeEm(d.data_nascimento) ?? '' : d.idade} /></label>
+      <label>Peso (kg)<input inputMode="decimal" placeholder="o aluno também informa" {...campo('peso')} /></label>
+      <label>Altura (cm)<input inputMode="decimal" placeholder="ex.: 175" {...campo('altura')} /></label>
       <label>Objetivo<input placeholder="Ex.: Hipertrofia" {...campo('objetivo')} /></label>
       <label>Plano<input placeholder="Ex.: 3x por semana" {...campo('plano')} /></label>
       <label>Início<input type="date" {...campo('inicio')} /></label>

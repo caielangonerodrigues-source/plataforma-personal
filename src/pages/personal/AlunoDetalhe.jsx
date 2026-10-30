@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import Status from '../../components/Status.jsx'
-import { fmtData, hojeISO, porData, plural, porOrdem, primeiroNome } from '../../lib/formato.js'
+import { f1, fmtData, hojeISO, porData, plural, porOrdem, primeiroNome } from '../../lib/formato.js'
 import FormAluno from './FormAluno.jsx'
 import Treinos from './Treinos.jsx'
 import Avaliacoes from './Avaliacoes.jsx'
@@ -75,7 +75,7 @@ export default function AlunoDetalhe() {
         <div>
           <h1>{aluno.nome}</h1>
           <p className="sub" style={{ margin: 0 }}>
-            {[aluno.modalidade === 'online' && 'Consultoria online', aluno.idade && `${aluno.idade} anos`, aluno.sexo === 'M' ? 'Masculino' : 'Feminino', aluno.objetivo, aluno.plano, aluno.inicio && `desde ${fmtData(aluno.inicio)}`].filter(Boolean).join(' · ')}
+            {[aluno.modalidade === 'online' && 'Consultoria online', aluno.idade && `${aluno.idade} anos`, aluno.peso != null && `${f1(aluno.peso)} kg`, aluno.altura != null && `${f1(aluno.altura * 100)} cm`, aluno.sexo === 'M' ? 'Masculino' : 'Feminino', aluno.objetivo, aluno.plano, aluno.inicio && `desde ${fmtData(aluno.inicio)}`].filter(Boolean).join(' · ')}
           </p>
         </div>
         <div className="row"><Status status={aluno.status} /><button className="small" onClick={() => setEditando(true)}>Editar dados</button></div>
