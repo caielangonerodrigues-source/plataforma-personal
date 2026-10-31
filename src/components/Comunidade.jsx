@@ -5,6 +5,7 @@ import { hojeISO } from '../lib/formato.js'
 import Avatar from './Avatar.jsx'
 import RecortarFoto from './RecortarFoto.jsx'
 import Reacoes from './Reacoes.jsx'
+import QuemCurtiu from './QuemCurtiu.jsx'
 import CardTreino from './CardTreino.jsx'
 import PerfilAluno from './PerfilAluno.jsx'
 import { montarFeed } from '../lib/social.js'
@@ -151,6 +152,7 @@ function Conquista({ q, dados, autor, reagir, abrirPerfil }) {
       </div>
       <div className="kudos">
         <Reacoes reacoes={dados.reacoesConquistas.filter((k) => k.conquista_id === q.id)} eu={dados.eu} onReagir={(e) => reagir(q.id, e)} />
+        <QuemCurtiu reacoes={dados.reacoesConquistas.filter((k) => k.conquista_id === q.id)} dados={dados} />
       </div>
     </article>
   )
@@ -213,6 +215,7 @@ function Post({ c, dados, membro, autor, comunidade, meu, podeApagarTudo, reagir
         )}
         {comentarios?.length > 0 && <span className="meta">{comentarios.length} comentário{comentarios.length > 1 ? 's' : ''}</span>}
         {(podeApagarTudo || meu) && <button className="ghost small" style={{ marginLeft: 'auto' }} onClick={() => apagar(c)}>Apagar</button>}
+        <QuemCurtiu reacoes={curtidas} dados={dados} />
       </div>
       {comentarios && (comentarios.length > 0 || escrevendo) && (
         <div className="comentarios">
