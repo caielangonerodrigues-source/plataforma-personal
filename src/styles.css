@@ -1066,7 +1066,7 @@ body { background: var(--surface) }
 .personais-consultoria button > span:nth-child(2) { display: flex; flex-direction: column; flex: 1; min-width: 0 }
 
 /* Início: fotos da turma num leque meio escondido na lateral direita (como no GymRats) e visualizador em tela cheia */
-.leque-turma { position: fixed; right: 0; top: 46%; z-index: 40; width: 108px; height: 216px; margin-top: -108px; padding: 0; background: none; border: 0; border-radius: 0; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent; animation: leque-entra .5s cubic-bezier(.2, .8, .2, 1) both }
+.leque-turma { position: fixed; right: 0; top: 62%; z-index: 40; width: 108px; height: 216px; margin-top: -108px; padding: 0; background: none; border: 0; border-radius: 0; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent; animation: leque-entra .5s cubic-bezier(.2, .8, .2, 1) both }
 @keyframes leque-entra { from { transform: translateX(50px); opacity: 0 } }
 .leque-carta { position: absolute; left: 48px; top: 50px; width: 86px; height: 116px; border-radius: 20px; overflow: hidden; background: var(--line);
   box-shadow: 0 4px 14px rgba(0, 0, 0, .16), 0 0 0 1.5px var(--surface); transform-origin: 144px 50%; transform: rotate(var(--giro)); transition: transform .3s cubic-bezier(.2, .8, .2, 1) }
