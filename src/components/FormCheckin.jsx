@@ -6,19 +6,21 @@ import { reduzirFoto } from '../lib/foto.js'
 import { lugarDoCheckin, posicaoAtual } from '../lib/localizacao.js'
 import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import RecortarFoto from './RecortarFoto.jsx'
-import { ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, resumoCardio, resumoMusculacao, resumoTreino, ritmo, tituloMusculacao } from '../lib/social.js'
+import { APARELHOS_CARDIO, ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, resumoCardio, resumoCardioLivre, resumoMusculacao, resumoTreino, ritmo, tituloCardioLivre, tituloMusculacao } from '../lib/social.js'
 
 const OUTRO = 'outro'
 const CHAVE_LOCAL = 'checkin-local' // o aluno escolhe uma vez se mostra onde treinou
 const lerLocalLigado = () => { try { return localStorage.getItem(CHAVE_LOCAL) !== '0' } catch { return true } }
 const MUSCULACAO = 'musculacao'
+const CARDIO = 'cardio'
 
 // O post ganha um card sozinho: do treino da ficha (exercícios, volume, recordes), de musculação livre (grupos e duração)
-// ou de corrida, pedal e caminhada (km, tempo, ritmo).
+// de cardio na academia (aparelho e duração) ou de corrida, pedal e caminhada (km, tempo, ritmo).
 export default function FormCheckin({ aluno, treinos, registros = [], treinoInicial, onFechar, onFeito }) {
   const [treinoId, setTreinoId] = useState(treinoInicial || treinos[0]?.id || MUSCULACAO)
   const [atividade, setAtividade] = useState('')
   const [grupos, setGrupos] = useState([])
+  const [aparelho, setAparelho] = useState('')
   const [minutos, setMinutos] = useState('')
   const [km, setKm] = useState('')
   const [tempo, setTempo] = useState('')
@@ -64,11 +66,13 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
   const esporte = ESPORTES[treinoId] ? treinoId : null
   const cardio = esporte && resumoCardio(esporte, km, tempo)
   const musculacao = treinoId === MUSCULACAO && resumoMusculacao(grupos, minutos)
-  const resumo = treino ? resumoTreino(treino, registros, hoje) : musculacao || cardio || null
+  const cardioLivre = treinoId === CARDIO ? resumoCardioLivre(aparelho, minutos) : null
+  const resumo = treino ? resumoTreino(treino, registros, hoje) : musculacao || cardioLivre || cardio || null
   const alternar = (g) => setGrupos((l) => (l.includes(g) ? l.filter((x) => x !== g) : [...l, g]))
 
   async function salvar() {
     if (esporte && !cardio) return setErro('Coloque a distância (ex.: 5,2) e o tempo (ex.: 28:30).')
+    if (treinoId === CARDIO && !cardioLivre) return setErro('Coloque quantos minutos de cardio você fez (ex.: 30).')
     if (treinoId === OUTRO && !atividade.trim()) return setErro('Diga o que você treinou (ex.: aula de spinning, funcional).')
     setSalvando(true); setErro('')
     let caminho = null
@@ -80,7 +84,7 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
       }
       const post = {
         aluno_id: aluno.id, data: hoje, treino_id: treino?.id || null,
-        titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : musculacao ? tituloMusculacao(musculacao.grupos) : esporte ? `${ESPORTES[esporte][0]} · ${String(cardio.km).replace('.', ',')} km` : atividade.trim(),
+        titulo: treino ? `Treino ${treino.nome}${treino.foco ? ` · ${treino.foco}` : ''}` : musculacao ? tituloMusculacao(musculacao.grupos) : cardioLivre ? tituloCardioLivre(cardioLivre) : esporte ? `${ESPORTES[esporte][0]} · ${String(cardio.km).replace('.', ',')} km` : atividade.trim(),
         comentario: comentario.trim() || null, foto: caminho,
       }
       if (comLocal && local.estado === 'ok') post.local = local.nome
@@ -102,6 +106,7 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
         <select id="checkin-treino" value={treinoId} onChange={(e) => setTreinoId(e.target.value)}>
           {treinos.map((t) => <option key={t.id} value={t.id}>Treino {t.nome}{t.foco ? ` · ${t.foco}` : ''}</option>)}
           <option value={MUSCULACAO}>Musculação</option>
+          <option value={CARDIO}>Cardio</option>
           {Object.entries(ESPORTES).map(([k, [nome]]) => <option key={k} value={k}>{nome}</option>)}
           <option value={OUTRO}>Outra atividade</option>
         </select>
@@ -117,6 +122,17 @@ export default function FormCheckin({ aluno, treinos, registros = [], treinoInic
           </div>
         </div>
         <label>Duração (min)<input id="checkin-minutos" inputMode="numeric" placeholder="60" value={minutos} onChange={(e) => setMinutos(e.target.value)} /></label>
+      </>}
+      {treinoId === CARDIO && <>
+        <div className="full stack" style={{ gap: 6 }}>
+          <span className="meta" style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase' }}>Aparelho (opcional)</span>
+          <div className="chips" role="group" aria-label="Aparelho do cardio">
+            {Object.entries(APARELHOS_CARDIO).map(([k, nome]) => (
+              <button key={k} type="button" className={`chip${aparelho === k ? ' on' : ''}`} aria-pressed={aparelho === k} onClick={() => setAparelho(aparelho === k ? '' : k)}>{nome}</button>
+            ))}
+          </div>
+        </div>
+        <label>Duração (min)<input id="checkin-minutos-cardio" inputMode="numeric" placeholder="30" value={minutos} onChange={(e) => setMinutos(e.target.value)} /></label>
       </>}
       {esporte && <>
         <label>Distância (km)<input id="checkin-km" inputMode="decimal" placeholder="5,2" value={km} onChange={(e) => setKm(e.target.value)} /></label>

@@ -45,6 +45,17 @@ export function resumoMusculacao(grupos, minutos) {
   return { tipo: 'musculacao', grupos: lista, minutos: min > 0 && min < 600 ? min : null }
 }
 
+// Cardio na academia (esteira, bike, elíptico...): só a duração e, se quiser, o aparelho. Sem distância.
+export const APARELHOS_CARDIO = { esteira: 'Esteira', bike: 'Bike ergométrica', eliptico: 'Elíptico', escada: 'Escada', remo: 'Remo', corda: 'Pular corda' }
+
+export function resumoCardioLivre(aparelho, minutos) {
+  const min = Math.round(Number(String(minutos || '').replace(',', '.')))
+  if (!(min > 0 && min < 600)) return null
+  return { tipo: 'cardio', esporte: 'cardio', aparelho: APARELHOS_CARDIO[aparelho] ? aparelho : null, minutos: min }
+}
+
+export const tituloCardioLivre = (r) => `Cardio${r.aparelho ? ` · ${APARELHOS_CARDIO[r.aparelho]}` : ''} · ${r.minutos} min`
+
 export const tituloMusculacao = (grupos) =>
   `Musculação${grupos.length ? ` · ${grupos.map((g) => GRUPOS_MUSCULACAO[g][0]).join(', ')}` : ''}`
 

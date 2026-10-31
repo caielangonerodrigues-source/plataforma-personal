@@ -1,4 +1,4 @@
-import { ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, ritmo } from '../lib/social.js'
+import { APARELHOS_CARDIO, ESPORTES, GRUPOS_MUSCULACAO, fmtTempo, ritmo } from '../lib/social.js'
 import Corpo from './Corpo.jsx'
 
 const kg = (n) => `${Number(n).toLocaleString('pt-BR')} kg`
@@ -16,6 +16,17 @@ export default function CardTreino({ resumo }) {
           <div><span>Treino</span><strong>Musculação</strong></div>
           {resumo.minutos && <div><span>Duração</span><strong>{resumo.minutos} min</strong></div>}
           {grupos.length > 0 && <div><span>Grupos</span><strong>{grupos.map((g) => GRUPOS_MUSCULACAO[g][0]).join(', ')}</strong></div>}
+        </div>
+      </div>
+    )
+  }
+  if (resumo.tipo === 'cardio' && resumo.esporte === 'cardio') {
+    return (
+      <div className="card-treino">
+        <div className="card-treino-nums">
+          <div><span>Treino</span><strong>Cardio</strong></div>
+          {resumo.minutos && <div><span>Duração</span><strong>{resumo.minutos} min</strong></div>}
+          {APARELHOS_CARDIO[resumo.aparelho] && <div><span>Aparelho</span><strong>{APARELHOS_CARDIO[resumo.aparelho]}</strong></div>}
         </div>
       </div>
     )
