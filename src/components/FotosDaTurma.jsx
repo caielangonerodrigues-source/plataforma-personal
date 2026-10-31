@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Avatar from './Avatar.jsx'
-import { fotosDaTurma, nomeCurto, quandoFoi } from '../lib/comunidade.js'
+import { fotosDaTurma, autorDoPost, nomeCurto, quandoFoi } from '../lib/comunidade.js'
 
 const CHAVE = 'fotosTurmaVistas'
 const POR_FOTO = 5000 // ms de cada foto no visualizador, como um story
@@ -30,7 +30,7 @@ export default function FotosDaTurma({ dados, eu, irPara }) {
   const { lista, novas, ultima } = fotosDaTurma(dados.feed, dados.membros, dados.fotos, visto, eu)
   if (!lista.length) return null
 
-  const autorDe = (c) => (c.personal_id ? { ...dados.personal, personal: true } : membro[c.aluno_id])
+  const autorDe = (c) => autorDoPost(c, dados.personal, dados.personais, membro)
   const leque = lista.slice(0, 3) // a mais nova na frente, as outras abrindo para cima e para baixo
   const frente = autorDe(lista[0])
   const texto = novas ? `${novas} ${novas === 1 ? 'NOVA' : 'NOVAS'} · ${desde(ultima)}` : desde(ultima)

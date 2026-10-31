@@ -250,6 +250,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-monte-sua-dieta.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Na aba **Dieta**, o aluno toca em **Monte sua dieta** e anota o que comeu no café, almoço, lanches e jantar (como no MyFitnessPal). Você vê o que ele anotou na aba **Nutrição** do aluno, logo abaixo do diário da dieta.
 
+### 24. Cada personal assina as próprias fotos na comunidade
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-autor-post-personal.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. A foto que um personal da equipe posta na comunidade aparece com o nome e o avatar dele, e não mais com o do dono. As fotos já postadas também são corrigidas.
+
 ## Desenvolvimento
 
 ```bash
