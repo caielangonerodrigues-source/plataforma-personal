@@ -38,12 +38,13 @@ export function quemReagiu(reacoes, pessoas = {}, eu) {
   return lista.map((p, i) => [p, i]).sort((a, b) => peso(a[0]) - peso(b[0]) || a[1] - b[1]).map(([p]) => p)
 }
 
-// "Curtido por Ana S.", "Ana S. e João P.", "Ana S., João P. e mais 3". `curto` encurta o nome.
+// Linha no estilo do Instagram: "Curtido por **Ana S.**", "**Ana S.** e **João P.**" ou "**Ana S.** e **outras pessoas**".
+// Devolve os trechos em negrito; o primeiro nome é de outra pessoa (você só aparece quando é a única).
 export function curtidoPor(lista, curto = (n) => n) {
-  if (!lista.length) return ''
-  const nomes = lista.map((p) => (p.voce ? 'você' : curto(p.nome)))
-  if (nomes.length === 1) return `Curtido por ${nomes[0]}`
-  if (nomes.length === 2) return `Curtido por ${nomes[0]} e ${nomes[1]}`
-  const resto = nomes.length - 2
-  return `Curtido por ${nomes[0]}, ${nomes[1]} e mais ${resto === 1 ? '1 pessoa' : `${resto} pessoas`}`
+  if (!lista.length) return []
+  const nome = (p) => (p.voce ? 'você' : curto(p.nome))
+  const ordem = [...lista.filter((p) => !p.voce), ...lista.filter((p) => p.voce)]
+  if (ordem.length === 1) return [nome(ordem[0])]
+  if (ordem.length === 2) return [nome(ordem[0]), nome(ordem[1])]
+  return [nome(ordem[0]), 'outras pessoas']
 }

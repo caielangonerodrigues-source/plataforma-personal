@@ -3,11 +3,12 @@ import Avatar from './Avatar.jsx'
 import { nomeCurto } from '../lib/comunidade.js'
 import { quemReagiu, curtidoPor } from '../lib/reacoes.js'
 
-// "Curtido por Ana S., João P. e mais 3" embaixo das reações; tocando, abre a lista de quem reagiu
+// "Curtido por Ana S. e outras pessoas" (como no Instagram) embaixo das reações; tocando, abre a lista de quem reagiu
 // com avatar, nome e o emoji de cada um (como no Instagram). Personais aparecem com a marca "Personal".
 export default function QuemCurtiu({ reacoes, dados }) {
   const [aberto, setAberto] = useState(false)
   const lista = quemReagiu(reacoes, dados.pessoas, dados.eu)
+  const partes = curtidoPor(lista, nomeCurto)
 
   useEffect(() => {
     if (!aberto) return
@@ -20,7 +21,7 @@ export default function QuemCurtiu({ reacoes, dados }) {
   return (
     <>
       <button type="button" className="quem-curtiu" aria-haspopup="dialog" onClick={() => setAberto(true)}>
-        {curtidoPor(lista, nomeCurto)}
+        Curtido por {partes.map((t, i) => <span key={i}>{i > 0 && ' e '}<b>{t}</b></span>)}
       </button>
       {aberto && (
         <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && setAberto(false)}>
