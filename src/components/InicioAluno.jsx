@@ -12,6 +12,7 @@ import { ofensiva } from '../lib/semana.js'
 import { MUSCULOS, cargaPorMusculo, faltouNaSemana } from '../lib/musculos.js'
 import Corpo from './Corpo.jsx'
 import { SeloAviso } from './NovidadesAcademia.jsx'
+import FotosDaTurma from './FotosDaTurma.jsx'
 import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { doGrupo, inicioDoMes, nomeCurto, ranking, sequencia, somarDias } from '../lib/comunidade.js'
 import { fmtData, primeiroNome } from '../lib/formato.js'
@@ -130,6 +131,7 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
       </aside>
 
       <div className="stack inicio-meio">
+        {aluno.comunidade && dados && <FotosDaTurma dados={dados} eu={aluno.id} irPara={irPara} />}
         {faltam.length > 0 && (
           <div className="panel comecar">
             <div className="comecar-banner">

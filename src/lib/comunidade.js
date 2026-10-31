@@ -50,3 +50,14 @@ export function quandoFoi(createdAt, agora = Date.now()) {
 // Ranking separado: academia (presencial) e consultoria online. Sem a coluna nova, todo mundo é da academia.
 export const grupoDe = (m) => (m?.modalidade === 'online' ? 'online' : 'academia')
 export const doGrupo = (membros, grupo) => membros.filter((m) => grupoDe(m) === grupo)
+
+// Fotos da turma no Início (estilo GymRats): posts com foto, do mais novo para o mais antigo,
+// quantas são novas desde a última vez que o aluno abriu (as dele não contam) e quando foi a última.
+// Sem registro de visita, conta como novas as das últimas 24 h.
+export function fotosDaTurma(feed, membros, fotos, vistoEm, eu, agora = Date.now()) {
+  const ids = new Set(membros.map((m) => m.id))
+  const lista = feed.filter((c) => c.foto && fotos[c.foto] && (c.personal_id || ids.has(c.aluno_id)))
+  const corte = vistoEm ? new Date(vistoEm).getTime() : agora - 24 * 3600 * 1000
+  const novas = lista.filter((c) => new Date(c.created_at).getTime() > corte && c.aluno_id !== eu).length
+  return { lista, novas, ultima: lista[0]?.created_at || null }
+}
