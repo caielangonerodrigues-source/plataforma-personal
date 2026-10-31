@@ -1139,3 +1139,10 @@ details.dia-diario summary { cursor: pointer; list-style: none }
 .quantidade-passo input { flex: 1; min-width: 0; text-align: center; font-size: 17px; font-weight: 600 }
 .quantidade-passo button { flex: none; width: 44px; font-size: 20px; padding: 0 }
 .modo-quantidade { margin-top: 0 }
+.meta-pct { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px }
+.meta-pct label { gap: 6px }
+.meta-pct label > span:first-child { display: inline-flex; align-items: center; gap: 5px }
+.meta-pct i { flex: none; width: 8px; height: 8px; border-radius: 50% }
+.campo-pct { display: flex; align-items: center; gap: 4px; font-size: 15px; color: var(--ink); text-transform: none }
+.campo-pct input { min-width: 0; width: 100%; text-align: center; font-weight: 600 }
+.meta-pct .meta { text-transform: none; letter-spacing: 0; font-weight: 400 }

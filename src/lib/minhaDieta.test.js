@@ -12,7 +12,7 @@ test('meta: a do aluno vence a do plano, que vence a calculada', () => {
 })
 
 test('meta por calorias divide 25/50/25 e recusa valores absurdos', () => {
-  assert.deepEqual(metaPorCalorias(2000), { kcal: 2000, proteina: 125, carboidrato: 250, gordura: 56 })
+  assert.deepEqual(metaPorCalorias(2000), { kcal: 2000, proteina: 125, carboidrato: 250, gordura: 56, pct: { proteina: 25, carboidrato: 50, gordura: 25 } })
   assert.equal(metaPorCalorias(300), null)
 })
 
@@ -59,4 +59,10 @@ test('conta em unidades da medida caseira', async () => {
   assert.equal(textoQuantidade(1, unidadeDaMedida('2 pães', 100)), '1 pão')
   assert.equal(textoQuantidade(1.5, unidadeDaMedida('3 fatias', 60)), '1,5 fatias')
   assert.equal(unidadeDaMedida('a gosto', 10), null)
+})
+
+test('meta com % escolhida pelo aluno', async () => {
+  const { metaPorCalorias } = await import('./minhaDieta.js')
+  assert.deepEqual(metaPorCalorias(2000, { proteina: 30, carboidrato: 40, gordura: 30 }), { kcal: 2000, proteina: 150, carboidrato: 200, gordura: 67, pct: { proteina: 30, carboidrato: 40, gordura: 30 } })
+  assert.equal(metaPorCalorias(2000, { proteina: 30, carboidrato: 40, gordura: 20 }), null)
 })
