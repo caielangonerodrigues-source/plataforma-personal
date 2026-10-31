@@ -125,7 +125,7 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
   const somaPct = editandoMeta ? MACROS_PCT.reduce((t, [k]) => t + (num(editandoMeta[k]) || 0), 0) : 0
   function salvarMeta() {
     if (editandoMeta.kcal === '') { setPropria(null); gravar(chaveMeta, null); return setEditandoMeta(null) }
-    if (Math.round(somaPct) !== 100) return setErro(`As porcentagens somam ${Math.round(somaPct)}%. Ajuste para dar 100%.`)
+    if (Math.round(somaPct) !== 100) return setErro(`Ainda sobram ${Math.round(100 - somaPct)}%. Distribua até dar 100%.`)
     const m = metaPorCalorias(num(editandoMeta.kcal), Object.fromEntries(MACROS_PCT.map(([k]) => [k, num(editandoMeta[k])])))
     if (!m) return setErro('A meta precisa ficar entre 800 e 6000 kcal.')
     setPropria(m); gravar(chaveMeta, m); setEditandoMeta(null)
@@ -266,21 +266,24 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
             {MACROS_PCT.map(([k, nome]) => {
               const kcal = num(editandoMeta.kcal) || 0
               const g = Math.round((kcal * (num(editandoMeta[k]) || 0)) / (k === 'gordura' ? 900 : 400))
-              const passoPct = (d) => setEditandoMeta({ ...editandoMeta, [k]: String(Math.min(100, Math.max(0, (num(editandoMeta[k]) || 0) + d))) })
+              // A soma nunca passa de 100%: o + e o que for digitado param no que sobra.
+              const atual = num(editandoMeta[k]) || 0
+              const limite = 100 - (somaPct - atual)
+              const definir = (v) => setEditandoMeta({ ...editandoMeta, [k]: v === '' ? '' : String(Math.min(limite, Math.max(0, Math.round(v)))) })
               return (
                 <div key={k} className="linha-pct">
                   <span className="nome-pct"><i style={{ background: CORES[k] }} />{nome}</span>
                   <span className="quantidade-passo">
-                    <button type="button" aria-label={`Menos ${nome}`} onClick={() => passoPct(-5)}>−</button>
-                    <span className="campo-pct"><input inputMode="numeric" aria-label={`% de ${nome}`} value={editandoMeta[k]} onChange={(e) => setEditandoMeta({ ...editandoMeta, [k]: e.target.value })} />%</span>
-                    <button type="button" aria-label={`Mais ${nome}`} onClick={() => passoPct(5)}>+</button>
+                    <button type="button" aria-label={`Menos ${nome}`} disabled={atual <= 0} onClick={() => definir(atual - 5)}>−</button>
+                    <span className="campo-pct"><input inputMode="numeric" aria-label={`% de ${nome}`} value={editandoMeta[k]} onChange={(e) => definir(e.target.value.trim() === '' ? '' : num(e.target.value.replace(/\D/g, '')) || 0)} />%</span>
+                    <button type="button" aria-label={`Mais ${nome}`} disabled={atual >= limite} onClick={() => definir(atual + 5)}>+</button>
                   </span>
                   <span className="meta gramas-pct">{g} g</span>
                 </div>
               )
             })}
           </div>
-          <p className="meta full" style={{ margin: 0, ...(Math.round(somaPct) !== 100 ? { color: 'var(--warn)', fontWeight: 600 } : {}) }}>Total: {Math.round(somaPct)}%{Math.round(somaPct) !== 100 ? ' (precisa dar 100%)' : ''}</p>
+          <p className="meta full" style={{ margin: 0, fontWeight: 600, color: somaPct < 100 ? 'var(--warn)' : 'var(--ok)' }}>{somaPct < 100 ? `Sobram ${Math.round(100 - somaPct)}% para distribuir` : 'Total: 100% ✓'}</p>
           <p className="meta full" style={{ margin: 0 }}>Deixe as calorias vazias para voltar {dieta ? 'à meta do seu plano' : 'à meta calculada'}.</p>
         </Modal>
       )}
