@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabase.js'
 import ListaAlimentos from './ListaAlimentos.jsx'
 import Modal from './Modal.jsx'
+import IconeLinha, { ICONES } from './IconeLinha.jsx'
 import { acharAlimento } from '../lib/nutricao.js'
 import { REFEICOES_LIVRES, copiarRefeicao, divisaoMacros, gramasDasPorcoes, lembrarRecente, macrosDoAlimento, metaDoDia, PCT_PADRAO, metaPorCalorias, quantidadeDosGramas, resumoDoDia, textoQuantidade, unidadeDaMedida } from '../lib/minhaDieta.js'
 import { idadeDoAluno } from '../lib/pollock.js'
@@ -151,9 +152,9 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
             <span>{passou ? 'Passou' : 'Restante'}</span>
           </Anel>
           <ul className="calorias-conta">
-            <li><span>🏁 Meta</span><strong>{meta.kcal.toLocaleString('pt-BR')}</strong></li>
-            <li><span>🍽️ Alimentos</span><strong>{comido.kcal.toLocaleString('pt-BR')}</strong></li>
-            <li><span>🔥 Exercício</span><strong>{queimado.toLocaleString('pt-BR')}</strong></li>
+            <li><span><IconeLinha d={ICONES.bandeira} tamanho={18} traco={1.8} />Meta</span><strong>{meta.kcal.toLocaleString('pt-BR')}</strong></li>
+            <li><span><IconeLinha d={ICONES.talheres} tamanho={18} traco={1.8} />Alimentos</span><strong>{comido.kcal.toLocaleString('pt-BR')}</strong></li>
+            <li><span><IconeLinha d={ICONES.chama} tamanho={18} traco={1.8} />Exercício</span><strong>{queimado.toLocaleString('pt-BR')}</strong></li>
           </ul>
         </div>
         <p className="meta" style={{ margin: 0 }}>{origem}</p>

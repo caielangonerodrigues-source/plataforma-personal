@@ -1114,6 +1114,7 @@ body { background: var(--surface) }
 .calorias-linha { display: flex; align-items: center; gap: 20px }
 .calorias-conta { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
 .calorias-conta li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted) }
+.calorias-conta li > span { display: inline-flex; align-items: center; gap: 8px }
 .calorias-conta strong { color: var(--ink); font-family: var(--display); font-size: 16px }
 .macros-aneis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px }
 .macro-anel { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center }
