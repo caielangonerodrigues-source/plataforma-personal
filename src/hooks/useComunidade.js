@@ -26,6 +26,13 @@ async function personaisDoGrupo() {
   return Object.fromEntries((r.data || []).map((p) => [p.user_id, { nome: p.nome || 'Personal', avatar: p.avatar }]))
 }
 
+// Nome e avatar de quem reagiu (alunos e personais), por login. Sem o SQL de quem curtiu, só os personais.
+function juntarPessoas(r, personais) {
+  const alunos = r.error ? [] : (r.data || []).map((a) => [a.user_id, { nome: a.nome, avatar: a.avatar }])
+  const equipe = Object.entries(personais).map(([id, p]) => [id, { ...p, personal: true }])
+  return Object.fromEntries([...alunos, ...equipe])
+}
+
 // Curtidas com o emoji de cada reação; sem o SQL das reações, lê só as curtidas (viram ❤️).
 async function lerCurtidas(ids) {
   const r = await supabase.from('curtidas').select('checkin_id, user_id, emoji').in('checkin_id', ids)
@@ -40,7 +47,7 @@ export function useComunidade() {
 
   const carregar = useCallback(async () => {
     const hoje = hojeISO()
-    const [sessao, membros, feed, conquistas, desafios, equipes, personal, personais] = await Promise.all([
+    const [sessao, membros, feed, conquistas, desafios, equipes, personal, personais, reagiram] = await Promise.all([
       supabase.auth.getSession(),
       supabase.rpc('comunidade_membros'),
       supabase.from('checkins').select('*').order('created_at', { ascending: false }).limit(30), // * traz o card do treino (resumo) quando o SQL novo rodou
@@ -49,7 +56,9 @@ export function useComunidade() {
       supabase.from('equipes').select('*').order('nome'), // SQL novo: sem ele, sem equipes
       personalDoGrupo(), // para assinar as fotos que o personal posta no feed
       personaisDoGrupo(), // cada personal da equipe com o próprio nome
+      supabase.rpc('quem_reagiu'), // quem curtiu: nome e avatar de cada aluno que reagiu
     ])
+    const pessoas = juntarPessoas(reagiram, personais)
     // Check-ins desde o começo do mês ou do desafio ativo mais antigo (para ranking e desafios).
     const desde = [inicioDoMes(hoje), ...(desafios.data || []).filter((d) => d.fim >= hoje).map((d) => d.inicio)].sort()[0]
     const periodo = await supabase.from('checkins').select('aluno_id, data').not('aluno_id', 'is', null).gte('data', desde) // posts do personal não contam
@@ -57,7 +66,7 @@ export function useComunidade() {
     if (falha) return setErro(`Não foi possível carregar a comunidade: ${falha.message}`)
     const ids = feed.data.map((c) => c.id)
     const caminhos = feed.data.map((c) => c.foto).filter(Boolean)
-    const avatares = [...new Set([...membros.data.map((m) => m.avatar), personal.avatar, ...Object.values(personais).map((p) => p.avatar)])].filter((a) => a && !a.startsWith('p:'))
+    const avatares = [...new Set([...membros.data.map((m) => m.avatar), personal.avatar, ...Object.values(personais).map((p) => p.avatar), ...Object.values(pessoas).map((p) => p.avatar)])].filter((a) => a && !a.startsWith('p:'))
     // Comentários e avatares são do SQL novo: se ainda não rodou, só não aparecem.
     const idsConquistas = conquistas.error ? [] : conquistas.data.map((c) => c.id)
     const [curtidas, fotos, comentarios, fotosAvatar, reacoesConquistas] = await Promise.all([
@@ -72,6 +81,7 @@ export function useComunidade() {
       eu: sessao.data.session?.user.id,
       personal,
       personais,
+      pessoas,
       membros: membros.data,
       feed: feed.data,
       conquistas: conquistas.error ? [] : conquistas.data, // SQL novo: sem ele, sem conquistas no feed

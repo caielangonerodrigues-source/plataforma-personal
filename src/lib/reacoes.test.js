@@ -26,3 +26,22 @@ test('acaoReacao: colocar, trocar e tirar', () => {
   assert.equal(acaoReacao('❤️', '🔥'), 'trocar')
   assert.equal(acaoReacao('🔥', '🔥'), 'tirar')
 })
+
+test('quemReagiu põe você primeiro, depois personais, e usa os nomes', async () => {
+  const { quemReagiu } = await import('./reacoes.js')
+  const pessoas = { a: { nome: 'Ana Souza' }, p: { nome: 'Caiê L', personal: true }, eu: { nome: 'Eliane R' } }
+  const l = quemReagiu([{ user_id: 'a', emoji: '🔥' }, { user_id: 'p', emoji: '💪' }, { user_id: 'x' }, { user_id: 'eu', emoji: '❤️' }], pessoas, 'eu')
+  assert.deepEqual(l.map((p) => p.user_id), ['eu', 'p', 'a', 'x'])
+  assert.equal(l[0].voce, true)
+  assert.equal(l[1].personal, true)
+  assert.equal(l[3].nome, 'Aluno')
+  assert.equal(l[3].emoji, '❤️')
+})
+
+test('curtidoPor resume como no Instagram', async () => {
+  const { curtidoPor } = await import('./reacoes.js')
+  assert.deepEqual(curtidoPor([]), [])
+  assert.deepEqual(curtidoPor([{ voce: true, nome: 'X' }]), ['você'])
+  assert.deepEqual(curtidoPor([{ voce: true, nome: 'X' }, { nome: 'Ana' }]), ['Ana', 'você'])
+  assert.deepEqual(curtidoPor([{ nome: 'A' }, { nome: 'B' }, { nome: 'C' }]), ['A', 'outras pessoas'])
+})

@@ -255,6 +255,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-autor-post-personal.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. A foto que um personal da equipe posta na comunidade aparece com o nome e o avatar dele, e não mais com o do dono. As fotos já postadas também são corrigidas.
 
+### 25. Ver quem curtiu as fotos e posts
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-quem-curtiu.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Embaixo das reações de cada foto, post ou conquista aparece "Curtido por …". Tocando, abre a lista com o nome, o avatar e o emoji de cada pessoa (alunos e personais).
+
 ## Desenvolvimento
 
 ```bash
