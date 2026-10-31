@@ -266,11 +266,17 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
             {MACROS_PCT.map(([k, nome]) => {
               const kcal = num(editandoMeta.kcal) || 0
               const g = Math.round((kcal * (num(editandoMeta[k]) || 0)) / (k === 'gordura' ? 900 : 400))
+              const passoPct = (d) => setEditandoMeta({ ...editandoMeta, [k]: String(Math.min(100, Math.max(0, (num(editandoMeta[k]) || 0) + d))) })
               return (
-                <label key={k}><span><i style={{ background: CORES[k] }} />{nome}</span>
-                  <span className="campo-pct"><input inputMode="numeric" aria-label={`% de ${nome}`} value={editandoMeta[k]} onChange={(e) => setEditandoMeta({ ...editandoMeta, [k]: e.target.value })} />%</span>
-                  <span className="meta">{g} g</span>
-                </label>
+                <div key={k} className="linha-pct">
+                  <span className="nome-pct"><i style={{ background: CORES[k] }} />{nome}</span>
+                  <span className="quantidade-passo">
+                    <button type="button" aria-label={`Menos ${nome}`} onClick={() => passoPct(-5)}>−</button>
+                    <span className="campo-pct"><input inputMode="numeric" aria-label={`% de ${nome}`} value={editandoMeta[k]} onChange={(e) => setEditandoMeta({ ...editandoMeta, [k]: e.target.value })} />%</span>
+                    <button type="button" aria-label={`Mais ${nome}`} onClick={() => passoPct(5)}>+</button>
+                  </span>
+                  <span className="meta gramas-pct">{g} g</span>
+                </div>
               )
             })}
           </div>
