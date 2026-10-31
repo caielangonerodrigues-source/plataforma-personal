@@ -1066,15 +1066,17 @@ body { background: var(--surface) }
 .personais-consultoria button > span:nth-child(2) { display: flex; flex-direction: column; flex: 1; min-width: 0 }
 
 /* Início: fotos da turma num leque meio escondido na lateral direita (como no GymRats) e visualizador em tela cheia */
-.leque-turma { position: fixed; right: 0; top: 46%; z-index: 40; width: 150px; height: 300px; margin-top: -150px; padding: 0; background: none; border: 0; border-radius: 0; overflow: hidden; cursor: pointer; animation: leque-entra .5s ease-out both }
-@keyframes leque-entra { from { transform: translateX(70px); opacity: 0 } }
-.leque-carta { position: absolute; left: 66px; top: 70px; width: 120px; height: 160px; border-radius: 30px; overflow: hidden; background: var(--line);
-  box-shadow: -4px 6px 16px rgba(0, 0, 0, .28), 0 0 0 2px var(--surface); transform-origin: 200px 50%; transform: rotate(var(--giro)); transition: transform .25s }
+.leque-turma { position: fixed; right: 0; top: 46%; z-index: 40; width: 108px; height: 216px; margin-top: -108px; padding: 0; background: none; border: 0; border-radius: 0; overflow: hidden; cursor: pointer; -webkit-tap-highlight-color: transparent; animation: leque-entra .5s cubic-bezier(.2, .8, .2, 1) both }
+@keyframes leque-entra { from { transform: translateX(50px); opacity: 0 } }
+.leque-carta { position: absolute; left: 48px; top: 50px; width: 86px; height: 116px; border-radius: 20px; overflow: hidden; background: var(--line);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .16), 0 0 0 1.5px var(--surface); transform-origin: 144px 50%; transform: rotate(var(--giro)); transition: transform .3s cubic-bezier(.2, .8, .2, 1) }
 .leque-carta img { width: 100%; height: 100%; object-fit: cover; display: block }
-.leque-turma:hover .leque-carta { transform: rotate(calc(var(--giro) * 1.2)) translateX(-4px) }
-.leque-autor { position: absolute; left: 74px; top: 78px; z-index: 4; border-radius: 50%; box-shadow: 0 0 0 2px #fff }
+.leque-turma:active .leque-carta { transform: rotate(calc(var(--giro) * .8)) scale(.97) }
+.leque-autor { position: absolute; left: 53px; top: 55px; z-index: 4; display: grid; padding: 1.5px; border-radius: 50%; background: var(--surface) }
+.tem-novas .leque-autor { padding: 2px; background: conic-gradient(from 200deg, #fc4c02, #ff9a3c, #ffcf5c, #fc4c02) }
+.leque-autor .avatar { box-shadow: 0 0 0 1.5px var(--surface) }
 .leque-texto { position: absolute; inset: 0; z-index: 5; width: 100%; height: 100%; overflow: visible }
-.leque-texto text { font-family: var(--display); font-size: 13px; font-weight: 700; letter-spacing: .18em; fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round }
+.leque-texto text { font-family: var(--body); font-size: 15px; font-weight: 600; letter-spacing: .14em; fill: var(--muted); paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round }
 .tem-novas .leque-texto text { fill: var(--ink) }
 .leque-ponto { fill: var(--accent) }
 
