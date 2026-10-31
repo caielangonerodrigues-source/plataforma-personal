@@ -60,7 +60,7 @@ export default function FotosDaTurma({ dados, eu, irPara }) {
               {novas > 0 && <tspan className="leque-ponto">● </tspan>}{texto}
             </textPath></text>
           </svg>
-          {frente && <span className="leque-autor"><Avatar nome={frente.nome} avatar={frente.avatar} fotos={dados.fotos} tamanho={24} /></span>}
+          {frente && <span className="leque-autor"><Avatar nome={frente.nome} avatar={frente.avatar} fotos={dados.fotos} tamanho={24} ampliar={false} /></span>}
         </button>
       )}
       {aberta != null && (
