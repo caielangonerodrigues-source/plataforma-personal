@@ -13,6 +13,7 @@ import Medalhas from '../../components/Medalhas.jsx'
 import EditarAvatar from '../../components/EditarAvatar.jsx'
 import InicioAluno from '../../components/InicioAluno.jsx'
 import EditarNome from '../../components/EditarNome.jsx'
+import EditarPesoAltura from '../../components/EditarPesoAltura.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
@@ -56,6 +57,7 @@ import MonteSeuTreino from '../../components/MonteSeuTreino.jsx'
 
 export default function AreaAluno({ aluno }) {
   const [, setNomeSalvo] = useState(aluno.nome) // o nome vem do cadastro; ao editar, atualiza o objeto e redesenha
+  const [, setPesoSalvo] = useState(null)
   const [aba, setAba] = useState('inicio')
   const [meuAvatar, setMeuAvatar] = useState(aluno.avatar || null)
   const [treinos, setTreinos] = useState(null)
@@ -296,6 +298,7 @@ export default function AreaAluno({ aluno }) {
       {aba === 'conta' && (
         <div className="stack">
           <EditarNome aluno={aluno} onMudou={(novo) => { aluno.nome = novo; setNomeSalvo(novo); comunidade.carregar() }} />
+          <EditarPesoAltura aluno={aluno} onMudou={(novo) => { Object.assign(aluno, novo); setPesoSalvo(novo) }} />
           <EditarAvatar aluno={aluno} onMudou={(novo) => { setMeuAvatar(novo); comunidade.carregar() }} />
           <AtivarNotificacoes />
           <Mensalidade aluno={aluno} />

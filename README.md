@@ -240,6 +240,11 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-consultoria-personais.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Na página **/consultoria** aparece **Escolha seu personal** com todos os personais que marcaram **Página no ar** em **Vendas**. Os planos e o contato mudam conforme o personal escolhido.
 
+### 22. Peso e altura do aluno
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-peso-altura.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. Na aba **Conta**, o aluno toca em **Informar** (ou **Editar**) em **Peso e altura** e salva. Você vê o peso e a altura no topo da página do aluno, pode corrigir em **Editar dados**, e a próxima avaliação já vem com esses valores preenchidos.
+
 ## Desenvolvimento
 
 ```bash

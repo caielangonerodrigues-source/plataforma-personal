@@ -68,7 +68,7 @@ export function FormAvaliacao({ aluno, inicial, onFechar, onSalvo }) {
   const ultima = aluno.avaliacoes.at(-1)
   // `inicial` vem de um envio da consultoria online: sem dobras, então protocolo manual.
   const { medidas: medidasIniciais, ...resto } = inicial || {}
-  const [d, setD] = useState({ data: hojeISO(), peso: '', altura: ultima?.altura ?? '', protocolo: inicial ? 'manual' : 'p7', gordura: '', ...resto })
+  const [d, setD] = useState({ data: hojeISO(), peso: aluno.peso ?? '', altura: ultima?.altura ?? aluno.altura ?? '', protocolo: inicial ? 'manual' : 'p7', gordura: '', ...resto })
   const [dobras, setDobras] = useState({})
   const [medidas, setMedidas] = useState(() => Object.fromEntries(Object.entries(medidasIniciais || {}).map(([k, v]) => [k, String(v ?? '')])))
   const [erro, setErro] = useState('')
