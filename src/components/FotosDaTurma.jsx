@@ -49,7 +49,7 @@ export default function FotosDaTurma({ dados, eu, irPara }) {
           {leque.slice().reverse().map((c, i, arr) => {
             const pos = arr.length - 1 - i // 0 = a mais nova, na frente
             return (
-              <span key={c.id} className="leque-carta" style={{ '--giro': `${[0, -15, 15][pos]}deg`, zIndex: 3 - pos }}>
+              <span key={c.id} className="leque-carta" style={{ '--giro': `${[0, -14, 14][pos]}deg`, zIndex: 3 - pos }}>
                 <img src={dados.fotos[c.foto]} alt="" loading="lazy" />
               </span>
             )
@@ -60,7 +60,7 @@ export default function FotosDaTurma({ dados, eu, irPara }) {
               {novas > 0 && <tspan className="leque-ponto">● </tspan>}{texto}
             </textPath></text>
           </svg>
-          {frente && <span className="leque-autor"><Avatar nome={frente.nome} avatar={frente.avatar} fotos={dados.fotos} tamanho={34} /></span>}
+          {frente && <span className="leque-autor"><Avatar nome={frente.nome} avatar={frente.avatar} fotos={dados.fotos} tamanho={24} /></span>}
         </button>
       )}
       {aberta != null && (
