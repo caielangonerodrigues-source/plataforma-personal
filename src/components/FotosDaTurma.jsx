@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import Avatar from './Avatar.jsx'
-import IconeLinha, { ICONES } from './IconeLinha.jsx'
-import { TituloSecao } from './HeroInicio.jsx'
 import { fotosDaTurma, nomeCurto, quandoFoi } from '../lib/comunidade.js'
 
 const CHAVE = 'fotosTurmaVistas'
@@ -14,7 +12,7 @@ function gravarVisto(eu, quando) {
   try { localStorage.setItem(`${CHAVE}:${eu}`, quando) } catch { /* modo privado: só não lembra */ }
 }
 
-// Tempo curto desde a última foto, para o canto da pilha: "13 h", "25 min", "2 d".
+// Tempo curto desde a última foto, para o arco do leque: "13 h", "25 min", "2 d".
 function desde(createdAt, agora = Date.now()) {
   const min = Math.max(0, Math.floor((agora - new Date(createdAt).getTime()) / 60000))
   if (min < 60) return `${Math.max(1, min)} min`
@@ -22,8 +20,9 @@ function desde(createdAt, agora = Date.now()) {
   return `${Math.floor(min / 1440)} d`
 }
 
-// Fotos que a turma postou, no Início do aluno (como no GymRats): uma pilha em leque com as últimas fotos,
-// quantas são novas e há quanto tempo foi a última. Tocar abre as fotos em tela cheia, uma por vez.
+// Fotos que a turma postou, no Início do aluno (como no GymRats e nos stories do Instagram): um leque
+// flutuando meio escondido na lateral direita da tela, com quantas são novas e há quanto tempo foi a última
+// escritos em arco. Tocar abre as fotos em tela cheia, uma por vez.
 export default function FotosDaTurma({ dados, eu, irPara }) {
   const [visto, setVisto] = useState(() => lerVisto(eu))
   const [aberta, setAberta] = useState(null) // índice da foto no visualizador
@@ -32,7 +31,9 @@ export default function FotosDaTurma({ dados, eu, irPara }) {
   if (!lista.length) return null
 
   const autorDe = (c) => (c.personal_id ? { ...dados.personal, personal: true } : membro[c.aluno_id])
-  const pilha = lista.slice(0, 5)
+  const leque = lista.slice(0, 3) // a mais nova na frente, as outras abrindo para cima e para baixo
+  const frente = autorDe(lista[0])
+  const texto = novas ? `${novas} ${novas === 1 ? 'NOVA' : 'NOVAS'} · ${desde(ultima)}` : desde(ultima)
 
   function fechar() {
     setAberta(null)
@@ -41,33 +42,31 @@ export default function FotosDaTurma({ dados, eu, irPara }) {
   }
 
   return (
-    <div className="panel stack fotos-turma" style={{ gap: 10 }}>
-      <TituloSecao icone={<IconeLinha d={ICONES.camera} tamanho={22} traco={1.7} />} titulo="Fotos da turma" acao="Ver todas" onClick={() => irPara('comunidade')} />
-      <button type="button" className="fotos-turma-corpo" onClick={() => setAberta(0)} aria-label={`Ver as fotos da turma${novas ? `, ${novas} novas` : ''}`}>
-        <div className="fotos-turma-info">
-          {novas > 0
-            ? <strong className="fotos-turma-novas"><i aria-hidden="true" />{novas} {novas === 1 ? 'nova' : 'novas'}</strong>
-            : <strong>Tudo visto</strong>}
-          <span className="meta">Última há {desde(ultima)}</span>
-          <span className="atalho-acao">Ver fotos ›</span>
-        </div>
-        <div className="fotos-turma-pilha" aria-hidden="true">
-          {pilha.slice().reverse().map((c, i, arr) => {
-            const pos = arr.length - 1 - i // 0 = a mais nova, por cima
-            const autor = autorDe(c)
+    <>
+      {aberta == null && (
+        <button type="button" className={`leque-turma${novas ? ' tem-novas' : ''}`} onClick={() => setAberta(0)}
+          aria-label={`Fotos da turma${novas ? `: ${novas} novas` : ''}, última há ${desde(ultima)}`}>
+          {leque.slice().reverse().map((c, i, arr) => {
+            const pos = arr.length - 1 - i // 0 = a mais nova, na frente
             return (
-              <span key={c.id} className="fotos-turma-carta" style={{ '--pos': pos, zIndex: arr.length - pos }}>
+              <span key={c.id} className="leque-carta" style={{ '--giro': `${[0, -15, 15][pos]}deg`, zIndex: 3 - pos }}>
                 <img src={dados.fotos[c.foto]} alt="" loading="lazy" />
-                {pos === 0 && autor && <span className="fotos-turma-autor"><Avatar nome={autor.nome} avatar={autor.avatar} fotos={dados.fotos} tamanho={30} /></span>}
               </span>
             )
           })}
-        </div>
-      </button>
+          <svg className="leque-texto" viewBox="0 0 150 300" aria-hidden="true">
+            <path id="leque-arco" d="M 120 288 A 160 160 0 0 1 120 12" fill="none" />
+            <text><textPath href="#leque-arco" startOffset="50%" textAnchor="middle">
+              {novas > 0 && <tspan className="leque-ponto">● </tspan>}{texto}
+            </textPath></text>
+          </svg>
+          {frente && <span className="leque-autor"><Avatar nome={frente.nome} avatar={frente.avatar} fotos={dados.fotos} tamanho={34} /></span>}
+        </button>
+      )}
       {aberta != null && (
         <Visualizador lista={lista} inicio={aberta} dados={dados} autorDe={autorDe} onFechar={fechar} onFeed={() => { fechar(); irPara('comunidade') }} />
       )}
-    </div>
+    </>
   )
 }
 
