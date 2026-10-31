@@ -1099,3 +1099,43 @@ body { background: var(--surface) }
 .story-rodape { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 40px 18px max(18px, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(0, 0, 0, .7)) }
 .story-rodape p { margin: 0 0 8px; font-size: 15px }
 .story-rodape .link { color: #fff; font-weight: 600 }
+
+/* Monte sua dieta (estilo MyFitnessPal) */
+.dia-dieta { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px }
+.dia-dieta strong { font-family: var(--display); font-size: 17px }
+.dia-dieta button { font-size: 22px; line-height: 1; padding: 4px 14px }
+.anel { position: relative; flex: none }
+.anel svg circle:last-child { transition: stroke-dasharray .4s ease }
+.anel-centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1 }
+.anel-centro strong { font-family: var(--display); font-size: 26px }
+.anel-centro strong.passou { color: #e5484d }
+.anel-centro span { font-size: 12px; color: var(--muted) }
+.resumo-calorias { display: flex; flex-direction: column; gap: 10px }
+.calorias-linha { display: flex; align-items: center; gap: 20px }
+.calorias-conta { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0 }
+.calorias-conta li { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted) }
+.calorias-conta strong { color: var(--ink); font-family: var(--display); font-size: 16px }
+.macros-aneis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px }
+.macro-anel { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center }
+.macro-anel .anel-centro strong { font-size: 18px }
+.macro-anel .name { font-weight: 600; font-size: 14px; margin-top: 4px }
+.macro-anel .meta { font-size: 12px }
+.refeicao-livre { display: flex; flex-direction: column; gap: 6px }
+.item-livre { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; text-align: left; font: inherit; font-weight: 400; color: inherit }
+button.item-livre { cursor: pointer }
+.item-livre > span:first-child { display: flex; flex-direction: column }
+.item-livre .kcal { font-family: var(--display); font-weight: 600; flex: none }
+.adicionar-livre { align-self: flex-start; font-weight: 700; color: var(--accent) }
+.previa-porcao { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 12px; border-radius: 10px; background: var(--bg) }
+.previa-porcao strong { font-family: var(--display); font-size: 18px; margin-right: 4px }
+.previa-porcao span { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted) }
+.previa-porcao i { width: 8px; height: 8px; border-radius: 50% }
+details.dia-diario summary { cursor: pointer; list-style: none }
+@media (min-width: 700px) {
+  .calorias-linha { gap: 36px }
+  .anel-centro strong { font-size: 28px }
+}
+.quantidade-passo { display: flex; align-items: stretch; gap: 6px; text-transform: none; letter-spacing: 0 }
+.quantidade-passo input { flex: 1; min-width: 0; text-align: center; font-size: 17px; font-weight: 600 }
+.quantidade-passo button { flex: none; width: 44px; font-size: 20px; padding: 0 }
+.modo-quantidade { margin-top: 0 }

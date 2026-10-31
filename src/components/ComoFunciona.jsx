@@ -57,6 +57,12 @@ export const AJUDA_ALUNO = {
     'Comeu algo fora do plano? Anote em "Comeu algo fora do plano?" para a conta ficar certa.',
     'Se no fim do dia faltar algum macro, aparece uma dica de lanche. Comeu? Toque em "Comi ✓".',
   ],
+  montardieta: [
+    'Como no MyFitnessPal: toque em "+ Adicionar alimento" no café, almoço, lanches ou jantar, escolha na lista e ajuste as porções.',
+    'O anel mostra as calorias que restam: Meta − Alimentos + Exercício. Os três anéis menores são proteína, carbo e gordura.',
+    'Toque num alimento para mudar a quantidade ou tirar. "Copiar de ontem" repete a refeição do dia anterior.',
+    'A meta vem do seu plano (ou do seu peso e altura). Quer outra? Toque em "Editar meta". Seu personal vê o que você anotou.',
+  ],
   voce: [
     'Seu perfil: Progresso (avaliações, cargas, medalhas e fotos), Atividades (seus check-ins) e Galeria (suas fotos).',
     'Em "Mais" ficam as outras áreas do app e a sua conta.',

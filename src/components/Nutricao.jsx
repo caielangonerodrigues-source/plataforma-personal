@@ -5,6 +5,7 @@ import ListaAlimentos from './ListaAlimentos.jsx'
 import { ALIMENTOS, ATIVIDADE, MODELOS_DIETA, REFEICOES_PADRAO, aplicarModeloDieta, macrosDoItem, somarItens, sugerirMetas, totalDaDieta } from '../lib/nutricao.js'
 import { f1, fmtData, hojeISO, num, porData } from '../lib/formato.js'
 import DiarioDieta, { DiarioDoAluno } from './DiarioDieta.jsx'
+import MonteSuaDieta, { DietaMontadaDoAluno } from './MonteSuaDieta.jsx'
 
 const VAZIA = { calorias: null, proteina: null, carboidrato: null, gordura: null, agua: null, refeicoes: REFEICOES_PADRAO, orientacoes: '' }
 const AVISO = 'Orientação nutricional geral para acompanhar o treino. Para dieta clínica (doenças, gestação, alergias), procure um nutricionista.'
@@ -68,10 +69,10 @@ export function VerDieta({ dieta }) {
 }
 
 // Aba "Dieta" da área do aluno.
-export function DietaAluno({ aluno, hoje }) {
+export function DietaAluno({ aluno, hoje, onMontar }) {
   const { dieta } = useDieta(aluno.id)
   if (dieta === undefined) return <p className="carregando">Carregando…</p>
-  if (!dieta) return <div className="panel empty">Seu personal ainda não montou seu plano alimentar.</div>
+  if (!dieta) return <div className="panel empty">Seu personal ainda não montou seu plano alimentar.{onMontar && <> Enquanto isso, anote o que você come em <button className="link" onClick={onMontar}>Monte sua dieta ›</button></>}</div>
   return (
     <div className="stack">
       <p className="meta" style={{ margin: 0 }}>Plano atualizado em {fmtData(dieta.updated_at)} · marque cada refeição ao comer</p>
@@ -80,6 +81,13 @@ export function DietaAluno({ aluno, hoje }) {
       <p className="meta" style={{ margin: 0 }}>{AVISO}</p>
     </div>
   )
+}
+
+// "Monte sua dieta" do aluno: usa a meta do plano do personal, se houver.
+export function MonteSuaDietaAluno({ aluno, hoje }) {
+  const { dieta } = useDieta(aluno.id)
+  if (dieta === undefined) return <p className="carregando">Carregando…</p>
+  return <MonteSuaDieta aluno={aluno} dieta={dieta} hoje={hoje} />
 }
 
 // Aba "Nutrição" do aluno, na área do personal: calcula metas e monta as refeições.
@@ -167,6 +175,7 @@ export default function Nutricao({ aluno }) {
       )}
 
       <DiarioDoAluno aluno={aluno} dieta={dieta} hoje={hojeISO()} />
+      <DietaMontadaDoAluno aluno={aluno} hoje={hojeISO()} />
 
       <div className="panel">
         <h2 style={{ marginTop: 0 }}>Metas do dia</h2>

@@ -21,7 +21,7 @@ import Consultoria from '../../components/Consultoria.jsx'
 import VideosExecucao from '../../components/VideosExecucao.jsx'
 import ConversaPrivada from '../../components/ConversaPrivada.jsx'
 import AulasSpinning from '../spinning/AulasSpinning.jsx'
-import { DietaAluno } from '../../components/Nutricao.jsx'
+import { DietaAluno, MonteSuaDietaAluno } from '../../components/Nutricao.jsx'
 import Cronometro, { prepararSom } from '../../components/Cronometro.jsx'
 import TrocaExercicio from '../../components/TrocaExercicio.jsx'
 import ComoFoiTreino from '../../components/ComoFoiTreino.jsx'
@@ -225,15 +225,15 @@ export default function AreaAluno({ aluno }) {
   const blocos = ficha ? blocosDeMetodo(ficha.exercicios) : [] // bi-set, tri-set...: exercícios feitos em sequência
   const ultima = avaliacoes.at(-1)
   const fezHoje = diasCheckin.includes(hoje)
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ['montar', 'Monte seu treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ['montar', 'Monte seu treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['montardieta', 'Monte sua dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   // No celular: barra flutuante (Início, Treino, Check-in no meio, Turma/Consultoria e Você); o resto fica em Você › Mais.
   const quarta = online ? 'consultoria' : aluno.comunidade ? 'comunidade' : 'novidades'
   const principais = ['inicio', 'treino', 'dieta', quarta, 'voce']
   const rotuloBarra = { comunidade: 'Turma', consultoria: 'Relato' }
-  const textos = { montar: 'Escolha exercícios e veja os músculos no bonequinho', aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
+  const textos = { montar: 'Escolha exercícios e veja os músculos no bonequinho', aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', montardieta: 'Anote o que comeu e veja calorias e macros', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
   const whatsapp = online ? null : academia.whatsapp
-  const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k || (k === 'treino' && aba === 'montar'), badge: badgeAba(k), onClick: () => irPara(k) })
+  const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k || (k === 'treino' && aba === 'montar') || (k === 'dieta' && aba === 'montardieta'), badge: badgeAba(k), onClick: () => irPara(k) })
   const badgeAba = (k) => (aba === k ? 0 : k === 'novidades' ? academia.novos : k === 'mensagens' ? naoLidas : 0)
 
   return (
@@ -286,7 +286,14 @@ export default function AreaAluno({ aluno }) {
         <ConversaPrivada alunoId={aluno.id} eu={aluno.user_id} com="seu personal" onLidas={() => setNaoLidas(0)} />
       )}
 
-      {aba === 'dieta' && <DietaAluno aluno={aluno} hoje={hoje} />}
+      {(aba === 'dieta' || aba === 'montardieta') && (
+        <div className="subabas duas" role="tablist" aria-label="Dieta">
+          <button role="tab" aria-selected={aba === 'dieta'} onClick={() => irPara('dieta')}>Meu plano</button>
+          <button role="tab" aria-selected={aba === 'montardieta'} onClick={() => irPara('montardieta')}>Monte sua dieta</button>
+        </div>
+      )}
+      {aba === 'dieta' && <DietaAluno aluno={aluno} hoje={hoje} onMontar={() => irPara('montardieta')} />}
+      {aba === 'montardieta' && <MonteSuaDietaAluno aluno={aluno} hoje={hoje} />}
       {(aba === 'treino' || aba === 'montar') && (
         <div className="subabas duas" role="tablist" aria-label="Treino">
           <button role="tab" aria-selected={aba === 'treino'} onClick={() => irPara('treino')}>Meu treino</button>
@@ -307,7 +314,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['inicio', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades', 'montar'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['inicio', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades', 'montar', 'montardieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">
@@ -415,7 +422,7 @@ export default function AreaAluno({ aluno }) {
           ...principais.slice(0, 3).map(itemBarra),
           { chave: 'checkin', rotulo: 'Check-in', icone: 'gravar', centro: true, onClick: () => setCheckinAberto(true) },
           itemBarra(quarta),
-          { ...itemBarra('voce'), ativo: aba === 'voce' || (!principais.includes(aba) && aba !== 'montar'), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
+          { ...itemBarra('voce'), ativo: aba === 'voce' || (!principais.includes(aba) && aba !== 'montar' && aba !== 'montardieta'), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
         ]}
       />
 
