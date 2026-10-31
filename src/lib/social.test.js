@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { conquistasAtuais, conquistasParaPublicar, fmtTempo, lerTempo, montarFeed, recordesDoDia, resumoCardio, resumoMusculacao, resumoTreino, ritmo, tituloMusculacao } from './social.js'
+import { conquistasAtuais, conquistasParaPublicar, fmtTempo, lerTempo, montarFeed, recordesDoDia, resumoCardio, resumoCardioLivre, resumoMusculacao, resumoTreino, ritmo, tituloCardioLivre, tituloMusculacao } from './social.js'
 
 const s = (c, r, n = 3) => Array.from({ length: n }, () => ({ carga: c, reps: r }))
 const ficha = { nome: 'A', exercicios: [{ id: 'e1', nome: 'Agachamento' }, { id: 'e2', nome: 'Leg press' }, { id: 'e3', nome: 'Extensora' }] }
@@ -49,4 +49,12 @@ test('check-in de musculação guarda grupos e duração', () => {
   assert.equal(resumoMusculacao([], '').minutos, null)
   assert.equal(tituloMusculacao(['peito', 'bracos']), 'Musculação · Peito, Braços')
   assert.equal(tituloMusculacao([]), 'Musculação')
+})
+
+test('check-in de cardio guarda aparelho e duração', () => {
+  assert.deepEqual(resumoCardioLivre('esteira', '30'), { tipo: 'cardio', esporte: 'cardio', aparelho: 'esteira', minutos: 30 })
+  assert.equal(resumoCardioLivre('xx', '20').aparelho, null)
+  assert.equal(resumoCardioLivre('esteira', ''), null)
+  assert.equal(tituloCardioLivre(resumoCardioLivre('eliptico', '25')), 'Cardio · Elíptico · 25 min')
+  assert.equal(tituloCardioLivre(resumoCardioLivre(null, '40')), 'Cardio · 40 min')
 })
