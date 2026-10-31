@@ -52,6 +52,29 @@ export function divisaoMacros(t) {
   return { proteina: Math.round((p / total) * 100), carboidrato: Math.round((c / total) * 100), gordura: Math.round((g / total) * 100) }
 }
 
+// Unidade da medida caseira, para contar em unidades em vez de gramas ("3 ovos", "2 fatias", "4 colheres de sopa").
+// "2 ovos" (110 g) vira { singular: 'ovo', plural: 'ovos', gramas: 55 }.
+const singularDe = (w) => (/(r|z)es$/.test(w) ? w.slice(0, -2) : /(ões|ães)$/.test(w) ? `${w.slice(0, -3)}ão` : w.replace(/s$/, ''))
+const PLURAIS = { pão: 'pães' }
+const pluralDe = (w) => PLURAIS[w] || (/[rz]$/.test(w) ? `${w}es` : /ão$/.test(w) ? `${w.slice(0, -2)}ões` : /[aeiouáéíóúâêô]$/.test(w) ? `${w}s` : w)
+const mudarAteDe = (texto, f) => { let parou = false; return texto.split(' ').map((w) => { if (w === 'de' || w === 'da' || w === 'do') parou = true; return parou ? w : f(w) }).join(' ') }
+export function unidadeDaMedida(medida, gramas) {
+  const m = String(medida || '').trim().match(/^(½|\d+\/\d+|\d+(?:[.,]\d+)?)\s+(.+)$/)
+  if (!m || !gramas) return null
+  const n = m[1] === '½' ? 0.5 : m[1].includes('/') ? Number(m[1].split('/')[0]) / Number(m[1].split('/')[1]) : Number(m[1].replace(',', '.'))
+  if (!n) return null
+  const singular = n > 1 ? mudarAteDe(m[2], singularDe) : m[2]
+  return { singular, plural: mudarAteDe(singular, pluralDe), gramas: r1(gramas / n) }
+}
+const fmtQtd = (q) => String(r1(q)).replace('.', ',')
+export const textoQuantidade = (q, u) => `${fmtQtd(q)} ${q > 0 && q <= 1 ? u.singular : u.plural}`
+// "3 ovos" a partir dos gramas gravados, quando dá um número redondo (múltiplo de ½).
+export function quantidadeDosGramas(gramas, u) {
+  if (!u || !gramas) return null
+  const q = gramas / u.gramas
+  return Math.abs(q * 2 - Math.round(q * 2)) < 0.05 && q >= 0.5 ? Math.round(q * 2) / 2 : null
+}
+
 // Gramas a partir das porções (medida caseira) e vice-versa.
 export const gramasDasPorcoes = (porcoes, gramasDaMedida) => r1((Number(String(porcoes).replace(',', '.')) || 0) * gramasDaMedida)
 export const porcoesDosGramas = (gramas, gramasDaMedida) => (gramasDaMedida ? r1((Number(gramas) || 0) / gramasDaMedida) : 0)

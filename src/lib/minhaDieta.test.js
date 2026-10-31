@@ -49,3 +49,14 @@ test('copiar de ontem e recentes', () => {
   assert.deepEqual(c, [{ aluno_id: 'a1', data: '2026-10-31', refeicao: 'cafe', alimento: 'Ovo cozido', gramas: 100, macros: { kcal: 146 } }])
   assert.deepEqual(lembrarRecente(['A', 'B', 'C'], 'B'), ['B', 'A', 'C'])
 })
+
+test('conta em unidades da medida caseira', async () => {
+  const { unidadeDaMedida, textoQuantidade, quantidadeDosGramas } = await import('./minhaDieta.js')
+  const ovo = unidadeDaMedida('1 ovo', 50)
+  assert.equal(textoQuantidade(3, ovo), '3 ovos')
+  assert.equal(quantidadeDosGramas(150, ovo), 3)
+  assert.deepEqual(unidadeDaMedida('4 colheres de sopa', 100), { singular: 'colher de sopa', plural: 'colheres de sopa', gramas: 25 })
+  assert.equal(textoQuantidade(1, unidadeDaMedida('2 pães', 100)), '1 pão')
+  assert.equal(textoQuantidade(1.5, unidadeDaMedida('3 fatias', 60)), '1,5 fatias')
+  assert.equal(unidadeDaMedida('a gosto', 10), null)
+})

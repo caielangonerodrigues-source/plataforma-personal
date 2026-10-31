@@ -1135,3 +1135,7 @@ details.dia-diario summary { cursor: pointer; list-style: none }
   .calorias-linha { gap: 36px }
   .anel-centro strong { font-size: 28px }
 }
+.quantidade-passo { display: flex; align-items: stretch; gap: 6px; text-transform: none; letter-spacing: 0 }
+.quantidade-passo input { flex: 1; min-width: 0; text-align: center; font-size: 17px; font-weight: 600 }
+.quantidade-passo button { flex: none; width: 44px; font-size: 20px; padding: 0 }
+.modo-quantidade { margin-top: 0 }

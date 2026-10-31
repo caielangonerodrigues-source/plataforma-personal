@@ -3,7 +3,7 @@ import { supabase } from '../supabase.js'
 import ListaAlimentos from './ListaAlimentos.jsx'
 import Modal from './Modal.jsx'
 import { acharAlimento } from '../lib/nutricao.js'
-import { REFEICOES_LIVRES, copiarRefeicao, divisaoMacros, gramasDasPorcoes, lembrarRecente, macrosDoAlimento, metaDoDia, metaPorCalorias, porcoesDosGramas, resumoDoDia } from '../lib/minhaDieta.js'
+import { REFEICOES_LIVRES, copiarRefeicao, divisaoMacros, gramasDasPorcoes, lembrarRecente, macrosDoAlimento, metaDoDia, metaPorCalorias, quantidadeDosGramas, resumoDoDia, textoQuantidade, unidadeDaMedida } from '../lib/minhaDieta.js'
 import { idadeDoAluno } from '../lib/pollock.js'
 import { f1, fmtData, num } from '../lib/formato.js'
 import { somarDias } from '../lib/comunidade.js'
@@ -51,11 +51,12 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
   const [propria, setPropria] = useState(() => ler(chaveMeta, null))
   const [recentes, setRecentes] = useState(() => ler('alimentos-recentes', []))
   const [lista, setLista] = useState(null) // refeição que está escolhendo alimento
-  const [porcao, setPorcao] = useState(null) // { refeicao, alimento, medida, gramasMedida, porcoes, gramas, kcal, id? }
+  const [porcao, setPorcao] = useState(null) // { refeicao, alimento, unidade, porcoes, gramas, kcal, id? }
   const [exercicio, setExercicio] = useState(null) // { nome, kcal }
   const [editandoMeta, setEditandoMeta] = useState(null)
   const [erro, setErro] = useState('')
   const [ocupado, setOcupado] = useState(false)
+  const [modo, setModo] = useState(() => ler('modo-quantidade', 'qtd')) // anotar por quantidade ou por gramas
 
   const meta = metaDoDia({ propria, dieta, aluno, idade: idadeDoAluno(aluno) })
   if (!diario.itens) return <p className="carregando">Carregando…</p>
@@ -70,19 +71,34 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
     try { const { error } = await fn(); if (error) throw error } catch { setErro('Não foi possível salvar agora. Verifique a internet e tente de novo.') }
     setOcupado(false); diario.carregar()
   }
-  // Alimento escolhido na lista: abre a janela da quantidade, já com 1 porção (medida caseira).
+  // Alimento escolhido na lista: abre a janela da quantidade, contada na medida caseira ("3 ovos", "2 fatias").
+  // Sem medida que dê para contar, a unidade é 100 g.
+  const unidadeDe = (tabela) => tabela && (unidadeDaMedida(tabela.medida, tabela.gramas) || { singular: 'porção de 100 g', plural: 'porções de 100 g', gramas: 100 })
   function escolher(a) {
     const tabela = acharAlimento(a.nome)
-    setPorcao({ refeicao: lista, alimento: a.nome, medida: tabela?.medida, gramasMedida: tabela?.gramas, porcoes: '1', gramas: tabela ? String(tabela.gramas) : '', kcal: '' })
+    const u = unidadeDe(tabela)
+    const n = tabela ? quantidadeDosGramas(tabela.gramas, u) || 1 : 1
+    setPorcao({ refeicao: lista, alimento: a.nome, unidade: u, porcoes: String(n).replace('.', ','), gramas: tabela ? String(tabela.gramas) : '', kcal: '' })
     setLista(null)
   }
   function editar(item) {
     const tabela = acharAlimento(item.alimento)
-    setPorcao({ id: item.id, refeicao: item.refeicao, alimento: item.alimento, medida: tabela?.medida, gramasMedida: tabela?.gramas, porcoes: tabela ? String(porcoesDosGramas(item.gramas, tabela.gramas)) : '', gramas: item.gramas ? String(item.gramas) : '', kcal: tabela ? '' : String(item.macros?.kcal || '') })
+    const u = unidadeDe(tabela)
+    setPorcao({ id: item.id, refeicao: item.refeicao, alimento: item.alimento, unidade: u, porcoes: u ? String(porcoesDosGramas(item.gramas, u.gramas)).replace('.', ',') : '', gramas: item.gramas ? String(item.gramas) : '', kcal: tabela ? '' : String(item.macros?.kcal || '') })
+  }
+  const mudarModo = (m) => { setModo(m); gravar('modo-quantidade', m) }
+  const mudaGramas = (g) => setPorcao((p) => ({ ...p, gramas: g, porcoes: String(porcoesDosGramas(num(g), p.unidade.gramas)).replace('.', ',') }))
+  const mudaQtd = (q) => setPorcao((p) => ({ ...p, porcoes: q, gramas: String(gramasDasPorcoes(q, p.unidade.gramas)) }))
+  const passo = (d) => { const q = Math.max(0.5, (num(porcao.porcoes) || 0) + d); mudaQtd(String(q).replace('.', ',')) }
+  // Como o item aparece na refeição: "3 ovos · 150 g" quando a conta fecha em unidades.
+  function quanto(i) {
+    const u = unidadeDe(acharAlimento(i.alimento))
+    const q = u && u.gramas !== 100 && quantidadeDosGramas(i.gramas, u)
+    return [q && textoQuantidade(q, u), i.gramas && `${f1(i.gramas)} g`].filter(Boolean).join(' · ') || 'porção'
   }
   const previa = porcao && macrosDoAlimento(porcao.alimento, num(porcao.gramas), porcao.kcal)
   async function salvarPorcao() {
-    if (!previa) return setErro(porcao.gramasMedida ? 'Coloque a quantidade.' : 'Coloque as calorias do alimento.')
+    if (!previa) return setErro(porcao.unidade ? 'Coloque a quantidade.' : 'Coloque as calorias do alimento.')
     const linha = { alimento: porcao.alimento.slice(0, 80), gramas: num(porcao.gramas) || null, macros: previa }
     const p = porcao
     setPorcao(null)
@@ -161,7 +177,7 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
             {itens.length > 0 && <div className="meta">P {f1(porRefeicao[k].proteina)} g · C {f1(porRefeicao[k].carboidrato)} g · G {f1(porRefeicao[k].gordura)} g</div>}
             {itens.map((i) => (
               <button type="button" key={i.id} className="item-livre" onClick={() => { setErro(''); editar(i) }}>
-                <span style={{ minWidth: 0 }}><span className="name">{i.alimento}</span><span className="meta">{i.gramas ? `${f1(i.gramas)} g` : 'porção'}</span></span>
+                <span style={{ minWidth: 0 }}><span className="name">{i.alimento}</span><span className="meta">{quanto(i)}</span></span>
                 <span className="kcal">{i.macros?.kcal ?? 0}</span>
               </button>
             ))}
@@ -189,14 +205,25 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
 
       {porcao && (
         <Modal titulo={porcao.alimento} botao={porcao.id ? 'Salvar' : 'Adicionar'} erro={erro} salvando={ocupado} onFechar={() => setPorcao(null)} onSalvar={salvarPorcao}>
-          {porcao.gramasMedida ? (
-            <div className="row full" style={{ gap: 10, flexWrap: 'nowrap' }}>
-              <label style={{ flex: 1 }}>Porções
-                <input inputMode="decimal" autoFocus value={porcao.porcoes} onChange={(e) => setPorcao({ ...porcao, porcoes: e.target.value, gramas: String(gramasDasPorcoes(e.target.value, porcao.gramasMedida)) })} />
-              </label>
-              <label style={{ width: 110 }}>Gramas
-                <input inputMode="decimal" value={porcao.gramas} onChange={(e) => setPorcao({ ...porcao, gramas: e.target.value, porcoes: String(porcoesDosGramas(num(e.target.value), porcao.gramasMedida)) })} />
-              </label>
+          {porcao.unidade ? (
+            <div className="full stack" style={{ gap: 10 }}>
+              <div className="segmentos modo-quantidade" role="group" aria-label="Anotar por">
+                <button type="button" aria-pressed={modo === 'qtd'} onClick={() => mudarModo('qtd')}>Quantidade</button>
+                <button type="button" aria-pressed={modo === 'g'} onClick={() => mudarModo('g')}>Gramas</button>
+              </div>
+              {modo === 'qtd' ? (
+                <span className="quantidade-passo">
+                  <button type="button" aria-label="Menos" onClick={() => passo(-(num(porcao.porcoes) > 1 ? 1 : 0.5))}>−</button>
+                  <input inputMode="decimal" autoFocus aria-label={`Quantidade em ${porcao.unidade.plural}`} value={porcao.porcoes} onChange={(e) => mudaQtd(e.target.value)} />
+                  <button type="button" aria-label="Mais" onClick={() => passo(num(porcao.porcoes) >= 1 ? 1 : 0.5)}>+</button>
+                </span>
+              ) : (
+                <span className="quantidade-passo">
+                  <button type="button" aria-label="Menos 10 gramas" onClick={() => mudaGramas(String(Math.max(5, (num(porcao.gramas) || 0) - 10)))}>−</button>
+                  <input inputMode="decimal" autoFocus aria-label="Gramas" value={porcao.gramas} onChange={(e) => mudaGramas(e.target.value)} />
+                  <button type="button" aria-label="Mais 10 gramas" onClick={() => mudaGramas(String((num(porcao.gramas) || 0) + 10))}>+</button>
+                </span>
+              )}
             </div>
           ) : (
             <div className="row full" style={{ gap: 10, flexWrap: 'nowrap' }}>
@@ -204,13 +231,13 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
               <label style={{ width: 110 }}>Gramas<input inputMode="decimal" placeholder="opcional" value={porcao.gramas} onChange={(e) => setPorcao({ ...porcao, gramas: e.target.value })} /></label>
             </div>
           )}
-          <p className="meta full" style={{ margin: 0 }}>{porcao.gramasMedida ? `1 porção = ${porcao.medida} (${porcao.gramasMedida} g)` : 'Fora da nossa lista: veja as calorias no rótulo.'}</p>
+          <p className="meta full" style={{ margin: 0 }}>{porcao.unidade ? <><strong>{textoQuantidade(num(porcao.porcoes) || 0, porcao.unidade)} = {f1(num(porcao.gramas) || 0)} g</strong> · 1 {porcao.unidade.singular} = {f1(porcao.unidade.gramas)} g</> : 'Fora da nossa lista: veja as calorias no rótulo.'}</p>
           {previa && (
             <div className="previa-porcao full">
               <strong>{previa.kcal} kcal</strong>
-              {porcao.gramasMedida && <span><i style={{ background: CORES.proteina }} />P {f1(previa.proteina)} g</span>}
-              {porcao.gramasMedida && <span><i style={{ background: CORES.carboidrato }} />C {f1(previa.carboidrato)} g</span>}
-              {porcao.gramasMedida && <span><i style={{ background: CORES.gordura }} />G {f1(previa.gordura)} g</span>}
+              {porcao.unidade && <span><i style={{ background: CORES.proteina }} />P {f1(previa.proteina)} g</span>}
+              {porcao.unidade && <span><i style={{ background: CORES.carboidrato }} />C {f1(previa.carboidrato)} g</span>}
+              {porcao.unidade && <span><i style={{ background: CORES.gordura }} />G {f1(previa.gordura)} g</span>}
             </div>
           )}
           {porcao.id && <button type="button" className="link full" style={{ justifySelf: 'start', color: '#e5484d' }} onClick={() => tirar(porcao.id)}>Tirar da refeição</button>}

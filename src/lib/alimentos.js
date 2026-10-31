@@ -124,12 +124,12 @@ export const GRUPOS_ALIMENTOS = [
     ['Kani (surimi)', 95, 7.6, 15.0, 0.5, '3 unidades', 60],
   ]],
   ['Ovos', [
-    ['Ovo cozido', 146, 13.3, 0.6, 9.5, '1 unidade', 50],
+    ['Ovo cozido', 146, 13.3, 0.6, 9.5, '1 ovo', 50],
     ['Ovo mexido', 170, 11.5, 1.5, 13.0, '2 ovos', 110],
-    ['Ovo frito', 240, 15.6, 1.2, 18.6, '1 unidade', 50],
+    ['Ovo frito', 240, 15.6, 1.2, 18.6, '1 ovo', 50],
     ['Omelete simples', 155, 11.0, 1.0, 12.0, '2 ovos', 110],
     ['Clara de ovo cozida', 52, 10.9, 0.7, 0.2, '3 claras', 90],
-    ['Ovo de codorna cozido', 177, 13.7, 0.8, 12.7, '5 unidades', 50],
+    ['Ovo de codorna cozido', 177, 13.7, 0.8, 12.7, '5 ovinhos', 50],
   ]],
   ['Leites, iogurtes e queijos', [
     ['Leite integral', 61, 2.9, 4.3, 3.2, '1 copo', 200],
