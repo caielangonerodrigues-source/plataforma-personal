@@ -20,11 +20,14 @@ export function metaDoDia({ propria, dieta, aluno, idade }) {
   return { ...META_PADRAO, origem: 'padrao' }
 }
 
-// Meta só de calorias: proteína, carbo e gordura saem na proporção 25% / 50% / 25%.
-export function metaPorCalorias(kcal) {
+// Meta pelas calorias e a % de cada macro (padrão 25% / 50% / 25%). A soma das % precisa dar 100.
+export const PCT_PADRAO = { proteina: 25, carboidrato: 50, gordura: 25 }
+export function metaPorCalorias(kcal, pct = PCT_PADRAO) {
   const k = Math.round(Number(kcal) || 0)
   if (k < 800 || k > 6000) return null
-  return { kcal: k, proteina: Math.round((k * 0.25) / 4), carboidrato: Math.round((k * 0.5) / 4), gordura: Math.round((k * 0.25) / 9) }
+  const p = { proteina: Number(pct.proteina) || 0, carboidrato: Number(pct.carboidrato) || 0, gordura: Number(pct.gordura) || 0 }
+  if (Math.round(p.proteina + p.carboidrato + p.gordura) !== 100) return null
+  return { kcal: k, proteina: Math.round((k * p.proteina) / 400), carboidrato: Math.round((k * p.carboidrato) / 400), gordura: Math.round((k * p.gordura) / 900), pct: p }
 }
 
 // Macros de um alimento pela quantidade. Fora da tabela: só as calorias que o aluno digitou.

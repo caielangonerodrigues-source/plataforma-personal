@@ -3,7 +3,7 @@ import { supabase } from '../supabase.js'
 import ListaAlimentos from './ListaAlimentos.jsx'
 import Modal from './Modal.jsx'
 import { acharAlimento } from '../lib/nutricao.js'
-import { REFEICOES_LIVRES, copiarRefeicao, divisaoMacros, gramasDasPorcoes, lembrarRecente, macrosDoAlimento, metaDoDia, metaPorCalorias, quantidadeDosGramas, resumoDoDia, textoQuantidade, unidadeDaMedida } from '../lib/minhaDieta.js'
+import { REFEICOES_LIVRES, copiarRefeicao, divisaoMacros, gramasDasPorcoes, lembrarRecente, macrosDoAlimento, metaDoDia, PCT_PADRAO, metaPorCalorias, quantidadeDosGramas, resumoDoDia, textoQuantidade, unidadeDaMedida } from '../lib/minhaDieta.js'
 import { idadeDoAluno } from '../lib/pollock.js'
 import { f1, fmtData, num } from '../lib/formato.js'
 import { somarDias } from '../lib/comunidade.js'
@@ -53,7 +53,7 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
   const [lista, setLista] = useState(null) // refeição que está escolhendo alimento
   const [porcao, setPorcao] = useState(null) // { refeicao, alimento, unidade, porcoes, gramas, kcal, id? }
   const [exercicio, setExercicio] = useState(null) // { nome, kcal }
-  const [editandoMeta, setEditandoMeta] = useState(null)
+  const [editandoMeta, setEditandoMeta] = useState(null) // { kcal, proteina, carboidrato, gordura } com as % em texto
   const [erro, setErro] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [modo, setModo] = useState(() => ler('modo-quantidade', 'qtd')) // anotar por quantidade ou por gramas
@@ -116,9 +116,17 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
     setExercicio(null)
     rodar(() => supabase.from('minha_dieta').insert({ aluno_id: aluno.id, data, refeicao: 'exercicio', alimento: e.nome.trim().slice(0, 80), macros: { kcal } }))
   }
+  const MACROS_PCT = [['proteina', 'Proteína'], ['carboidrato', 'Carbo'], ['gordura', 'Gordura']]
+  function abrirMeta() {
+    const c = meta.pct || divisaoMacros(meta)
+    const d = c.proteina + c.gordura ? { ...c, carboidrato: 100 - c.proteina - c.gordura } : PCT_PADRAO // arredondamento: fecha em 100%
+    setErro(''); setEditandoMeta({ kcal: String(meta.kcal), ...Object.fromEntries(MACROS_PCT.map(([k]) => [k, String(d[k])])) })
+  }
+  const somaPct = editandoMeta ? MACROS_PCT.reduce((t, [k]) => t + (num(editandoMeta[k]) || 0), 0) : 0
   function salvarMeta() {
-    if (editandoMeta === '') { setPropria(null); gravar(chaveMeta, null); return setEditandoMeta(null) }
-    const m = metaPorCalorias(num(editandoMeta))
+    if (editandoMeta.kcal === '') { setPropria(null); gravar(chaveMeta, null); return setEditandoMeta(null) }
+    if (Math.round(somaPct) !== 100) return setErro(`Ainda sobram ${Math.round(100 - somaPct)}%. Distribua até dar 100%.`)
+    const m = metaPorCalorias(num(editandoMeta.kcal), Object.fromEntries(MACROS_PCT.map(([k]) => [k, num(editandoMeta[k])])))
     if (!m) return setErro('A meta precisa ficar entre 800 e 6000 kcal.')
     setPropria(m); gravar(chaveMeta, m); setEditandoMeta(null)
   }
@@ -135,7 +143,7 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
       </div>
 
       <section className="panel resumo-calorias">
-        <div className="row between"><h2 style={{ margin: 0 }}>Calorias</h2><button type="button" className="link" onClick={() => { setErro(''); setEditandoMeta(String(meta.kcal)) }}>Editar meta</button></div>
+        <div className="row between"><h2 style={{ margin: 0 }}>Calorias</h2><button type="button" className="link" onClick={abrirMeta}>Editar meta</button></div>
         <p className="meta" style={{ margin: '2px 0 0' }}>Restante = Meta − Alimentos + Exercício</p>
         <div className="calorias-linha">
           <Anel valor={comido.kcal} total={meta.kcal + queimado} cor={passou ? '#e5484d' : 'var(--accent)'}>
@@ -253,8 +261,30 @@ export default function MonteSuaDieta({ aluno, dieta, hoje }) {
 
       {editandoMeta != null && (
         <Modal titulo="Sua meta de calorias" erro={erro} onFechar={() => setEditandoMeta(null)} onSalvar={salvarMeta}>
-          <label className="full">Calorias por dia<input inputMode="numeric" autoFocus value={editandoMeta} onChange={(e) => setEditandoMeta(e.target.value)} /></label>
-          <p className="meta full" style={{ margin: 0 }}>Proteína, carboidrato e gordura se ajustam sozinhos (25% / 50% / 25%). Deixe vazio para voltar {dieta ? 'à meta do seu plano' : 'à meta calculada'}.</p>
+          <label className="full">Calorias por dia<input inputMode="numeric" autoFocus value={editandoMeta.kcal} onChange={(e) => setEditandoMeta({ ...editandoMeta, kcal: e.target.value })} /></label>
+          <div className="full meta-pct">
+            {MACROS_PCT.map(([k, nome]) => {
+              const kcal = num(editandoMeta.kcal) || 0
+              const g = Math.round((kcal * (num(editandoMeta[k]) || 0)) / (k === 'gordura' ? 900 : 400))
+              // A soma nunca passa de 100%: o + e o que for digitado param no que sobra.
+              const atual = num(editandoMeta[k]) || 0
+              const limite = 100 - (somaPct - atual)
+              const definir = (v) => setEditandoMeta({ ...editandoMeta, [k]: v === '' ? '' : String(Math.min(limite, Math.max(0, Math.round(v)))) })
+              return (
+                <div key={k} className="linha-pct">
+                  <span className="nome-pct"><i style={{ background: CORES[k] }} />{nome}</span>
+                  <span className="quantidade-passo">
+                    <button type="button" aria-label={`Menos ${nome}`} disabled={atual <= 0} onClick={() => definir(atual - 5)}>−</button>
+                    <span className="campo-pct"><input inputMode="numeric" aria-label={`% de ${nome}`} value={editandoMeta[k]} onChange={(e) => definir(e.target.value.trim() === '' ? '' : num(e.target.value.replace(/\D/g, '')) || 0)} />%</span>
+                    <button type="button" aria-label={`Mais ${nome}`} disabled={atual >= limite} onClick={() => definir(atual + 5)}>+</button>
+                  </span>
+                  <span className="meta gramas-pct">{g} g</span>
+                </div>
+              )
+            })}
+          </div>
+          <p className="meta full" style={{ margin: 0, fontWeight: 600, color: somaPct < 100 ? 'var(--warn)' : 'var(--ok)' }}>{somaPct < 100 ? `Sobram ${Math.round(100 - somaPct)}% para distribuir` : 'Total: 100% ✓'}</p>
+          <p className="meta full" style={{ margin: 0 }}>Deixe as calorias vazias para voltar {dieta ? 'à meta do seu plano' : 'à meta calculada'}.</p>
         </Modal>
       )}
     </div>
