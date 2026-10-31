@@ -61,3 +61,9 @@ export function fotosDaTurma(feed, membros, fotos, vistoEm, eu, agora = Date.now
   const novas = lista.filter((c) => new Date(c.created_at).getTime() > corte && c.aluno_id !== eu).length
   return { lista, novas, ultima: lista[0]?.created_at || null }
 }
+
+// Quem assina o post: o personal que postou (autor_id), senão o personal da turma; post de aluno é do aluno.
+export function autorDoPost(c, personal, personais, membro) {
+  if (!c.personal_id) return membro[c.aluno_id]
+  return { ...personal, ...(c.autor_id && personais?.[c.autor_id]), personal: true }
+}

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { fotosDaTurma, iniciais, nomeCurto, quandoFoi, ranking, sequencia, somarDias } from './comunidade.js'
+import { autorDoPost, fotosDaTurma, iniciais, nomeCurto, quandoFoi, ranking, sequencia, somarDias } from './comunidade.js'
 
 test('somarDias atravessa mês e ano', () => {
   assert.equal(somarDias('2026-03-01', -1), '2026-02-28')
@@ -50,4 +50,14 @@ test('fotos da turma: só com foto e de membro, conta novas sem as minhas', () =
   assert.equal(r.ultima, '2026-10-31T11:00:00Z')
   assert.equal(fotosDaTurma(feed, membros, fotos, '2026-10-28T00:00:00Z', 'eu', agora).novas, 2)
   assert.equal(fotosDaTurma([], membros, fotos, null, 'eu', agora).ultima, null)
+})
+
+test('autorDoPost: cada personal da equipe assina o próprio post', () => {
+  const dono = { nome: 'Caiê Langone', avatar: 'p:1' }
+  const personais = { caie: { nome: 'Caiê Langone', avatar: 'p:1' }, edson: { nome: 'Edson Silva', avatar: 'p:2' } }
+  const membro = { a1: { id: 'a1', nome: 'Ana' } }
+  assert.deepEqual(autorDoPost({ personal_id: 'caie', autor_id: 'edson' }, dono, personais, membro), { nome: 'Edson Silva', avatar: 'p:2', personal: true })
+  assert.deepEqual(autorDoPost({ personal_id: 'caie', autor_id: null }, dono, personais, membro), { ...dono, personal: true }) // post antigo
+  assert.deepEqual(autorDoPost({ personal_id: 'caie', autor_id: 'edson' }, dono, {}, membro), { ...dono, personal: true }) // sem o SQL novo
+  assert.equal(autorDoPost({ aluno_id: 'a1' }, dono, personais, membro).nome, 'Ana')
 })
