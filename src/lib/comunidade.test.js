@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { iniciais, nomeCurto, quandoFoi, ranking, sequencia, somarDias } from './comunidade.js'
+import { fotosDaTurma, iniciais, nomeCurto, quandoFoi, ranking, sequencia, somarDias } from './comunidade.js'
 
 test('somarDias atravessa mês e ano', () => {
   assert.equal(somarDias('2026-03-01', -1), '2026-02-28')
@@ -31,4 +31,23 @@ test('nomes e tempo relativo', () => {
   assert.equal(quandoFoi('2026-10-28T14:50:00Z', agora), 'há 10 min')
   assert.equal(quandoFoi('2026-10-28T10:00:00Z', agora), 'há 5 h')
   assert.equal(quandoFoi('2026-10-27T10:00:00Z', agora), 'ontem')
+})
+
+test('fotos da turma: só com foto e de membro, conta novas sem as minhas', () => {
+  const agora = new Date('2026-10-31T12:00:00Z').getTime()
+  const feed = [
+    { id: 1, aluno_id: 'a', foto: 'f1', created_at: '2026-10-31T11:00:00Z' },
+    { id: 2, aluno_id: 'eu', foto: 'f2', created_at: '2026-10-31T10:00:00Z' },
+    { id: 3, aluno_id: 'a', foto: null, created_at: '2026-10-31T09:00:00Z' },
+    { id: 4, aluno_id: 'fora', foto: 'f4', created_at: '2026-10-31T08:00:00Z' }, // saiu da comunidade
+    { id: 5, personal_id: 'p', foto: 'f5', created_at: '2026-10-29T08:00:00Z' },
+  ]
+  const fotos = { f1: 'u1', f2: 'u2', f4: 'u4', f5: 'u5' }
+  const membros = [{ id: 'a' }, { id: 'eu' }]
+  const r = fotosDaTurma(feed, membros, fotos, null, 'eu', agora)
+  assert.deepEqual(r.lista.map((c) => c.id), [1, 2, 5])
+  assert.equal(r.novas, 1) // a de 2 dias atrás e a minha não contam
+  assert.equal(r.ultima, '2026-10-31T11:00:00Z')
+  assert.equal(fotosDaTurma(feed, membros, fotos, '2026-10-28T00:00:00Z', 'eu', agora).novas, 2)
+  assert.equal(fotosDaTurma([], membros, fotos, null, 'eu', agora).ultima, null)
 })
