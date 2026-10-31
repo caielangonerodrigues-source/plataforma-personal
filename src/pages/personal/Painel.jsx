@@ -74,7 +74,7 @@ export default function Painel() {
   }, [hoje])
 
   if (erro) return <p className="erro">Não foi possível carregar: {erro}</p>
-  if (!alunos) return <p className="carregando">Carregando…</p>
+  if (!alunos) return <p className={erro ? 'erro' : 'carregando'}>{erro ? `Não foi possível carregar o painel: ${erro}` : 'Carregando…'}</p>
 
   const ultima = (a) => a.avaliacoes.slice().sort(porData).at(-1)
   const ativos = alunos.filter((a) => a.status === 'ativo').length
