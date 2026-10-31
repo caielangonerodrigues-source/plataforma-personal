@@ -789,7 +789,7 @@ label.lembrar input { width: 18px; height: 18px; accent-color: var(--accent); ma
 .corpo-silhueta, .corpo-musculo { position: absolute; inset: 0; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat }
 .corpo-silhueta { background: color-mix(in srgb, var(--ink) 5%, var(--surface)) }
 .corpo-musculo { background: var(--accent) }
-.corpo-musculo.base { background: color-mix(in srgb, var(--ink) 17%, var(--surface)) }
+.corpo-musculo.base { background: color-mix(in srgb, var(--ink) 11%, var(--surface)) }
 .corpo-musculo.ativo { background: #c83a00 }
 @media (prefers-color-scheme: dark) { .corpo-musculo.ativo { background: #ff8a4f } }
 .pill.metodo { background: var(--accent-soft); color: var(--accent); border: 0; cursor: pointer; font-family: inherit; margin-top: 3px }
@@ -880,6 +880,7 @@ body { background: var(--surface) }
 .musculos-semana .atalho-rotulo { color: var(--accent); font-weight: 700; margin-top: 0 }
 .musculos-semana > p { margin: 0 }
 .musculos-semana .corpo { margin: 14px 0 6px }
+.musculos-semana .corpo-vistas { gap: 0 }
 .musculos-lista { list-style: none; margin: 6px 0 4px; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 9px; text-align: left }
 .musculos-lista li { display: grid; grid-template-columns: 140px 1fr; align-items: center; gap: 12px; font-size: 14px }
 .musculos-lista i { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden }
