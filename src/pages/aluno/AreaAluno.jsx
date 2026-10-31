@@ -422,7 +422,7 @@ export default function AreaAluno({ aluno }) {
           ...principais.slice(0, 3).map(itemBarra),
           { chave: 'checkin', rotulo: 'Check-in', icone: 'gravar', centro: true, onClick: () => setCheckinAberto(true) },
           itemBarra(quarta),
-          { ...itemBarra('voce'), ativo: aba === 'voce' || (!principais.includes(aba) && aba !== 'montar' && aba !== 'montardieta'), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} /></span> },
+          { ...itemBarra('voce'), ativo: aba === 'voce' || (!principais.includes(aba) && aba !== 'montar' && aba !== 'montardieta'), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} ampliar={false} /></span> },
         ]}
       />
 
