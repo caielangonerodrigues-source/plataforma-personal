@@ -328,7 +328,7 @@ function MusculosDaSemana({ registros, treinos, desde }) {
       <span className="atalho-rotulo">Desde segunda</span>
       <h2>Músculos da semana.</h2>
       <p className="meta">{treinados.length ? `${treinados.length} de ${total} grupos treinados` : 'Marque os exercícios no treino e o bonequinho vai acendendo.'}</p>
-      <Corpo intensidade={intensidade} tamanho={104} />
+      <Corpo intensidade={intensidade} tamanho={126} />
       {treinados.length > 0 && (
         <ul className="musculos-lista">
           {treinados.slice(0, 6).map(([m, n]) => (
