@@ -339,7 +339,7 @@ export default function AreaAluno({ aluno }) {
               )}
               {proximaFase && <div className="meta" style={{ marginBottom: 10 }}>Nova fase do treino ({proximaFase.nome}) começa em {fmtCurta(proximaFase.inicio)}.</div>}
               <MusculosDoTreino nomes={ficha.exercicios.map((e) => trocaDe(e.id) || e.nome)} />
-              <div className="meta" style={{ marginBottom: 6 }}>{ficha.foco} · {qtdFeitos} de {ficha.exercicios.length} feitos</div>
+              <div className="meta" style={{ marginBottom: 6 }}>{[ficha.foco, `${qtdFeitos} de ${ficha.exercicios.length} feitos`].filter(Boolean).join(' · ')}</div>
               <div className="bar"><i style={{ width: `${pct}%` }} /></div>
               {erro && <p className="erro" style={{ marginTop: 10 }}>{erro}</p>}
               <div>
@@ -361,7 +361,7 @@ export default function AreaAluno({ aluno }) {
                             {troca ? <>{troca} <span className="pill pendente" style={{ marginLeft: 4 }}>troca</span></> : e.nome}
                           </label>
                           {troca && <div className="meta" style={{ fontSize: 12 }}>no lugar de {e.nome}</div>}
-                          <div className="meta">{e.series} × {e.reps} · descanso {e.descanso}{e.obs ? ` · ${e.obs}` : ''}</div>
+                          <div className="meta">{[e.series && e.reps ? `${e.series} × ${e.reps}` : e.series ? `${e.series} séries` : e.reps, e.descanso && `descanso ${e.descanso}`, e.obs].filter(Boolean).join(' · ')}</div>
                           {foco && <div className="foco-musculo">Mais ativo: {foco}</div>}
                           {metodo && (
                             <button type="button" className="pill metodo" aria-expanded={metodoAberto === e.id} onClick={() => setMetodoAberto(metodoAberto === e.id ? null : e.id)}>

@@ -1,38 +1,45 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { configurado, supabase } from './supabase.js'
 import Entrar from './pages/Entrar.jsx'
-import NovaSenha from './pages/NovaSenha.jsx'
-import SemAcesso from './pages/SemAcesso.jsx'
-import LayoutPersonal from './pages/personal/LayoutPersonal.jsx'
-import Painel from './pages/personal/Painel.jsx'
-import Alunos from './pages/personal/Alunos.jsx'
-import AlunoDetalhe from './pages/personal/AlunoDetalhe.jsx'
-import Mensagens from './pages/personal/Mensagens.jsx'
-import ComunidadePersonal from './pages/personal/ComunidadePersonal.jsx'
-import Financeiro from './pages/personal/Financeiro.jsx'
-import Configuracoes from './pages/personal/Configuracoes.jsx'
-import AreaAluno from './pages/aluno/AreaAluno.jsx'
-import Spinning from './pages/personal/Spinning.jsx'
-import AulasSpinning from './pages/spinning/AulasSpinning.jsx'
-import AulaSpinning from './pages/spinning/AulaSpinning.jsx'
-import ReservaSpinning from './pages/spinning/ReservaSpinning.jsx'
-import PacotesSpinning from './pages/spinning/PacotesSpinning.jsx'
-import PacoteSpinning from './pages/spinning/PacoteSpinning.jsx'
-import PaginaVendas from './pages/PaginaVendas.jsx'
-import Privacidade from './pages/Privacidade.jsx'
-import Experimental from './pages/Experimental.jsx'
-import Modelos from './pages/personal/Modelos.jsx'
-import Vendas from './pages/personal/Vendas.jsx'
-import Exercicios from './pages/personal/Exercicios.jsx'
-import Assistente from './pages/personal/Assistente.jsx'
-import Agenda from './pages/personal/Agenda.jsx'
-import Academia from './pages/personal/Academia.jsx'
+const NovaSenha = lazy(() => import('./pages/NovaSenha.jsx'))
+const SemAcesso = lazy(() => import('./pages/SemAcesso.jsx'))
+const LayoutPersonal = lazy(() => import('./pages/personal/LayoutPersonal.jsx'))
+const Painel = lazy(() => import('./pages/personal/Painel.jsx'))
+const Alunos = lazy(() => import('./pages/personal/Alunos.jsx'))
+const AlunoDetalhe = lazy(() => import('./pages/personal/AlunoDetalhe.jsx'))
+const Mensagens = lazy(() => import('./pages/personal/Mensagens.jsx'))
+const ComunidadePersonal = lazy(() => import('./pages/personal/ComunidadePersonal.jsx'))
+const Financeiro = lazy(() => import('./pages/personal/Financeiro.jsx'))
+const Configuracoes = lazy(() => import('./pages/personal/Configuracoes.jsx'))
+const AreaAluno = lazy(() => import('./pages/aluno/AreaAluno.jsx'))
+const Spinning = lazy(() => import('./pages/personal/Spinning.jsx'))
+const AulasSpinning = lazy(() => import('./pages/spinning/AulasSpinning.jsx'))
+const AulaSpinning = lazy(() => import('./pages/spinning/AulaSpinning.jsx'))
+const ReservaSpinning = lazy(() => import('./pages/spinning/ReservaSpinning.jsx'))
+const PacotesSpinning = lazy(() => import('./pages/spinning/PacotesSpinning.jsx'))
+const PacoteSpinning = lazy(() => import('./pages/spinning/PacoteSpinning.jsx'))
+const PaginaVendas = lazy(() => import('./pages/PaginaVendas.jsx'))
+const Privacidade = lazy(() => import('./pages/Privacidade.jsx'))
+const Experimental = lazy(() => import('./pages/Experimental.jsx'))
+const Modelos = lazy(() => import('./pages/personal/Modelos.jsx'))
+const Vendas = lazy(() => import('./pages/personal/Vendas.jsx'))
+const Exercicios = lazy(() => import('./pages/personal/Exercicios.jsx'))
+const Assistente = lazy(() => import('./pages/personal/Assistente.jsx'))
+const Agenda = lazy(() => import('./pages/personal/Agenda.jsx'))
+const Academia = lazy(() => import('./pages/personal/Academia.jsx'))
 
 // QR code da recepção: guarda o código para fazer o check-in depois de entrar na conta.
 try { const c = new URLSearchParams(window.location.search).get('checkin'); if (c) sessionStorage.setItem('checkin-qr', c) } catch { /* sem armazenamento */ }
 
+// Cada área baixa só o código dela: o aluno no celular não carrega as telas do personal (e vice-versa).
+const carregando = <div className="centro carregando">Carregando…</div>
+
 export default function App() {
+  return <Suspense fallback={carregando}><Rotas /></Suspense>
+}
+
+function Rotas() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [sessao, setSessao] = useState(undefined) // undefined = ainda carregando
@@ -90,7 +97,7 @@ export default function App() {
       </Routes>
     )
   }
-  if (sessao === undefined || (sessao && !perfil)) return <div className="centro carregando">Carregando…</div>
+  if (sessao === undefined || (sessao && !perfil)) return carregando
 
   if (!sessao) {
     return (

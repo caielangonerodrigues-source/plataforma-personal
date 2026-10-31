@@ -1170,3 +1170,15 @@ details.dia-diario summary { cursor: pointer; list-style: none }
 .foto-ampliada strong { font-size: 18px; font-weight: 700; text-align: center }
 .foto-ampliada-fechar { position: absolute; top: max(16px, env(safe-area-inset-top, 0px)); right: 16px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(255, 255, 255, .15); color: #fff; font-size: 18px; display: grid; place-items: center; padding: 0 }
 @keyframes foto-ampliada-entra { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: none } }
+
+/* Entrar: botão do Google e o separador "ou com e-mail" */
+.botao-social { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 44px; background: var(--surface); border: 1px solid var(--line); color: var(--ink) }
+.botao-social:hover { border-color: var(--muted) }
+.botao-social svg { flex: none }
+.ou { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; margin: 2px 0 }
+.ou::before, .ou::after { content: ''; flex: 1; height: 1px; background: var(--line) }
+
+/* Barra do aluno: cabe "Novidades" inteiro em celular de 390px */
+@media (max-width: 420px) {
+  .barra-app button { font-size: 10.5px; letter-spacing: -.01em; padding-inline: 0 }
+}

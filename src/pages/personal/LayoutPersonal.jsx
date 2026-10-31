@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../supabase.js'
 import { primeiroNome } from '../../lib/formato.js'
@@ -46,7 +46,7 @@ export default function LayoutPersonal({ nome }) {
         <div className="spacer" />
         <button className="small so-computador" onClick={() => supabase.auth.signOut()}>Sair</button>
       </nav>
-      <main><Outlet /></main>
+      <main><Suspense fallback={<p className="carregando">Carregando…</p>}><Outlet /></Suspense></main>
       <PedirNotificacoes texto="Mensagens dos alunos, ficha para trocar, reações e comentários nas suas fotos." />
       <BarraApp
         itens={PRINCIPAIS.map((to) => { const [, rotulo, icone] = todos.find(([t]) => t === to); return { chave: to, rotulo, icone, ativo: ativo(to), badge: badge(to), onClick: () => ir(to) } })}
