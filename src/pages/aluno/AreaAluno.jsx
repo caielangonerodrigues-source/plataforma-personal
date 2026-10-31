@@ -14,6 +14,7 @@ import EditarAvatar from '../../components/EditarAvatar.jsx'
 import InicioAluno from '../../components/InicioAluno.jsx'
 import EditarNome from '../../components/EditarNome.jsx'
 import EditarPesoAltura from '../../components/EditarPesoAltura.jsx'
+import EditarObjetivo from '../../components/EditarObjetivo.jsx'
 import FotosEvolucao from '../../components/FotosEvolucao.jsx'
 import Mensalidade from '../../components/Mensalidade.jsx'
 import Anamnese from '../../components/Anamnese.jsx'
@@ -306,6 +307,7 @@ export default function AreaAluno({ aluno }) {
         <div className="stack">
           <EditarNome aluno={aluno} onMudou={(novo) => { aluno.nome = novo; setNomeSalvo(novo); comunidade.carregar() }} />
           <EditarPesoAltura aluno={aluno} onMudou={(novo) => { Object.assign(aluno, novo); setPesoSalvo(novo) }} />
+          <EditarObjetivo aluno={aluno} onMudou={(novo) => { aluno.objetivo = novo; setPesoSalvo({ objetivo: novo }) }} />
           <EditarAvatar aluno={aluno} onMudou={(novo) => { setMeuAvatar(novo); comunidade.carregar() }} />
           <AtivarNotificacoes />
           <Mensalidade aluno={aluno} />
