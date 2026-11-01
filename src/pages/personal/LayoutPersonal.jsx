@@ -8,12 +8,12 @@ import PedirNotificacoes from '../../components/PedirNotificacoes.jsx'
 
 // Menu em grupos (computador) e barra de app embaixo com "Mais" (celular).
 const GRUPOS = [
-  [null, [['/painel', 'Painel', 'painel'], ['/mensagens', 'Mensagens', 'mensagens'], ['/agenda', 'Agenda', 'agenda']]],
+  [null, [['/painel', 'Painel', 'painel'], ['/ranking', 'Ranking', 'ranking'], ['/mensagens', 'Mensagens', 'mensagens'], ['/agenda', 'Agenda', 'agenda']]],
   ['Alunos', [['/alunos', 'Alunos', 'alunos'], ['/modelos', 'Modelos de treino', 'modelos'], ['/exercicios', 'Exercícios', 'exercicios'], ['/assistente', 'Assistente IA', 'assistente']]],
   ['Academia', [['/academia', 'Academia', 'academia'], ['/comunidade', 'Comunidade', 'comunidade'], ['/aulas', 'Spinning', 'spinning']]],
   ['Negócio', [['/vendas', 'Vendas', 'vendas'], ['/financeiro', 'Financeiro', 'financeiro'], ['/configuracoes', 'Configurações', 'configuracoes']]],
 ]
-const PRINCIPAIS = ['/painel', '/alunos', '/mensagens', '/agenda']
+const PRINCIPAIS = ['/painel', '/alunos', '/ranking', '/mensagens', '/agenda']
 
 export default function LayoutPersonal({ nome }) {
   const cls = ({ isActive }) => `navbtn${isActive ? ' active' : ''}`

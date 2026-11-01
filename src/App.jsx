@@ -10,6 +10,7 @@ const Alunos = lazy(() => import('./pages/personal/Alunos.jsx'))
 const AlunoDetalhe = lazy(() => import('./pages/personal/AlunoDetalhe.jsx'))
 const Mensagens = lazy(() => import('./pages/personal/Mensagens.jsx'))
 const ComunidadePersonal = lazy(() => import('./pages/personal/ComunidadePersonal.jsx'))
+const RankingPersonal = lazy(() => import('./pages/personal/RankingPersonal.jsx'))
 const Financeiro = lazy(() => import('./pages/personal/Financeiro.jsx'))
 const Configuracoes = lazy(() => import('./pages/personal/Configuracoes.jsx'))
 const AreaAluno = lazy(() => import('./pages/aluno/AreaAluno.jsx'))
@@ -118,6 +119,7 @@ function Rotas() {
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/alunos/:id" element={<AlunoDetalhe />} />
           <Route path="/comunidade" element={<ComunidadePersonal />} />
+          <Route path="/ranking" element={<RankingPersonal />} />
           <Route path="/mensagens" element={<Mensagens />} />
           <Route path="/academia" element={<Academia />} />
           <Route path="/modelos" element={<Modelos />} />

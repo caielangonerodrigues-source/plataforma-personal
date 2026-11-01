@@ -6,6 +6,7 @@ const ICONES = {
   treino: 'M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12',
   montar: 'M12 6.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 9.5h14M12 9.5v5.5M8.5 21l3.5-6 3.5 6',
   aulas: 'M4 6h16v14H4zM4 10h16M9 3v4M15 3v4',
+  ranking: 'M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4',
   comunidade: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 3-5 6-5s6 2 6 5M16 5.5a3 3 0 0 1 0 5.5M18 15c2 .6 3 2.3 3 5',
   novidades: 'M4 10v4h3l6 4V6l-6 4zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12',
   mais: 'M5 12h.01M12 12h.01M19 12h.01',
@@ -73,7 +74,7 @@ export default function BarraApp({ itens, mais = [] }) {
           </div>
         </div>
       )}
-      <nav className="barra-app" aria-label="Navegação">
+      <nav className={`barra-app${itens.length + (mais.length > 0 ? 1 : 0) >= 7 ? ' sete' : ''}`} aria-label="Navegação">
         {itens.map((i) => (
           <button key={i.chave} className={`${i.ativo ? 'ativo' : ''}${i.centro ? ' centro' : ''}`} aria-current={i.ativo ? 'page' : undefined} onClick={i.onClick}>
             <span className="barra-icone">{i.figura || <Icone nome={i.icone} tamanho={i.centro ? 30 : 22} />}{i.badge > 0 && <i className="barra-badge">{i.badge}</i>}</span>
