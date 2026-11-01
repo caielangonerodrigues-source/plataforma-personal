@@ -32,6 +32,8 @@ const Academia = lazy(() => import('./pages/personal/Academia.jsx'))
 
 // QR code da recepção: guarda o código para fazer o check-in depois de entrar na conta.
 try { const c = new URLSearchParams(window.location.search).get('checkin'); if (c) sessionStorage.setItem('checkin-qr', c) } catch { /* sem armazenamento */ }
+// Convite de desafio entre amigos (?desafio=CODIGO): guarda para depois do login.
+try { const c = new URLSearchParams(window.location.search).get('desafio'); if (c) sessionStorage.setItem('convite-desafio', c) } catch { /* sem armazenamento */ }
 
 // Cada área baixa só o código dela: o aluno no celular não carrega as telas do personal (e vice-versa).
 const carregando = <div className="centro carregando">Carregando…</div>

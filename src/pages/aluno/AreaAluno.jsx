@@ -126,6 +126,17 @@ export default function AreaAluno({ aluno }) {
     return () => clearInterval(t)
   }, [contarNaoLidas])
 
+  // Abriu pelo link de convite de um desafio entre amigos: abre o Ranking › Desafios com o convite.
+  const [convite, setConvite] = useState(null)
+  useEffect(() => {
+    let c = new URLSearchParams(window.location.search).get('desafio')
+    try { c ||= sessionStorage.getItem('convite-desafio'); sessionStorage.removeItem('convite-desafio') } catch { /* sem armazenamento */ }
+    if (!c || !/^[A-Za-z0-9]{4,20}$/.test(c)) return
+    if (new URLSearchParams(window.location.search).has('desafio')) window.history.replaceState(null, '', window.location.pathname)
+    setConvite(c)
+    setAba('ranking')
+  }, [])
+
   // Abriu pelo QR code da recepção (o código fica guardado se precisou entrar na conta antes).
   useEffect(() => {
     let codigo = codigoDoLink(window.location.search)
@@ -281,7 +292,7 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'aulas' && !online && (academia.aulas ? <GradeAulas aulas={academia.aulas} /> : <p className="carregando">Carregando…</p>)}
       {aba === 'novidades' && <NovidadesAcademia academia={academia} />}
-      {aba === 'ranking' && <RankingMes comunidade={comunidade} meuAlunoId={aluno.id} online={online} onCheckin={() => setCheckinAberto(true)} />}
+      {aba === 'ranking' && <RankingMes comunidade={comunidade} meuAlunoId={aluno.id} online={online} onCheckin={() => setCheckinAberto(true)} convite={convite} onConviteUsado={() => setConvite(null)} />}
       {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} whatsapp={whatsapp} />}
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
