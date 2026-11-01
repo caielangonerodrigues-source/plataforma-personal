@@ -19,6 +19,24 @@ function inicioDe(p, hoje) {
   if (p === 'ano') return `${hoje.slice(0, 4)}-01-01`
   return inicioDoMes(hoje)
 }
+// Dias com post de cada personal (autor do post; sem o SQL do autor, o personal da turma).
+async function postsDosPersonaisDesde(desde) {
+  let r = await supabase.from('checkins').select('personal_id, autor_id, data').not('personal_id', 'is', null).gte('data', desde)
+  if (r.error) r = await supabase.from('checkins').select('personal_id, data').not('personal_id', 'is', null).gte('data', desde)
+  return r.data || []
+}
+function cafeComLeite(posts, dados) {
+  const dias = new Map()
+  for (const p of posts) {
+    const quem = p.autor_id || p.personal_id
+    if (!dias.has(quem)) dias.set(quem, new Set())
+    dias.get(quem).add(p.data)
+  }
+  return [...dias].map(([id, d]) => {
+    const pessoa = dados.personais?.[id] || dados.personal || { nome: 'Personal' }
+    return { id: `p-${id}`, nome: pessoa.nome, avatar: pessoa.avatar, valor: d.size, rotulo: plural(d.size), cafe: true }
+  })
+}
 const plural = (n) => `${n} ${n === 1 ? 'dia' : 'dias'}`
 
 // Tela própria do ranking (semana, mês ou ano) (botão "Ranking" na barra de baixo): pódio com os 3 primeiros,
@@ -40,6 +58,12 @@ export default function RankingMes({ comunidade, meuAlunoId, online, onCheckin, 
       .then((lista) => setCheckins((c) => ({ ...c, [periodo]: lista })))
       .catch(() => setCheckins((c) => ({ ...c, [periodo]: [] })))
   }, [periodo, checkins])
+  // Posts dos personais no período: entram no ranking como "café com leite" (aparecem, mas não disputam).
+  const [postsPersonais, setPostsPersonais] = useState({})
+  useEffect(() => {
+    if (postsPersonais[periodo]) return
+    postsDosPersonaisDesde(inicioDe(periodo, hojeISO())).then((lista) => setPostsPersonais((c) => ({ ...c, [periodo]: lista })))
+  }, [periodo, postsPersonais])
   const marcarSemAmigos = useCallback(() => { setSemAmigos(true); setSecao((s) => (s === 'amigos' ? 'ranking' : s)) }, [])
   if (erro) return <p className="erro">{erro}</p>
   if (!dados) return <p className="carregando">Carregando…</p>
@@ -56,7 +80,10 @@ export default function RankingMes({ comunidade, meuAlunoId, online, onCheckin, 
   const minhaPos = tabela.findIndex((r) => r.id === meuAlunoId)
   const acima = minhaPos > 0 ? tabela[minhaPos - 1] : null
   const faltam = acima ? acima.dias - tabela[minhaPos].dias + 1 : 0
-  const linhas = tabela.map((r) => ({ ...r, valor: r.dias, rotulo: plural(r.dias) }))
+  const alunos = tabela.map((r) => ({ ...r, valor: r.dias, rotulo: plural(r.dias) }))
+  const cafe = atual === 'equipe' ? [] : cafeComLeite(postsPersonais[periodo] || [], dados)
+  // Personais entram na lista na altura dos dias deles, sem posição e fora do pódio.
+  const linhas = [...alunos, ...cafe].sort((a, b) => b.valor - a.valor || (a.cafe ? 1 : 0) - (b.cafe ? 1 : 0))
   const temGincana = podeCompartilhar || (gin.gincanas || []).length > 0 // o personal sempre vê (para criar)
   const secoes = [['ranking', 'Ranking'], ...(temGincana ? [['gincana', 'Gincana']] : []), ...(meuAlunoId && !semAmigos ? [['amigos', 'Desafios']] : [])]
   const compartilhar = (t) => compartilharTexto(t, titulo(periodo), setCopiado)
@@ -91,7 +118,7 @@ export default function RankingMes({ comunidade, meuAlunoId, online, onCheckin, 
       </div>
 
       {!doPeriodo && <p className="carregando">Carregando…</p>}
-      <Podio linhas={linhas} fotos={dados.fotos} euId={meuAlunoId} onAbrir={abrir} />
+      <Podio linhas={alunos} fotos={dados.fotos} euId={meuAlunoId} onAbrir={abrir} />
 
       {minhaPos >= 0 && (
         <div className="ranking-eu">
