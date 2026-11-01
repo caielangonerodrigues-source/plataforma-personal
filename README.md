@@ -265,6 +265,12 @@ Se o Mercado Pago falhar, a tela volta sozinha para o Pix da sua chave.
 1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-objetivo-aluno.sql` e toque em **Run** (pode rodar mais de uma vez).
 2. Na aba **Conta**, o aluno toca em **Editar** em **Seu objetivo**, escolhe uma opção ou escreve do jeito dele e salva. O objetivo novo aparece para você e já entra no cálculo da dieta sugerida.
 
+### 27. Gincana e desafio entre amigos
+
+1. No Supabase, abra **SQL Editor › New query**, cole o arquivo `supabase/migracao-gincana.sql` e toque em **Run** (pode rodar mais de uma vez).
+2. **Gincana:** em **Ranking › Gincana**, toque em **Nova gincana**, escolha o prazo, se vale por aluno ou por equipe e quantos pontos vale cada dia de treino. Depois crie as provas (ex.: "Trazer um amigo" vale 50) e toque em **Marcar quem cumpriu**. O placar aparece para os alunos na mesma aba.
+3. **Desafio entre amigos:** o aluno abre **Ranking › Desafios**, toca em **Criar desafio** e depois em **Convidar amigos**. Quem abre o link (ou digita o código) e tem login de aluno entra no desafio e disputa quem faz mais dias de check-in no prazo.
+
 ## Desenvolvimento
 
 ```bash

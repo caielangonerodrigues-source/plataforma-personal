@@ -1217,3 +1217,22 @@ details.dia-diario summary { cursor: pointer; list-style: none }
 .ranking-periodos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 999px; background: var(--pill-ativa, #efeff2); margin-bottom: 8px; max-width: 360px }
 .ranking-periodos button { border: 0; border-radius: 999px; background: none; padding: 8px 0; font-size: 14px; font-weight: 600; color: var(--muted) }
 .ranking-periodos button[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 1px 4px rgb(20 20 30 / .12) }
+
+/* Ranking: abas Ranking / Gincana / Desafios */
+.ranking-secoes { display: flex; gap: 22px; border-bottom: 1px solid var(--line) }
+.ranking-secoes button { background: none; border: 0; border-radius: 0; padding: 8px 0 10px; font-size: 16px; font-weight: 700; color: var(--muted); border-bottom: 2.5px solid transparent; margin-bottom: -1px }
+.ranking-secoes button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent) }
+.gincana-topo { display: flex; flex-direction: column; gap: 4px }
+.gincana-topo h3 { margin: 0; font-size: 22px }
+.gincana-topo .meta { margin: 0 }
+.gincana-vazia { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 18px 0; color: var(--accent) }
+.gincana-vazia h3 { margin: 0; color: var(--ink) }
+.gincana-vazia .meta { margin: 0 0 6px }
+.gincana-prova { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line) }
+.prova-pontos { flex: none; min-width: 48px; height: 32px; padding: 0 8px; border-radius: 16px; display: grid; place-items: center; font-weight: 800; font-size: 14px; color: var(--accent); border: 1.5px solid var(--accent) }
+.prova-pontos.feita { background: var(--accent); color: #fff }
+.marcar-lista { display: flex; flex-direction: column; max-height: 50vh; overflow-y: auto }
+.marcar-item { display: flex !important; flex-direction: row !important; align-items: center; gap: 10px; padding: 10px 2px; border-bottom: 1px solid var(--line); font-weight: 500; text-transform: none !important; letter-spacing: 0 !important; font-size: 15px !important; color: var(--ink) !important }
+.marcar-item input { width: 18px; height: 18px; flex: none }
+.convite-desafio { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 16px; background: var(--accent-soft); border: 1px solid rgb(252 76 2 / .25) }
+.entrar-codigo { flex-wrap: nowrap; padding-top: 12px; border-top: 1px solid var(--line) }
