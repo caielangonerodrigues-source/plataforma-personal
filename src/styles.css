@@ -1214,3 +1214,6 @@ details.dia-diario summary { cursor: pointer; list-style: none }
 .ranking-eu { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line) }
 .ranking-eu .pos { font-family: var(--display); font-size: 28px; font-weight: 800; letter-spacing: -.03em; color: var(--accent); min-width: 44px; text-align: center }
 .ranking-eu .meta { font-size: 13.5px }
+.ranking-periodos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 999px; background: var(--pill-ativa, #efeff2); margin-bottom: 8px; max-width: 360px }
+.ranking-periodos button { border: 0; border-radius: 999px; background: none; padding: 8px 0; font-size: 14px; font-weight: 600; color: var(--muted) }
+.ranking-periodos button[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 1px 4px rgb(20 20 30 / .12) }
