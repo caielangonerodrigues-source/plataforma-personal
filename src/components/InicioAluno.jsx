@@ -66,9 +66,8 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
   const faltam = passos.filter((p) => !p.feito)
 
   const membros = doGrupo(dados?.membros || [], online ? 'online' : 'academia') // ranking só com quem treina do mesmo jeito
-  const [rankingAberto, setRankingAberto] = useState(false)
   const rankingTodo = dados ? ranking(dados.mes, membros) : []
-  const tabela = rankingAberto ? rankingTodo : rankingTodo.slice(0, 3)
+  const tabela = rankingTodo.slice(0, 3)
   const desafio = (dados?.desafios || []).find((d) => d.inicio <= hoje && d.fim >= hoje)
   const aula = !online && academia?.aulas && proximaAula(academia.aulas)
   const aviso = academia && ordenarAvisos(academia.avisos)[0]
@@ -222,8 +221,8 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
         {!online && academia?.whatsapp && <BotaoWhatsApp link={academia.whatsapp} />}
         {aluno.comunidade && dados && (
           <div className="panel stack" style={{ gap: 10 }}>
-            <TituloSecao icone={ic(ICONES.trofeu)} titulo="Comunidade" acao="Ver feed" onClick={() => irPara('comunidade')} />
-            <div className="meta">Ranking do mês · {online ? 'consultoria online' : 'academia'}</div>
+            <TituloSecao icone={ic(ICONES.trofeu)} titulo="Ranking do mês" acao="Ver ranking" onClick={() => irPara('ranking')} />
+            <div className="meta">Comunidade · {online ? 'consultoria online' : 'academia'}</div>
             {tabela.map((r, i) => (
               <div key={r.id} className="row" style={{ gap: 10, flexWrap: 'nowrap' }}>
                 <span className="meta" style={{ width: 14 }}>{i + 1}</span>
@@ -233,8 +232,8 @@ export default function InicioAluno({ aluno, avatar, hoje, dias, registros, aval
               </div>
             ))}
             {rankingTodo.length > 3 && (
-              <button type="button" className="link-sublinhado" style={{ alignSelf: 'flex-start' }} onClick={() => setRankingAberto((v) => !v)}>
-                {rankingAberto ? 'Ver menos' : `Ver mais (${rankingTodo.length - 3})`}
+              <button type="button" className="link-sublinhado" style={{ alignSelf: 'flex-start' }} onClick={() => irPara('ranking')}>
+                Ver ranking completo ({rankingTodo.length})
               </button>
             )}
           </div>

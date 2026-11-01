@@ -6,6 +6,7 @@ import Grafico from '../../components/Grafico.jsx'
 import HistoricoAvaliacoes from '../../components/HistoricoAvaliacoes.jsx'
 import { idadeDoAluno } from '../../lib/pollock.js'
 import Comunidade from '../../components/Comunidade.jsx'
+import RankingMes from '../../components/RankingMes.jsx'
 import FormCheckin from '../../components/FormCheckin.jsx'
 import InstalarApp from '../../components/InstalarApp.jsx'
 import Progressao from '../../components/Progressao.jsx'
@@ -226,13 +227,14 @@ export default function AreaAluno({ aluno }) {
   const blocos = ficha ? blocosDeMetodo(ficha.exercicios) : [] // bi-set, tri-set...: exercícios feitos em sequência
   const ultima = avaliacoes.at(-1)
   const fezHoje = diasCheckin.includes(hoje)
-  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ['montar', 'Monte seu treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['montardieta', 'Monte sua dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
+  const abas = [['inicio', 'Início'], ['treino', 'Treino'], ['montar', 'Monte seu treino'], ...(online ? [['consultoria', 'Consultoria'], ['videos', 'Vídeos']] : [['aulas', 'Aulas']]), ['mensagens', 'Mensagens'], ['novidades', 'Novidades'], ...(aluno.comunidade ? [['ranking', 'Ranking'], ['comunidade', 'Comunidade']] : []), ['dieta', 'Dieta'], ['montardieta', 'Monte sua dieta'], ['voce', 'Você'], ...(online ? [] : [['spinning', 'Spinning']]), ['conta', 'Conta']]
   const irPara = (k) => { setAba(k); window.scrollTo({ top: 0, behavior: 'smooth' }) }
-  // No celular: barra flutuante (Início, Treino, Check-in no meio, Turma/Consultoria e Você); o resto fica em Você › Mais.
+  // No celular: barra flutuante (Início, Treino, Dieta, Check-in no meio, Ranking, Turma/Relato e Você); o resto fica em Você › Mais.
   const quarta = online ? 'consultoria' : aluno.comunidade ? 'comunidade' : 'novidades'
-  const principais = ['inicio', 'treino', 'dieta', quarta, 'voce']
+  const comRanking = !!aluno.comunidade
+  const principais = ['inicio', 'treino', 'dieta', ...(comRanking ? ['ranking'] : []), quarta, 'voce']
   const rotuloBarra = { comunidade: 'Turma', consultoria: 'Relato' }
-  const textos = { montar: 'Escolha exercícios e veja os músculos no bonequinho', aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, ranking e chat da turma', dieta: 'Seu plano alimentar', montardieta: 'Anote o que comeu e veja calorias e macros', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
+  const textos = { montar: 'Escolha exercícios e veja os músculos no bonequinho', aulas: 'Grade de aulas da academia', mensagens: 'Fale direto com seu personal', novidades: 'Avisos e eventos da academia', comunidade: 'Feed, fotos e chat da turma', ranking: 'Quem mais treinou no mês', dieta: 'Seu plano alimentar', montardieta: 'Anote o que comeu e veja calorias e macros', spinning: 'Reserve sua bike', conta: 'Foto, notificações, mensalidade e anamnese', consultoria: 'Relato semanal da consultoria', videos: 'Mande vídeos para o personal avaliar' }
   const whatsapp = online ? null : academia.whatsapp
   const itemBarra = (k) => ({ chave: k, rotulo: rotuloBarra[k] || abas.find(([c]) => c === k)[1], icone: k, ativo: aba === k || (k === 'treino' && aba === 'montar') || (k === 'dieta' && aba === 'montardieta'), badge: badgeAba(k), onClick: () => irPara(k) })
   const badgeAba = (k) => (aba === k ? 0 : k === 'novidades' ? academia.novos : k === 'mensagens' ? naoLidas : 0)
@@ -279,6 +281,7 @@ export default function AreaAluno({ aluno }) {
 
       {aba === 'aulas' && !online && (academia.aulas ? <GradeAulas aulas={academia.aulas} /> : <p className="carregando">Carregando…</p>)}
       {aba === 'novidades' && <NovidadesAcademia academia={academia} />}
+      {aba === 'ranking' && <RankingMes comunidade={comunidade} meuAlunoId={aluno.id} online={online} onCheckin={() => setCheckinAberto(true)} />}
       {aba === 'comunidade' && <Comunidade comunidade={comunidade} meuAlunoId={aluno.id} minhasDatas={diasCheckin} whatsapp={whatsapp} />}
 
       {aba === 'consultoria' && <Consultoria aluno={aluno} />}
@@ -316,7 +319,7 @@ export default function AreaAluno({ aluno }) {
         </div>
       )}
 
-      {!['inicio', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades', 'montar', 'montardieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
+      {!['inicio', 'ranking', 'comunidade', 'conta', 'consultoria', 'videos', 'mensagens', 'dieta', 'aulas', 'novidades', 'montar', 'montardieta'].includes(aba) && !treinos && <p className="carregando">Carregando…</p>}
 
       {aba === 'treino' && treinos && (
         <div className="phone">
@@ -423,6 +426,7 @@ export default function AreaAluno({ aluno }) {
         itens={[
           ...principais.slice(0, 3).map(itemBarra),
           { chave: 'checkin', rotulo: 'Check-in', icone: 'gravar', centro: true, onClick: () => setCheckinAberto(true) },
+          ...(comRanking ? [itemBarra('ranking')] : []),
           itemBarra(quarta),
           { ...itemBarra('voce'), ativo: aba === 'voce' || (!principais.includes(aba) && aba !== 'montar' && aba !== 'montardieta'), badge: abas.filter(([k]) => !principais.includes(k)).reduce((t, [k]) => t + badgeAba(k), 0), figura: <span className="figura-voce"><Avatar nome={aluno.nome} avatar={meuAvatar} fotos={comunidade.dados?.fotos} tamanho={26} ampliar={false} /></span> },
         ]}
