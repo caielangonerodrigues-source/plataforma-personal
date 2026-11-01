@@ -30,7 +30,7 @@ export function Podio({ linhas, fotos, euId, onAbrir }) {
 }
 
 export function ListaRanking({ linhas, fotos, euId, onAbrir, unidade, vazio = 'Ninguém na turma ainda.' }) {
-  let pos = 0 // personais (café com leite) não ocupam posição
+  let pos = 0 // personais (treina junto) não ocupam posição
   return (
     <div className="panel ranking-lista">
       {linhas.map((r) => { const i = r.cafe ? -1 : pos++; return (
