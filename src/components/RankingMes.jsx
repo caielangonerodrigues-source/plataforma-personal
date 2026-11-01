@@ -58,7 +58,7 @@ export default function RankingMes({ comunidade, meuAlunoId, online, onCheckin, 
       .then((lista) => setCheckins((c) => ({ ...c, [periodo]: lista })))
       .catch(() => setCheckins((c) => ({ ...c, [periodo]: [] })))
   }, [periodo, checkins])
-  // Posts dos personais no período: entram no ranking como "café com leite" (aparecem, mas não disputam).
+  // Posts dos personais no período: entram no ranking com o selo "Personal · treina junto" (aparecem, mas não disputam).
   const [postsPersonais, setPostsPersonais] = useState({})
   useEffect(() => {
     if (postsPersonais[periodo]) return
@@ -82,7 +82,7 @@ export default function RankingMes({ comunidade, meuAlunoId, online, onCheckin, 
   const faltam = acima ? acima.dias - tabela[minhaPos].dias + 1 : 0
   const alunos = tabela.map((r) => ({ ...r, valor: r.dias, rotulo: plural(r.dias) }))
   const cafe = atual === 'equipe' ? [] : cafeComLeite(postsPersonais[periodo] || [], dados)
-  // Personais entram na lista na altura dos dias deles, sem posição e fora do pódio.
+  // Personais (fora da disputa) entram na lista na altura dos dias deles, sem posição e fora do pódio.
   const linhas = [...alunos, ...cafe].sort((a, b) => b.valor - a.valor || (a.cafe ? 1 : 0) - (b.cafe ? 1 : 0))
   const temGincana = podeCompartilhar || (gin.gincanas || []).length > 0 // o personal sempre vê (para criar)
   const secoes = [['ranking', 'Ranking'], ...(temGincana ? [['gincana', 'Gincana']] : []), ...(meuAlunoId && !semAmigos ? [['amigos', 'Desafios']] : [])]

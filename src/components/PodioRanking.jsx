@@ -38,7 +38,7 @@ export function ListaRanking({ linhas, fotos, euId, onAbrir, unidade, vazio = 'N
           {...(onAbrir && !r.equipe && !r.cafe ? { role: 'button', tabIndex: 0, style: { cursor: 'pointer' }, onClick: () => onAbrir(r), onKeyDown: (e) => e.key === 'Enter' && onAbrir(r), 'aria-label': `Ver perfil de ${nome(r)}` } : {})}>
           <span className="pos">{i >= 0 ? i + 1 : ''}</span>
           <Figura r={r} fotos={fotos} tamanho={38} />
-          <span className="name" style={{ minWidth: 0 }}>{nome(r)}{r.id === euId && <span className="meta"> ({r.equipe ? 'sua' : 'você'})</span>}{r.cafe && <span className="selo-cafe">Personal · café com leite</span>}{r.detalhe && <span className="meta" style={{ display: 'block', fontWeight: 400, fontSize: 12.5 }}>{r.detalhe}</span>}</span>
+          <span className="name" style={{ minWidth: 0 }}>{nome(r)}{r.id === euId && <span className="meta"> ({r.equipe ? 'sua' : 'você'})</span>}{r.cafe && <span className="selo-cafe">Personal · treina junto</span>}{r.detalhe && <span className="meta" style={{ display: 'block', fontWeight: 400, fontSize: 12.5 }}>{r.detalhe}</span>}</span>
           <span><span className="dias">{r.valor}</span> <span className="meta">{unidade(r.valor)}</span></span>
         </div>
       ) })}
