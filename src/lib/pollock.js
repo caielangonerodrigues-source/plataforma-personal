@@ -15,12 +15,12 @@ export const DOBRA_NOME = Object.fromEntries([...DOBRAS, ...DOBRAS_EXTRAS])
 
 // Perímetros da avaliação, em cm (coluna medidas). Cintura, quadril, braço e coxa também vão nas colunas antigas.
 export const PERIMETROS = [
-  ['pescoco', 'Pescoço'], ['ombros', 'Ombros'], ['peitoral', 'Peitoral'], ['cintura', 'Cintura'], ['abdomen', 'Abdômen'],
-  ['quadril', 'Quadril'], ['braco_d', 'Braço dir.'], ['braco_e', 'Braço esq.'], ['antebraco_d', 'Antebraço dir.'], ['antebraco_e', 'Antebraço esq.'],
+  ['pescoco', 'Pescoço'], ['ombros', 'Ombros'], ['peitoral', 'Peitoral'], ['costas', 'Costas'], ['cintura', 'Cintura'],
+  ['abdomen', 'Abdômen'], ['quadril', 'Quadril'], ['braco_d', 'Braço dir.'], ['braco_e', 'Braço esq.'], ['antebraco_d', 'Antebraço dir.'], ['antebraco_e', 'Antebraço esq.'],
   ['coxa_d', 'Coxa dir.'], ['coxa_e', 'Coxa esq.'], ['panturrilha_d', 'Panturrilha dir.'], ['panturrilha_e', 'Panturrilha esq.'],
 ]
 // Tronco numa coluna só; membros em direito e esquerdo.
-export const PERIMETROS_TRONCO = ['pescoco', 'ombros', 'peitoral', 'cintura', 'abdomen', 'quadril']
+export const PERIMETROS_TRONCO = ['pescoco', 'ombros', 'peitoral', 'costas', 'cintura', 'abdomen', 'quadril']
 export const PERIMETROS_PARES = [['braco', 'Braço'], ['antebraco', 'Antebraço'], ['coxa', 'Coxa'], ['panturrilha', 'Panturrilha']]
 export const PERIMETRO_NOME = Object.fromEntries(PERIMETROS)
 
